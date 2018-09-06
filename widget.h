@@ -8,6 +8,9 @@
 #include <QLabel>
 #include <QLineEdit>
 
+#include "TableDev/tabledevice.h"
+#include "GyroDev/gyrodevice.h"
+
 class Widget : public QMainWindow
 {
     Q_OBJECT
@@ -16,24 +19,32 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
 signals:
-
+    void onWindowClosed();
 protected:
-
+    void closeEvent(QCloseEvent *event);
 public slots:
 
 private:
     void CreateActions();
+    void initActionConnections();
     void CreateMenus();
     void CreateToolBars();
     void CreateStatusBar();
     void CreateWidgets();
 
-    QAction *DeltaPsProtocol;
-    QAction *Rate2Protocol;
-    QAction *DadvttProtocol;
+    QAction *DeltaPsProtocolAction;
+    QAction *Rate2ProtocolAction;
+    QAction *DadvttProtocolAction;
+
+    QAction *OneMeasurementAction;
+    QAction *MultiMeasurementAction;
+
+    QAction *ConfigTabelDevAction;
+    QAction *ConfigGyroDevAction;
 
     QMenu *fileMenu;
-    QMenu *remoteMenu;
+
+    QMenu *configMenu;
 
     QLabel *currValueLabel;
     QLabel *meanValueLabel;
@@ -50,10 +61,13 @@ private:
     QLineEdit *maxValueLineEdit;
     QLineEdit *skoLineEdit;
 
-    QLineEdit *timeAcculateLineEdit;
+    QLineEdit *timeAccumulateLineEdit;
     QLineEdit *azimuthMeasureLineEdit;
 
     QWidget *measureWidget;
+
+    TableDevice *ConfigTableDevice;
+    GyroDevice *ConfigGyroDevice;
 
 };
 

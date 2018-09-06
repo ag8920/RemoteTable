@@ -42,10 +42,20 @@ OBJECTS_DIR=obj
 
 SOURCES += \
         main.cpp \
-        widget.cpp
+        widget.cpp \
+    TableDev/tabledevice.cpp \
+    GyroDev/gyrodevice.cpp \
+    comport/settingsdialog/settingsdialog.cpp \
+    comport/comport.cpp
+
 
 HEADERS += \
-        widget.h
+        widget.h \
+    TableDev/tabledevice.h \
+    GyroDev/gyrodevice.h \
+    comport/settingsdialog/settingsdialog.h \
+    comport/comport.h
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -54,3 +64,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 #RC_FILE = resources.rc
+
+FORMS += \
+    comport/settingsdialog/settingsdialog.ui
