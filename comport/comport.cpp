@@ -50,9 +50,10 @@ void comPort::ConnectPort(SettingsDialog::Settings *p)
         {
             if(thisPort.isOpen())
             {
-                isConnectedPort(p->name,p->baudRate,
-                                p->dataBits,p->parity,
-                                p->stopBits,p->flowControl);
+                isConnectedPort(tr("Открыт порт: %1, %2, %3, %4, %5, %6")
+                                .arg(p->name).arg(p->baudRate)
+                                .arg(p->dataBits).arg(p->parity)
+                                .arg(p->stopBits).arg(p->flowControl));
             }
             else
             {
@@ -76,7 +77,7 @@ bool comPort::DisconnectPort() //отключаем порт
     if(thisPort.isOpen())
     {
         thisPort.close();
-        error_(SettingsPort.name.toLocal8Bit() + " >> Закрыт!\r");
+        isNotConnectedPort(tr("Com-порт закрыт"));
         return true;
     }
     else return false;
@@ -93,7 +94,7 @@ void comPort::handleError(QSerialPort::SerialPortError error) //проверка
     }
 }
 
-void comPort::WriteToPort(QByteArray data) //запись данных в порт
+void comPort::WriteToPort(const QByteArray &data) //запись данных в порт
 {
     if(thisPort.isOpen())
         thisPort.write(data);

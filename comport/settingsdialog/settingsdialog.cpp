@@ -28,6 +28,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
               this, SLOT(showPortInfo(int)));
       connect(ui->baudRateBox, SIGNAL(currentIndexChanged(int)),
               this, SLOT(checkCustomBaudRatePolicy(int)));
+      connect(ui->updateInfoButton,SIGNAL(clicked()),
+              this, SLOT( fillPortsInfo()));
 
       fillPortsParameters();
       fillPortsInfo();

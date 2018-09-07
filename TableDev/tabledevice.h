@@ -1,6 +1,7 @@
 #ifndef TABLEDEVICE_H
 #define TABLEDEVICE_H
 
+#include <QMainWindow>
 #include <QWidget>
 #include <QComboBox>
 #include <QtGui>
@@ -11,17 +12,31 @@
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QLayout>
+#include <QStatusBar>
 
-class TableDevice : public QWidget
+#include "../comport/comport.h"
+#include "../comport/settingsdialog/settingsdialog.h"
+
+class TableDevice : public QMainWindow
 {
     Q_OBJECT
 public:
     explicit TableDevice(QWidget *parent = nullptr);
+signals:
+    void ConnectComPort(SettingsDialog::Settings *p);
+    void DisconnectComPort();
+public slots:
+    void OpenSerialPort();
+    void isConnectedComPort(const QString msg);
+    void isNotConnectedComPort(const QString msg);
+    void CloseSerialPort();
 
 private:
 
     void CreateWidgets();
+    void CreateConnections();
 
+    QWidget *MainWidget;
     QComboBox *TypeTableComboBox;
     QLabel *TypeTableLabel;
 
@@ -47,7 +62,8 @@ private:
     QPushButton *SendCommandButton;
     QLineEdit *SendCommandLineEdit;
 
-
+    SettingsDialog *SettingsComPort;
+    comPort *DeviceComPort;
 };
 
 #endif // TABLEDEVICE_H

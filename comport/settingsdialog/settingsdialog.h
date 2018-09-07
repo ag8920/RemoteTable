@@ -37,10 +37,9 @@ private slots:
     void showPortInfo(int idx);
     void apply();
     void checkCustomBaudRatePolicy(int idx);
-
-private:
-    void fillPortsParameters();
     void fillPortsInfo();
+private:
+    void fillPortsParameters();    
     void updateSettings();
 
 private:

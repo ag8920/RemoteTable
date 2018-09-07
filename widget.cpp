@@ -47,9 +47,9 @@ void Widget::CreateActions()
 
     MultiMeasurementAction = new QAction(tr("Выполнить серию измерений"));
 
-    ConfigTabelDevAction = new QAction(tr("Настройка поворотного устройства"));
+    ConfigTabelDevAction = new QAction(tr("Поворотное устройство"));
 
-    ConfigGyroDevAction = new QAction(tr("Настройка гироскопического устройства"));
+    ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"));
 }
 
 void Widget::initActionConnections()
@@ -64,14 +64,14 @@ void Widget::initActionConnections()
 void Widget::CreateMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&Файл"));
-    fileMenu->addAction(DeltaPsProtocolAction);
-    fileMenu->addAction(Rate2ProtocolAction);
-    fileMenu->addAction(DadvttProtocolAction);
-    fileMenu->addSeparator();
+//    fileMenu->addAction(DeltaPsProtocolAction);
+//    fileMenu->addAction(Rate2ProtocolAction);
+//    fileMenu->addAction(DadvttProtocolAction);
+//    fileMenu->addSeparator();
     fileMenu->addAction(OneMeasurementAction);
     fileMenu->addAction(MultiMeasurementAction);
 
-    configMenu = menuBar()->addMenu(tr("&Настройки"));
+    configMenu = menuBar()->addMenu(tr("&Инструменты"));
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
 }
@@ -172,7 +172,7 @@ void Widget::CreateWidgets()
     */
     measureWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
                                  "border-width: 1px;"
-                                 "min-height: 1em;max-height: 2em; min-width:5em;max-width:5em}");
+                                 "min-height: 1.2em;max-height: 2em; min-width:5em;max-width:5em}");
 
 
     measureWidget->show();

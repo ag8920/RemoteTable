@@ -1,12 +1,40 @@
 #include "gyrodevice.h"
 
-GyroDevice::GyroDevice(QWidget *parent) : QWidget(parent)
+GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 {
     SettingsComPort = new SettingsDialog;
+    DeviceComPort = new comPort;
     CreateWidgets();
-    Connections();
+    CreateConnections();
 }
-
+//-----------------------------------------------------------
+void GyroDevice::OpenSerialPort()
+{
+    SettingsDialog::Settings p=SettingsComPort->settings();
+    emit ConnectComPort(&p);
+}
+//-----------------------------------------------------------
+void GyroDevice::CloseSerialPort()
+{
+    emit DisconnectComPort();
+}
+//-----------------------------------------------------------
+void GyroDevice::isConnectedComPort(const QString msg)
+{
+    this->statusBar()->showMessage(msg,0);
+    SettingsPortButton->setEnabled(false);
+    OnComPortButton->setEnabled(false);
+    OffComPortButton->setEnabled(true);
+}
+//-----------------------------------------------------------
+void GyroDevice::isNotConnectedComPort(const QString msg)
+{
+    this->statusBar()->showMessage(msg,0);
+    SettingsPortButton->setEnabled(true);
+    OnComPortButton->setEnabled(true);
+    OffComPortButton->setEnabled(false);
+}
+//-----------------------------------------------------------
 void GyroDevice::CreateWidgets()
 {
     TypeProtocolComboBox=new QComboBox;
@@ -32,8 +60,11 @@ void GyroDevice::CreateWidgets()
     ValueLabel->setBuddy(ValueLineEdit);
 
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
+    SettingsPortButton->setEnabled(true);
     OnComPortButton=new QPushButton(tr("Подключить"));
+    OnComPortButton->setEnabled(true);
     OffComPortButton=new QPushButton(tr("Отключить"));
+    OffComPortButton->setEnabled(false);
 
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
 
@@ -62,14 +93,27 @@ void GyroDevice::CreateWidgets()
     MainLayout->addWidget(GyroSettingsBox,0,0);
     MainLayout->addLayout(RightLayout,0,1);
 
-
-    this->setLayout(MainLayout);
+    MainWidget=new QWidget;
+    MainWidget->setLayout(MainLayout);
+    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
+                              "border-width: 1px;"
+                              "min-height: 1.2em;max-height: 2em; min-width:5em;max-width:5em}");
+    setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
-
+    this->statusBar()->showMessage(tr("Выполните настройку Com-порта"));
 
 }
-
-void GyroDevice::Connections()
+//-----------------------------------------------------------
+void GyroDevice::CreateConnections()
 {
     connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
+
+
+    connect(OnComPortButton,SIGNAL(pressed()),this,SLOT(OpenSerialPort()));
+    connect(OffComPortButton,&QPushButton::pressed,this,&GyroDevice::CloseSerialPort);
+    connect(this,&GyroDevice::ConnectComPort,DeviceComPort,&comPort::ConnectPort);
+    connect(DeviceComPort,&comPort::isConnectedPort,this,&GyroDevice::isConnectedComPort);
+    connect(DeviceComPort,&comPort::isNotConnectedPort,this,&GyroDevice::isNotConnectedComPort);
+    connect(this,&GyroDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
+
 }

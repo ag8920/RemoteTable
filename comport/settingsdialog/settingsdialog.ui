@@ -192,8 +192,8 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>139</width>
-      <height>136</height>
+      <width>142</width>
+      <height>146</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -318,6 +318,13 @@
        </size>
       </property>
      </spacer>
+    </item>
+    <item>
+     <widget class="QPushButton" name="updateInfoButton">
+      <property name="text">
+       <string>update</string>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QPushButton" name="applyButton">
