@@ -13,6 +13,7 @@
 #include <QGroupBox>
 #include <QLayout>
 #include <QStatusBar>
+#include <QThread>
 
 #include "../comport/comport.h"
 #include "../comport/settingsdialog/settingsdialog.h"
@@ -22,9 +23,13 @@ class TableDevice : public QMainWindow
     Q_OBJECT
 public:
     explicit TableDevice(QWidget *parent = nullptr);
+    ~TableDevice();
 signals:
-    void ConnectComPort(SettingsDialog::Settings *p);
+    void ConnectComPort(QString name,int baudrate,
+                        int DataBits,int Parity,
+                        int StopBits,int FlowControl);
     void DisconnectComPort();
+    void StopAll();
 public slots:
     void OpenSerialPort();
     void isConnectedComPort(const QString msg);
@@ -35,6 +40,8 @@ private:
 
     void CreateWidgets();
     void CreateConnections();
+    void AddThreads();
+    void StopThread();
 
     QWidget *MainWidget;
     QComboBox *TypeTableComboBox;
@@ -64,6 +71,7 @@ private:
 
     SettingsDialog *SettingsComPort;
     comPort *DeviceComPort;
+    QThread *ComPortThread;
 };
 
 #endif // TABLEDEVICE_H

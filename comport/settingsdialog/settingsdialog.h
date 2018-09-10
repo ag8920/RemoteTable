@@ -33,6 +33,8 @@ public:
     ~SettingsDialog();
 
     Settings settings()const;
+signals:
+    void isUpdateSettings();
 private slots:
     void showPortInfo(int idx);
     void apply();

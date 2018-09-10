@@ -2,21 +2,45 @@
 
 GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 {
+    updateSettingsPort=0;
     SettingsComPort = new SettingsDialog;
     DeviceComPort = new comPort;
+    ComPortThread = new QThread;
+    ConsoleWidget = new Console;
+
+    AddThread();
     CreateWidgets();
     CreateConnections();
+}
+//-----------------------------------------------------------
+GyroDevice::~GyroDevice()
+{
+//    this->StopThreads();
+    ComPortThread->quit();
 }
 //-----------------------------------------------------------
 void GyroDevice::OpenSerialPort()
 {
     SettingsDialog::Settings p=SettingsComPort->settings();
-    emit ConnectComPort(&p);
+    QString name=static_cast<QString>(p.name);
+    int baudRate=static_cast<int>(p.baudRate);
+    int dataBits=static_cast<int>(p.dataBits);
+    int parity=static_cast<int>(p.parity);
+    int stopBits=static_cast<int>(p.stopBits);
+    int flowControl=static_cast<int>(p.flowControl);
+    //emit ConnectComPort(p);
+    emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
 //-----------------------------------------------------------
 void GyroDevice::CloseSerialPort()
 {
     emit DisconnectComPort();
+}
+//-----------------------------------------------------------
+void GyroDevice::UpdateSettingsComPort()
+{
+    OnComPortButton->setEnabled(true);
+    updateSettingsPort=1;
 }
 //-----------------------------------------------------------
 void GyroDevice::isConnectedComPort(const QString msg)
@@ -25,18 +49,24 @@ void GyroDevice::isConnectedComPort(const QString msg)
     SettingsPortButton->setEnabled(false);
     OnComPortButton->setEnabled(false);
     OffComPortButton->setEnabled(true);
+//    ConsoleWidget->setEnabled(true);
+
 }
 //-----------------------------------------------------------
 void GyroDevice::isNotConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);
-    OnComPortButton->setEnabled(true);
+    if(updateSettingsPort)
+        OnComPortButton->setEnabled(true);
     OffComPortButton->setEnabled(false);
+//    ConsoleWidget->setEnabled(false);
+
 }
 //-----------------------------------------------------------
 void GyroDevice::CreateWidgets()
 {
+    ConsoleWidget->setEnabled(true);
     TypeProtocolComboBox=new QComboBox;
     TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
     TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
@@ -62,9 +92,12 @@ void GyroDevice::CreateWidgets()
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     SettingsPortButton->setEnabled(true);
     OnComPortButton=new QPushButton(tr("Подключить"));
-    OnComPortButton->setEnabled(true);
+    OnComPortButton->setEnabled(false);
     OffComPortButton=new QPushButton(tr("Отключить"));
     OffComPortButton->setEnabled(false);
+
+    ClearConsoleButton=new QPushButton(tr("Очистить"));
+    ClearConsoleButton->setEnabled(true);
 
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
 
@@ -88,13 +121,18 @@ void GyroDevice::CreateWidgets()
     RightLayout->addWidget(OnComPortButton);
     RightLayout->addWidget(OffComPortButton);
     RightLayout->addStretch();
+    RightLayout->addWidget(ClearConsoleButton);
 
     QGridLayout *MainLayout=new QGridLayout;
     MainLayout->addWidget(GyroSettingsBox,0,0);
     MainLayout->addLayout(RightLayout,0,1);
 
+    QVBoxLayout *GeneralLayout=new QVBoxLayout;
+    GeneralLayout->addLayout(MainLayout);
+    GeneralLayout->addWidget(ConsoleWidget);
+
     MainWidget=new QWidget;
-    MainWidget->setLayout(MainLayout);
+    MainWidget->setLayout(GeneralLayout);
     MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
                               "border-width: 1px;"
                               "min-height: 1.2em;max-height: 2em; min-width:5em;max-width:5em}");
@@ -107,7 +145,8 @@ void GyroDevice::CreateWidgets()
 void GyroDevice::CreateConnections()
 {
     connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
-
+    connect(SettingsComPort,&SettingsDialog::isUpdateSettings,
+            this,&GyroDevice::UpdateSettingsComPort);
 
     connect(OnComPortButton,SIGNAL(pressed()),this,SLOT(OpenSerialPort()));
     connect(OffComPortButton,&QPushButton::pressed,this,&GyroDevice::CloseSerialPort);
@@ -116,4 +155,32 @@ void GyroDevice::CreateConnections()
     connect(DeviceComPort,&comPort::isNotConnectedPort,this,&GyroDevice::isNotConnectedComPort);
     connect(this,&GyroDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
 
+    connect(DeviceComPort,&comPort::dataOutput,
+            ConsoleWidget,&Console::putData);
+    connect(ClearConsoleButton,&QPushButton::pressed,
+            ConsoleWidget,&Console::clear);
+}
+//-----------------------------------------------------------
+void GyroDevice::AddThread()
+{
+    DeviceComPort->moveToThread(ComPortThread); //помещаем класс в поток
+    DeviceComPort->thisPort.moveToThread(ComPortThread);//помещаем порт в поток
+
+    connect(ComPortThread,&QThread::started,
+            DeviceComPort,&comPort::processPort);
+    connect(DeviceComPort,&comPort::finishedPort,
+            ComPortThread,&QThread::quit);
+    connect(ComPortThread,&QThread::finished,
+            DeviceComPort,&comPort::deleteLater);
+    connect(DeviceComPort,&comPort::finishedPort,
+            ComPortThread,&QThread::deleteLater);
+    connect(this,&GyroDevice::StopAll,
+            DeviceComPort,&comPort::Stop);
+
+    ComPortThread->start(QThread::TimeCriticalPriority);
+}
+//-----------------------------------------------------------
+void GyroDevice::StopThreads()
+{
+    emit StopAll();
 }

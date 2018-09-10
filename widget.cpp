@@ -28,6 +28,7 @@ Widget::Widget(QWidget *parent)
 Widget::~Widget()
 {
     delete ConfigTableDevice;
+    delete ConfigGyroDevice;
 }
 
 void Widget::closeEvent(QCloseEvent *event)

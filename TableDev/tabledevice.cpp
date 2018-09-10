@@ -5,14 +5,29 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 {
     SettingsComPort = new SettingsDialog;
     DeviceComPort = new comPort;
+    ComPortThread = new QThread;
+    AddThreads();
     CreateWidgets();
     CreateConnections();
+
+}
+
+TableDevice::~TableDevice()
+{
+    ComPortThread->quit();
 }
 //-----------------------------------------------------------
 void TableDevice::OpenSerialPort()
 {
     SettingsDialog::Settings p=SettingsComPort->settings();
-    emit ConnectComPort(&p);
+    QString name=static_cast<QString>(p.name);
+    int baudRate=static_cast<int>(p.baudRate);
+    int dataBits=static_cast<int>(p.dataBits);
+    int parity=static_cast<int>(p.parity);
+    int stopBits=static_cast<int>(p.stopBits);
+    int flowControl=static_cast<int>(p.flowControl);
+    //emit ConnectComPort(p);
+    emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
 //-----------------------------------------------------------
 void TableDevice::CloseSerialPort()
@@ -138,5 +153,30 @@ void TableDevice::CreateConnections()
     connect(DeviceComPort,&comPort::isConnectedPort,this,&TableDevice::isConnectedComPort);
     connect(DeviceComPort,&comPort::isNotConnectedPort,this,&TableDevice::isNotConnectedComPort);
     connect(this,&TableDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
+}
+
+void TableDevice::AddThreads()
+{
+
+    DeviceComPort->moveToThread(ComPortThread); //помещаем класс в поток
+    DeviceComPort->thisPort.moveToThread(ComPortThread);//помещаем порт в поток
+
+    connect(ComPortThread,&QThread::started,
+            DeviceComPort,&comPort::processPort);
+    connect(DeviceComPort,&comPort::finishedPort,
+            ComPortThread,&QThread::quit);
+    connect(ComPortThread,&QThread::finished,
+            DeviceComPort,&comPort::deleteLater);
+    connect(DeviceComPort,&comPort::finishedPort,
+            ComPortThread,&QThread::deleteLater);
+//    connect(this,&TableDevice::StopAll,
+//            DeviceComPort,&comPort::Stop);
+
+    ComPortThread->start(QThread::TimeCriticalPriority);
+}
+
+void TableDevice::StopThread()
+{
+    emit StopAll();
 }
 

@@ -13,27 +13,36 @@
 #include <QGroupBox>
 #include <QLayout>
 #include <QStatusBar>
+#include <QThread>
 
 #include "../comport/comport.h"
 #include "../comport/settingsdialog/settingsdialog.h"
+#include "../Console/console.h"
 
 class GyroDevice : public QMainWindow
 {
     Q_OBJECT
 public:
     explicit GyroDevice(QWidget *parent = nullptr);
-
+    ~GyroDevice();
 signals:
-    void ConnectComPort(SettingsDialog::Settings *p);
+    void ConnectComPort(QString name,int baudrate,
+                        int DataBits,int Parity,
+                        int StopBits,int FlowControl);
+    //(SettingsDialog::Settings p);
     void DisconnectComPort();
+    void StopAll();
 public slots:
     void OpenSerialPort();
     void isConnectedComPort(const QString msg);
     void isNotConnectedComPort(const QString msg);
     void CloseSerialPort();
+    void UpdateSettingsComPort();
 private:
     void CreateWidgets();
     void CreateConnections();
+    void AddThread();
+    void StopThreads();
 
     QWidget *MainWidget;
     QLabel *TypeProtocolLabel;
@@ -50,11 +59,17 @@ private:
     QPushButton *SettingsPortButton;
     QPushButton *OnComPortButton;
     QPushButton *OffComPortButton;
+    QPushButton *ClearConsoleButton;
 
     QPushButton *AdditionalParamButton;
 
 
     SettingsDialog *SettingsComPort;
     comPort *DeviceComPort;
+    QThread *ComPortThread;
+
+    Console *ConsoleWidget;
+
+    unsigned char updateSettingsPort;
 };
 #endif // GYRODEVICE_H

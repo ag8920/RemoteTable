@@ -46,7 +46,8 @@ SOURCES += \
     TableDev/tabledevice.cpp \
     GyroDev/gyrodevice.cpp \
     comport/settingsdialog/settingsdialog.cpp \
-    comport/comport.cpp
+    comport/comport.cpp \
+    Console/console.cpp
 
 
 HEADERS += \
@@ -54,7 +55,8 @@ HEADERS += \
     TableDev/tabledevice.h \
     GyroDev/gyrodevice.h \
     comport/settingsdialog/settingsdialog.h \
-    comport/comport.h
+    comport/comport.h \
+    Console/console.h
 
 
 # Default rules for deployment.

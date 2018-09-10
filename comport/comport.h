@@ -31,14 +31,15 @@ signals:
 
     void finishedPort(); //сигнал закрытия класса
     void error_(QString err); //сигнал ошибок порта
-    void outPort(QByteArray data);//сигнал вывода полученных данных
+    void dataOutput(QByteArray data);//сигнал вывода полученных данных
 
 public slots:
     bool DisconnectPort(); //слот отключения порта
-    void ConnectPort(SettingsDialog::Settings *p);
+    void ConnectPort(QString name, int baudrate, int DataBits, int Parity, int StopBits, int FlowControl);
     void processPort();//тело
     void WriteToPort(const QByteArray &data);//слот отправки данных в порт
     void ReadInPort();//слот чтения данных из порта
+    void Stop();
 private slots:
     void handleError(QSerialPort::SerialPortError error);//слот обработки ошибок
 };
