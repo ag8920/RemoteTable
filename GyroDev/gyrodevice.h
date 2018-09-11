@@ -18,6 +18,7 @@
 #include "../comport/comport.h"
 #include "../comport/settingsdialog/settingsdialog.h"
 #include "../Console/console.h"
+#include "../GyroDev/gyromeasure.h"
 
 class GyroDevice : public QMainWindow
 {
@@ -69,6 +70,8 @@ private:
     QThread *ComPortThread;
 
     Console *ConsoleWidget;
+
+    GyroMeasure *Measure;
 
     unsigned char updateSettingsPort;
 };

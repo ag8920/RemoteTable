@@ -17,8 +17,8 @@ void Console::putData(const QByteArray &data)
 {
     QString str=static_cast<QString>(data);
 
-    insertPlainText(data.toHex()+"\n");
-
+    insertPlainText(data.toHex());
+    insertPlainText("\n");
     QScrollBar *bar=verticalScrollBar();
     bar->setValue(bar->maximum());
 

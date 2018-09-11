@@ -8,6 +8,8 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
 
+    Measure = new GyroMeasure;
+
     AddThread();
     CreateWidgets();
     CreateConnections();
@@ -159,6 +161,9 @@ void GyroDevice::CreateConnections()
             ConsoleWidget,&Console::putData);
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
+
+    connect(DeviceComPort,&comPort::dataOutput,
+            Measure,&GyroMeasure::GetData);
 }
 //-----------------------------------------------------------
 void GyroDevice::AddThread()

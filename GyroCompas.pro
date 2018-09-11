@@ -47,7 +47,9 @@ SOURCES += \
     GyroDev/gyrodevice.cpp \
     comport/settingsdialog/settingsdialog.cpp \
     comport/comport.cpp \
-    Console/console.cpp
+    Console/console.cpp \
+    GyroDev/gyromeasure.cpp \
+    comport/slipprotocol.cpp
 
 
 HEADERS += \
@@ -56,7 +58,9 @@ HEADERS += \
     GyroDev/gyrodevice.h \
     comport/settingsdialog/settingsdialog.h \
     comport/comport.h \
-    Console/console.h
+    Console/console.h \
+    GyroDev/gyromeasure.h \
+    comport/slipprotocol.h
 
 
 # Default rules for deployment.

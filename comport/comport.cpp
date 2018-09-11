@@ -8,7 +8,7 @@ comPort::comPort(QObject *parent) :
 {
 
 }
-
+//-----------------------------------------------------------
 comPort::~comPort()
 {
     qDebug("comPort::~comPort()");
@@ -20,15 +20,18 @@ comPort::~comPort()
 void comPort::processPort() //выполняется при старте класса
 {
     qDebug("comPort::processPort()");
-    connect(&thisPort,SIGNAL(error(QSerialPort::SerialPortError)),this,SLOT(handleError(QSerialPort::SerialPortError)));
-    connect(&thisPort,SIGNAL(readyRead()),this,SLOT(ReadInPort())); //подключаем чтение с порта по сигналу readyread()
+    connect(&thisPort,SIGNAL(error(QSerialPort::SerialPortError)),
+            this,SLOT(handleError(QSerialPort::SerialPortError)));
+    connect(&thisPort,SIGNAL(readyRead()),
+            this,SLOT(ReadInPort())); //подключаем чтение с порта по сигналу readyread()
 }
-
-void comPort::ConnectPort(QString name, int baudrate, int DataBits, int Parity, int StopBits, int FlowControl)
+//-----------------------------------------------------------
+void comPort::ConnectPort(QString name, int baudrate, int DataBits,
+                          int Parity, int StopBits, int FlowControl)
 {
     qDebug("comPort::ConnectPort()");
     if(thisPort.isOpen()){
-        isNotConnectedPort(tr("Порт уже открыт"));
+        isNotConnectedPort(tr("%1 уже открыт").arg(thisPort.portName()));
         return;
     }
 
@@ -71,20 +74,20 @@ void comPort::ConnectPort(QString name, int baudrate, int DataBits, int Parity, 
         isNotConnectedPort(tr("Ошибка открытия порта"));
     }
 }
-
+//-----------------------------------------------------------
 bool comPort::DisconnectPort() //отключаем порт
 {
     qDebug("comPort::DisconnectedPort()");
     if(thisPort.isOpen())
     {
         thisPort.close();
-        isNotConnectedPort(tr("Com-порт закрыт"));
+        isNotConnectedPort(tr("%1 закрыт").arg(thisPort.portName()));
         return true;
     }
     else return false;
 
 }
-
+//-----------------------------------------------------------
 void comPort::handleError(QSerialPort::SerialPortError error) //проверка ошибок в работе
 {
     if((thisPort.isOpen())
@@ -94,20 +97,53 @@ void comPort::handleError(QSerialPort::SerialPortError error) //проверка
         DisconnectPort();
     }
 }
+//-----------------------------------------------------------
+char comPort::SlipDecode(QByteArray b, QByteArray &b2)
+{
+    if(b.contains(S_END)){
+        int j=0;
+        while (b.at(j)!=S_END) {
+           if(b.at(j)==S_ESC && b.at(j+1)!=S_ESC_END && b.at(j+1)!=S_ESC_ESC)
+               return 2;
+           if(b.at(j)==S_ESC && b.at(j+1)!=S_ESC_END){
+              b2.append(S_END);
+               j++;
+           }
+           else if(b.at(j)==S_ESC && b.at(j+1)==S_ESC_ESC){
+               b2.append(S_ESC);
+               j++;
+           }
+           else
+               b2.append(b.at(j));
+           j++;
+        } return 1;
+    }
+    else
+        return  0;
+}
 
+//-----------------------------------------------------------
 void comPort::WriteToPort(const QByteArray &data) //запись данных в порт
 {
     if(thisPort.isOpen())
         thisPort.write(data);
 }
-
+//-----------------------------------------------------------
 void comPort::ReadInPort() //чтение данных из порта
 {
-    QByteArray data;
-    data.append(thisPort.readAll());
-    dataOutput(data);
-}
+    QByteArray inputData;
+    inputData.append(thisPort.readAll());
+    dataOutput(inputData);
 
+//    QByteArray decodeInputData;
+//    char r=SlipDecode(inputData,decodeInputData);
+//    dataOutput(decodeInputData);
+//    if(r==1){
+//        //разбор пакета
+//        qDebug("SlipDecode is Ok");
+//    }
+}
+//-----------------------------------------------------------
 void comPort::Stop()
 {
     qDebug("comPort::stop()");
