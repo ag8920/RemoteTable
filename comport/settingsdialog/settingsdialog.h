@@ -17,7 +17,7 @@ class SettingsDialog : public QWidget
 public:
     struct Settings {
             QString name;
-            qint32 baudRate;
+            int baudRate;
             QString stringBaudRate;
             QSerialPort::DataBits dataBits;
             QString stringDataBits;

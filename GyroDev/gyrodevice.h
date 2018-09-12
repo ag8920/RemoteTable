@@ -19,6 +19,7 @@
 #include "../comport/settingsdialog/settingsdialog.h"
 #include "../Console/console.h"
 #include "../GyroDev/gyromeasure.h"
+#include "../ModelData/tablemodel.h"
 
 class GyroDevice : public QMainWindow
 {
@@ -39,7 +40,10 @@ public slots:
     void isNotConnectedComPort(const QString msg);
     void CloseSerialPort();
     void UpdateSettingsComPort();
+    void UpdateCountPacketLineEdit(const QString packet);
+    void AdditionalParamsVisible();
 private:
+    void CreateTable();
     void CreateWidgets();
     void CreateConnections();
     void AddThread();
@@ -72,6 +76,11 @@ private:
     Console *ConsoleWidget;
 
     GyroMeasure *Measure;
+
+    TableModel *m_model;
+    MyDelegate *m_delegate;
+    QTableView *m_tableView;
+    QWidget *tableWidget;
 
     unsigned char updateSettingsPort;
 };

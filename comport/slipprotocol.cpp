@@ -7,10 +7,14 @@ const char S_ESC_END = static_cast<char>(0xDC); // ESC ESC_END means END data
 const char S_ESC_ESC = static_cast<char>(0xDD); // ESC ESC_ESC means ESC data
 
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 SlipProtocol::SlipProtocol(QObject *parent) : QObject(parent)
 {
 
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void SlipProtocol::GetSlipByteArray(QByteArray slipInputData)
 {
@@ -19,6 +23,8 @@ void SlipProtocol::GetSlipByteArray(QByteArray slipInputData)
     if(r==1)
         emit outDecodeArray(decodeByteArray);
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
 {

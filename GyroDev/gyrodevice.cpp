@@ -1,5 +1,7 @@
 #include "gyrodevice.h"
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 {
     updateSettingsPort=0;
@@ -10,16 +12,26 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 
     Measure = new GyroMeasure;
 
+    tableWidget=new QWidget(this);
+    m_tableView=new QTableView(tableWidget);
+    m_model=new TableModel(this);
+    m_delegate=new MyDelegate(this);
+
     AddThread();
     CreateWidgets();
+    CreateTable();
     CreateConnections();
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 GyroDevice::~GyroDevice()
 {
 //    this->StopThreads();
     ComPortThread->quit();
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void GyroDevice::OpenSerialPort()
 {
@@ -34,16 +46,39 @@ void GyroDevice::OpenSerialPort()
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void GyroDevice::CloseSerialPort()
 {
     emit DisconnectComPort();
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void GyroDevice::UpdateSettingsComPort()
 {
     OnComPortButton->setEnabled(true);
     updateSettingsPort=1;
 }
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void GyroDevice::UpdateCountPacketLineEdit(const QString packet)
+{
+    CountPacketLineEdit->setText(packet);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void GyroDevice::AdditionalParamsVisible()
+{
+    if(AdditionalParamButton->isChecked())
+        m_tableView->show();
+    else
+        m_tableView->hide();
+}
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void GyroDevice::isConnectedComPort(const QString msg)
 {
@@ -55,6 +90,8 @@ void GyroDevice::isConnectedComPort(const QString msg)
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void GyroDevice::isNotConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
@@ -65,6 +102,20 @@ void GyroDevice::isNotConnectedComPort(const QString msg)
 //    ConsoleWidget->setEnabled(false);
 
 }
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void GyroDevice::CreateTable()
+{
+    m_tableView->setModel(m_model);
+    m_tableView->setSelectionModel(m_tableView->selectionModel());
+    m_tableView->setItemDelegate(m_delegate);
+    m_tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_tableView->hide();
+    //m_tableView->setEditTriggers(QAbstractItemView::DoubleClicked);
+}
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void GyroDevice::CreateWidgets()
 {
@@ -80,6 +131,7 @@ void GyroDevice::CreateWidgets()
     CountPacketLineEdit->setReadOnly(true);
     CountPacketLabel=new QLabel(tr("число пакетов:"));
     CountPacketLabel->setBuddy(CountPacketLineEdit);
+
 
     CountErrorLineEdit=new QLineEdit;
     CountErrorLineEdit->setReadOnly(true);
@@ -102,8 +154,9 @@ void GyroDevice::CreateWidgets()
     ClearConsoleButton->setEnabled(true);
 
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
+    AdditionalParamButton->setCheckable(true);
 
-    QGroupBox *GyroSettingsBox=new QGroupBox(tr("Настройка гироскопического устройства"));
+    QGroupBox *GyroSettingsBox=new QGroupBox(tr("Параметры гироскопического устройства"));
 
     QGridLayout *LeftLayout=new QGridLayout;
     LeftLayout->addWidget(TypeProtocolLabel,0,0);
@@ -116,7 +169,10 @@ void GyroDevice::CreateWidgets()
     LeftLayout->addWidget(ValueLineEdit,3,1);
     LeftLayout->addWidget(AdditionalParamButton,4,0);
 
-    GyroSettingsBox->setLayout(LeftLayout);
+    QVBoxLayout *LeftAll=new QVBoxLayout;
+    LeftAll->addLayout(LeftLayout);
+    LeftAll->addWidget(m_tableView);
+    GyroSettingsBox->setLayout(LeftAll);
 
     QVBoxLayout *RightLayout=new QVBoxLayout;
     RightLayout->addWidget(SettingsPortButton);
@@ -144,6 +200,8 @@ void GyroDevice::CreateWidgets()
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void GyroDevice::CreateConnections()
 {
     connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
@@ -152,6 +210,9 @@ void GyroDevice::CreateConnections()
 
     connect(OnComPortButton,SIGNAL(pressed()),this,SLOT(OpenSerialPort()));
     connect(OffComPortButton,&QPushButton::pressed,this,&GyroDevice::CloseSerialPort);
+    connect(AdditionalParamButton,&QPushButton::toggled,
+            this,&GyroDevice::AdditionalParamsVisible);
+
     connect(this,&GyroDevice::ConnectComPort,DeviceComPort,&comPort::ConnectPort);
     connect(DeviceComPort,&comPort::isConnectedPort,this,&GyroDevice::isConnectedComPort);
     connect(DeviceComPort,&comPort::isNotConnectedPort,this,&GyroDevice::isNotConnectedComPort);
@@ -164,7 +225,13 @@ void GyroDevice::CreateConnections()
 
     connect(DeviceComPort,&comPort::dataOutput,
             Measure,&GyroMeasure::GetData);
+    connect(Measure,&GyroMeasure::outCountPacket,
+            this,&GyroDevice::UpdateCountPacketLineEdit);
+    connect(Measure,&GyroMeasure::SendDataToTable,
+            m_model,&TableModel::loadData);
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void GyroDevice::AddThread()
 {
@@ -184,6 +251,8 @@ void GyroDevice::AddThread()
 
     ComPortThread->start(QThread::TimeCriticalPriority);
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void GyroDevice::StopThreads()
 {

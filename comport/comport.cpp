@@ -9,6 +9,8 @@ comPort::comPort(QObject *parent) :
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 comPort::~comPort()
 {
     qDebug("comPort::~comPort()");
@@ -26,6 +28,8 @@ void comPort::processPort() //выполняется при старте кла�
             this,SLOT(ReadInPort())); //подключаем чтение с порта по сигналу readyread()
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void comPort::ConnectPort(QString name, int baudrate, int DataBits,
                           int Parity, int StopBits, int FlowControl)
 {
@@ -36,7 +40,7 @@ void comPort::ConnectPort(QString name, int baudrate, int DataBits,
     }
 
     SettingsPort.name = name;
-    SettingsPort.baudRate = static_cast<QSerialPort::BaudRate> (baudrate);
+    SettingsPort.baudRate = baudrate;
     SettingsPort.dataBits = static_cast<QSerialPort::DataBits> (DataBits);
     SettingsPort.parity = static_cast<QSerialPort::Parity> (Parity);
     SettingsPort.stopBits = static_cast<QSerialPort::StopBits> (StopBits);
@@ -75,6 +79,8 @@ void comPort::ConnectPort(QString name, int baudrate, int DataBits,
     }
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 bool comPort::DisconnectPort() //отключаем порт
 {
     qDebug("comPort::DisconnectedPort()");
@@ -88,6 +94,8 @@ bool comPort::DisconnectPort() //отключаем порт
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void comPort::handleError(QSerialPort::SerialPortError error) //проверка ошибок в работе
 {
     if((thisPort.isOpen())
@@ -97,6 +105,8 @@ void comPort::handleError(QSerialPort::SerialPortError error) //проверка
         DisconnectPort();
     }
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 char comPort::SlipDecode(QByteArray b, QByteArray &b2)
 {
@@ -123,11 +133,15 @@ char comPort::SlipDecode(QByteArray b, QByteArray &b2)
 }
 
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void comPort::WriteToPort(const QByteArray &data) //запись данных в порт
 {
     if(thisPort.isOpen())
         thisPort.write(data);
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void comPort::ReadInPort() //чтение данных из порта
 {
@@ -143,6 +157,8 @@ void comPort::ReadInPort() //чтение данных из порта
 //        qDebug("SlipDecode is Ok");
 //    }
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void comPort::Stop()
 {

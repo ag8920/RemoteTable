@@ -49,7 +49,8 @@ SOURCES += \
     comport/comport.cpp \
     Console/console.cpp \
     GyroDev/gyromeasure.cpp \
-    comport/slipprotocol.cpp
+    comport/slipprotocol.cpp \
+    ModelData/tablemodel.cpp
 
 
 HEADERS += \
@@ -60,7 +61,8 @@ HEADERS += \
     comport/comport.h \
     Console/console.h \
     GyroDev/gyromeasure.h \
-    comport/slipprotocol.h
+    comport/slipprotocol.h \
+    ModelData/tablemodel.h
 
 
 # Default rules for deployment.

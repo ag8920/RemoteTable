@@ -1,6 +1,8 @@
 #include "tabledevice.h"
 
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 {
     SettingsComPort = new SettingsDialog;
@@ -17,6 +19,8 @@ TableDevice::~TableDevice()
     ComPortThread->quit();
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::OpenSerialPort()
 {
     SettingsDialog::Settings p=SettingsComPort->settings();
@@ -30,10 +34,14 @@ void TableDevice::OpenSerialPort()
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::CloseSerialPort()
 {
     emit DisconnectComPort();
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void TableDevice::isConnectedComPort(const QString msg)
 {
@@ -44,6 +52,8 @@ void TableDevice::isConnectedComPort(const QString msg)
     SendCommandButton->setEnabled(true);
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::isNotConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
@@ -52,6 +62,9 @@ void TableDevice::isNotConnectedComPort(const QString msg)
     OffComPortButton->setEnabled(false);
     SendCommandButton->setEnabled(false);
 }
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::CreateWidgets()
 {
      QRegExp regExp("[1-9][0-9]{0,4}");
@@ -141,7 +154,9 @@ void TableDevice::CreateWidgets()
 
     this->statusBar()->showMessage(tr("Выполните настройку Com-порта"));
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::CreateConnections()
 {
     connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
@@ -154,7 +169,9 @@ void TableDevice::CreateConnections()
     connect(DeviceComPort,&comPort::isNotConnectedPort,this,&TableDevice::isNotConnectedComPort);
     connect(this,&TableDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::AddThreads()
 {
 
@@ -174,7 +191,9 @@ void TableDevice::AddThreads()
 
     ComPortThread->start(QThread::TimeCriticalPriority);
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::StopThread()
 {
     emit StopAll();

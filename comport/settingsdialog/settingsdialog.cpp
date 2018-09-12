@@ -11,7 +11,9 @@
 
 static const QString isBusy = QObject::tr("isBusy");
 static const QString noBusy = QObject::tr("noBusy");
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SettingsDialog)
@@ -36,17 +38,23 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
       updateSettings();
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 SettingsDialog::~SettingsDialog()
 {
     delete ui;
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 SettingsDialog::Settings SettingsDialog::settings() const
 {
     return currentSettings;
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void SettingsDialog::showPortInfo(int idx)
 {
     if (idx != -1) {
@@ -71,7 +79,9 @@ void SettingsDialog::apply()
     hide();
     emit isUpdateSettings();
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void SettingsDialog::checkCustomBaudRatePolicy(int idx)
 {
     bool isCustomBaudRate = !ui->baudRateBox->itemData(idx).isValid();
@@ -82,7 +92,9 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
         edit->setValidator(intValidator);
     }
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void SettingsDialog::fillPortsParameters()
 {
     ui->baudRateBox->addItem(QStringLiteral("1200"), QSerialPort::Baud1200);
@@ -116,7 +128,9 @@ void SettingsDialog::fillPortsParameters()
     ui->flowControlBox->addItem(QStringLiteral("RTS/CTS"), QSerialPort::HardwareControl);
     ui->flowControlBox->addItem(QStringLiteral("XON/XOFF"), QSerialPort::SoftwareControl);
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void SettingsDialog::fillPortsInfo()
 {
     ui->serialPortInfoBox->clear();
@@ -144,15 +158,17 @@ void SettingsDialog::fillPortsInfo()
         ui->serialPortInfoBox->addItem(list.first(), list);
     }
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void SettingsDialog::updateSettings()
 {
     currentSettings.name = ui->serialPortInfoBox->currentText();
 
-    if (ui->baudRateBox->currentIndex() == 4) {
+    if (ui->baudRateBox->currentIndex() == 7) {
         currentSettings.baudRate = ui->baudRateBox->currentText().toInt();
     } else {
-        currentSettings.baudRate = static_cast<QSerialPort::BaudRate>(
+        currentSettings.baudRate =/* static_cast<QSerialPort::BaudRate>*/(
                     ui->baudRateBox->itemData(ui->baudRateBox->currentIndex()).toInt());
     }
     currentSettings.stringBaudRate = QString::number(currentSettings.baudRate);

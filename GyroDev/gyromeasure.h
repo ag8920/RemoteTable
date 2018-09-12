@@ -20,11 +20,6 @@ struct FastPacket{
     uint8_t CRC;
 } ;
 
-typedef union {
-    FastPacket words;
-    unsigned char bytes[LenghtFastPacket];
-} FastPacketUnion;
-
 
 class GyroMeasure : public QObject
 {
@@ -33,16 +28,22 @@ public:
     explicit GyroMeasure(QObject *parent = nullptr);
 
 signals:
-
+    void outCountPacket(const QString);
+    void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
 public slots:
     void Measure();
     void GetData(QByteArray inputArray);
     void SortData(QByteArray data);
 private:
     SlipProtocol *Slip;
-    FastPacketUnion FastBinsPacket;
+    void FillOutList(FastPacket packet);
+    inline void ListAppend(QList<QString> *lst, QVariant val);
 public:
     friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
+    uint32_t countPacket;
+    FastPacket packet;
+    QList<QString> *lstVal;
+    QList<QString> *lstName;
 };
 
 #endif // GYROMEASURE_H

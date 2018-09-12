@@ -3,7 +3,9 @@
 #include <QScrollBar>
 #include <QScrollArea>
 #include <QtCore/QDebug>
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 Console::Console(QWidget *parent):QPlainTextEdit(parent),localEchoEnabled(false)
 {
     document()->setMaximumBlockCount(100);
@@ -12,7 +14,9 @@ Console::Console(QWidget *parent):QPlainTextEdit(parent),localEchoEnabled(false)
     p.setColor(QPalette::Text,Qt::green);
     setPalette(p);
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Console::putData(const QByteArray &data)
 {
     QString str=static_cast<QString>(data);
@@ -23,12 +27,16 @@ void Console::putData(const QByteArray &data)
     bar->setValue(bar->maximum());
 
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Console::setLocalEchoEnabled(bool set)
 {
     localEchoEnabled=set;
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Console::keyPressEvent(QKeyEvent *e)
 {
     switch (e->key()) {
@@ -44,18 +52,24 @@ void Console::keyPressEvent(QKeyEvent *e)
         emit getData(e->text().toLocal8Bit());
     }
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Console::mousePressEvent(QMouseEvent *e)
 {
     Q_UNUSED(e)
     setFocus();
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Console::mouseDoubleClickEvent(QMouseEvent *e)
 {
     Q_UNUSED(e)
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Console::contextMenuEvent(QContextMenuEvent *e)
 {
     Q_UNUSED(e)

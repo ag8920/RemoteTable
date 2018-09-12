@@ -5,11 +5,14 @@
 #include <QMenuBar>
 #include <QGridLayout>
 #include <QGroupBox>
-
+#include <QtGlobal>
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 Widget::Widget(QWidget *parent)
     : QMainWindow ()
 {
-
+    Q_UNUSED(parent);
     ConfigTableDevice=new TableDevice;
     ConfigGyroDevice=new GyroDevice;
 
@@ -25,6 +28,8 @@ Widget::Widget(QWidget *parent)
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 Widget::~Widget()
 {
     delete ConfigTableDevice;
@@ -33,8 +38,11 @@ Widget::~Widget()
 
 void Widget::closeEvent(QCloseEvent *event)
 {
+    Q_UNUSED(event);
     onWindowClosed();
 }
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void Widget::CreateActions()
 {
@@ -62,6 +70,8 @@ void Widget::initActionConnections()
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Widget::CreateMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&Файл"));
@@ -77,15 +87,22 @@ void Widget::CreateMenus()
     configMenu->addAction(ConfigGyroDevAction);
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Widget::CreateToolBars()
 {
 
 }
 //-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void Widget::CreateStatusBar()
 {
 
 }
+
+//-----------------------------------------------------------
+// Назначение:
 //-----------------------------------------------------------
 void Widget::CreateWidgets()
 {

@@ -11,6 +11,7 @@
 #include "TableDev/tabledevice.h"
 #include "GyroDev/gyrodevice.h"
 
+
 class Widget : public QMainWindow
 {
     Q_OBJECT
@@ -68,6 +69,8 @@ private:
 
     TableDevice *ConfigTableDevice;
     GyroDevice *ConfigGyroDevice;
+
+
 
 };
 
