@@ -14,7 +14,7 @@
 //------------------------------------------------------------------------------
 TableModel::TableModel(QObject *parent) : QAbstractTableModel(parent)
 {
-    myHeader<<tr("Значения");
+    myHeader<<tr("Значение");
     varValue = new QList<QString>;
     varName = new  QList<QString>;
 }
@@ -101,7 +101,7 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation,
 //------------------------------------------------------------------------------
 Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
 {
-    if(!index.isValid() || !varName->count()) return 0;
+    if(!index.isValid() || !varName->count()) return nullptr;
        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
 

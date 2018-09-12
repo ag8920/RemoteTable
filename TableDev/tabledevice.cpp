@@ -43,6 +43,86 @@ void TableDevice::CloseSerialPort()
 //-----------------------------------------------------------
 // Назначение:
 //-----------------------------------------------------------
+void TableDevice::OnMotion()
+{
+    QByteArray data;
+    QString str="mo=1;";
+    data=str.toLocal8Bit();
+    OnMotionButton->setEnabled(false);
+    startButton->setEnabled(true);
+    stopButton->setEnabled(false);
+    OffMotionButton->setEnabled(true);
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::BeginMotion()
+{
+    QByteArray data;
+    QString str="bg;";
+    this->SettingsRotation();
+    data=str.toLocal8Bit();
+    startButton->setEnabled(false);
+    stopButton->setEnabled(true);
+    OnMotionButton->setEnabled(false);
+    OffMotionButton->setEnabled(false);
+
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::StopMotion()
+{
+    QByteArray data;
+    QString str="st;";
+    data=str.toLocal8Bit();
+    startButton->setEnabled(true);
+    OffMotionButton->setEnabled(true);
+    stopButton->setEnabled(false);
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::OffMotion()
+{
+    QByteArray data;
+    QString str="mo=0;";
+    data=str.toLocal8Bit();
+    OnMotionButton->setEnabled(true);
+    OffMotionButton->setEnabled(false);
+    stopButton->setEnabled(false);
+    startButton->setEnabled(false);
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::ManualMode()
+{
+    QByteArray data;
+    data=SendCommandLineEdit->text().toLocal8Bit();
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::SettingsRotation()
+{
+    QByteArray data;
+    QString str;
+    if(PositveRotationCheckBox->isChecked())
+        str="jv=-"+RateOfTurnLineEdit->text()+";";
+    else
+        str="jv="+RateOfTurnLineEdit->text()+";";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::isConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
@@ -86,9 +166,13 @@ void TableDevice::CreateWidgets()
     CurrPositionLabel->setBuddy(CurrPositionLineEdit);
 
     OnMotionButton=new QPushButton(tr("Включить привод"));
+    OnMotionButton->setEnabled(true);
     OffMotionButton=new QPushButton(tr("Отключить привод"));
+    OffMotionButton->setEnabled(false);
     startButton=new QPushButton(tr("Начать вращение"));
+    startButton->setEnabled(false);
     stopButton=new QPushButton(tr("Остановить вращение"));
+    stopButton->setEnabled(false);
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     OnComPortButton=new QPushButton(tr("Подключить"));
     OffComPortButton=new QPushButton(tr("Отключить"));
@@ -96,6 +180,7 @@ void TableDevice::CreateWidgets()
 
     PositveRotationCheckBox=new QCheckBox(tr("Положительное направление"));
     NegativeRotationCheckBox=new QCheckBox(tr("Отрицательное направление"));
+    NegativeRotationCheckBox->hide();
 
 
     QGridLayout *MainLayout=new QGridLayout;
@@ -160,14 +245,32 @@ void TableDevice::CreateWidgets()
 void TableDevice::CreateConnections()
 {
     connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
+    connect(OnMotionButton,&QPushButton::pressed,
+            this,&TableDevice::OnMotion);
+    connect(OffMotionButton,&QPushButton::pressed,
+            this,&TableDevice::OffMotion);
+    connect(startButton,&QPushButton::pressed,
+            this,&TableDevice::BeginMotion);
+    connect(stopButton,&QPushButton::pressed,
+            this,&TableDevice::StopMotion);
+    connect(SendCommandButton,&QPushButton::pressed,
+            this,&TableDevice::ManualMode);
+    connect(OnComPortButton,SIGNAL(pressed()),
+            this,SLOT(OpenSerialPort()));
+    connect(OffComPortButton,&QPushButton::pressed,
+            this,&TableDevice::CloseSerialPort);
+    connect(this,&TableDevice::ConnectComPort,
+            DeviceComPort,&comPort::ConnectPort);
+    connect(DeviceComPort,&comPort::isConnectedPort,
+            this,&TableDevice::isConnectedComPort);
+    connect(DeviceComPort,&comPort::isNotConnectedPort,
+            this,&TableDevice::isNotConnectedComPort);
+    connect(this,&TableDevice::DisconnectComPort,
+            DeviceComPort,&comPort::DisconnectPort);
 
+    connect(this,&TableDevice::OutputToComPort,
+            DeviceComPort,&comPort::WriteToPort);
 
-    connect(OnComPortButton,SIGNAL(pressed()),this,SLOT(OpenSerialPort()));
-    connect(OffComPortButton,&QPushButton::pressed,this,&TableDevice::CloseSerialPort);
-    connect(this,&TableDevice::ConnectComPort,DeviceComPort,&comPort::ConnectPort);
-    connect(DeviceComPort,&comPort::isConnectedPort,this,&TableDevice::isConnectedComPort);
-    connect(DeviceComPort,&comPort::isNotConnectedPort,this,&TableDevice::isNotConnectedComPort);
-    connect(this,&TableDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
 }
 //-----------------------------------------------------------
 // Назначение:

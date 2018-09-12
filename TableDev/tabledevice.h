@@ -30,12 +30,21 @@ signals:
                         int StopBits,int FlowControl);
     void DisconnectComPort();
     void StopAll();
+    void OutputToComPort(const QByteArray &data);
 public slots:
     void OpenSerialPort();
     void isConnectedComPort(const QString msg);
     void isNotConnectedComPort(const QString msg);
     void CloseSerialPort();
 
+    void OnMotion();
+    void BeginMotion();
+    void StopMotion();
+    void OffMotion();
+
+    void ManualMode();
+
+    void SettingsRotation();
 private:
 
     void CreateWidgets();
@@ -72,6 +81,7 @@ private:
     SettingsDialog *SettingsComPort;
     comPort *DeviceComPort;
     QThread *ComPortThread;
+
 };
 
 #endif // TABLEDEVICE_H
