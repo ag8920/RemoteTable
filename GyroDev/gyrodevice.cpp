@@ -1,6 +1,15 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает виджет окна
+//     с параметрами и настройков гироскопического
+//     утройства.
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
+
 #include "gyrodevice.h"
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: конструктор класса
 //-----------------------------------------------------------
 GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 {
@@ -23,7 +32,7 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     CreateConnections();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: деструктор класса
 //-----------------------------------------------------------
 GyroDevice::~GyroDevice()
 {
@@ -31,7 +40,7 @@ GyroDevice::~GyroDevice()
     ComPortThread->quit();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: открыть порт
 //-----------------------------------------------------------
 void GyroDevice::OpenSerialPort()
 {
@@ -46,14 +55,14 @@ void GyroDevice::OpenSerialPort()
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: Закрыть порт
 //-----------------------------------------------------------
 void GyroDevice::CloseSerialPort()
 {
     emit DisconnectComPort();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: проверка обновления состояний портов
 //-----------------------------------------------------------
 void GyroDevice::UpdateSettingsComPort()
 {
@@ -61,14 +70,15 @@ void GyroDevice::UpdateSettingsComPort()
     updateSettingsPort=1;
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: обновление счетчика пакетов (число пакетов)
 //-----------------------------------------------------------
 void GyroDevice::UpdateCountPacketLineEdit(const QString packet)
 {
     CountPacketLineEdit->setText(packet);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отображение принятых данных
+//             в табличном виде
 //-----------------------------------------------------------
 void GyroDevice::AdditionalParamsVisible()
 {
@@ -78,7 +88,8 @@ void GyroDevice::AdditionalParamsVisible()
         m_tableView->hide();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: установка состояния кнопок
+//             при подключении порта
 //-----------------------------------------------------------
 void GyroDevice::isConnectedComPort(const QString msg)
 {
@@ -90,7 +101,8 @@ void GyroDevice::isConnectedComPort(const QString msg)
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: установка состояния кнопок
+//             при отключении порта
 //-----------------------------------------------------------
 void GyroDevice::isNotConnectedComPort(const QString msg)
 {
@@ -103,7 +115,7 @@ void GyroDevice::isNotConnectedComPort(const QString msg)
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание виджета таблицы
 //-----------------------------------------------------------
 void GyroDevice::CreateTable()
 {
@@ -115,14 +127,14 @@ void GyroDevice::CreateTable()
     //m_tableView->setEditTriggers(QAbstractItemView::DoubleClicked);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание виджета окна
 //-----------------------------------------------------------
 void GyroDevice::CreateWidgets()
 {
     ConsoleWidget->setEnabled(true);
     TypeProtocolComboBox=new QComboBox;
-    TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
-    TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
+//    TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
+//    TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
     TypeProtocolComboBox->addItem(QStringLiteral("Dadvtt"));
     TypeProtocolLabel=new QLabel(tr("Тип протокола:"));
     TypeProtocolLabel->setBuddy(TypeProtocolComboBox);
@@ -196,11 +208,11 @@ void GyroDevice::CreateWidgets()
                               "min-height: 1.2em;max-height: 2em; min-width:5em;max-width:5em}");
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
-    this->statusBar()->showMessage(tr("Выполните настройку Com-порта"));
+    this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение:  соединение сигналов и слотов
 //-----------------------------------------------------------
 void GyroDevice::CreateConnections()
 {
@@ -231,7 +243,7 @@ void GyroDevice::CreateConnections()
             m_model,&TableModel::loadData);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: выделение нового потока
 //-----------------------------------------------------------
 void GyroDevice::AddThread()
 {
@@ -252,7 +264,7 @@ void GyroDevice::AddThread()
     ComPortThread->start(QThread::TimeCriticalPriority);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: остановка всех потоков
 //-----------------------------------------------------------
 void GyroDevice::StopThreads()
 {

@@ -40,6 +40,8 @@ private slots:
     void apply();
     void checkCustomBaudRatePolicy(int idx);
     void fillPortsInfo();
+public slots:
+    void showWidget();
 private:
     void fillPortsParameters();    
     void updateSettings();

@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QLabel>
 #include <QLineEdit>
+#include <QTimer>
 
 #include "TableDev/tabledevice.h"
 #include "GyroDev/gyrodevice.h"
@@ -25,6 +26,9 @@ protected:
     void closeEvent(QCloseEvent *event);
 public slots:
 
+public:
+    QTimer *tmr;
+
 private:
     void CreateActions();
     void initActionConnections();
@@ -32,7 +36,10 @@ private:
     void CreateToolBars();
     void CreateStatusBar();
     void CreateWidgets();
+    void CreateConnections();
 
+    void StartTimer();
+    void StopTimer();
     QAction *DeltaPsProtocolAction;
     QAction *Rate2ProtocolAction;
     QAction *DadvttProtocolAction;

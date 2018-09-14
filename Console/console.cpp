@@ -1,8 +1,16 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает виджет консоли
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
 #include "console.h"
 
 #include <QScrollBar>
 #include <QScrollArea>
 #include <QtCore/QDebug>
+
+enum { HEX=1,DEC,OCT,BIN,ASCII,};
 //-----------------------------------------------------------
 // Назначение:
 //-----------------------------------------------------------
@@ -13,6 +21,7 @@ Console::Console(QWidget *parent):QPlainTextEdit(parent),localEchoEnabled(false)
     p.setColor(QPalette::Base,Qt::black);
     p.setColor(QPalette::Text,Qt::green);
     setPalette(p);
+    this->FormatData=HEX;
 }
 //-----------------------------------------------------------
 // Назначение:
@@ -21,11 +30,30 @@ void Console::putData(const QByteArray &data)
 {
     QString str=static_cast<QString>(data);
 
-    insertPlainText(data.toHex());
-    insertPlainText("\n");
+    switch (this->FormatData) {
+    case HEX:
+        insertPlainText(data.toHex());
+        insertPlainText("\n");
+        break;
+    case ASCII:
+        insertPlainText(static_cast<QString>(data).toLocal8Bit());
+//        insertPlainText(data);
+        break;
+    default:
+        break;
+    }
+//    insertPlainText(data.toHex());
+//    insertPlainText("\n");
     QScrollBar *bar=verticalScrollBar();
     bar->setValue(bar->maximum());
 
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void Console::SetFormat(const int Format)
+{
+    FormatData=Format;
 }
 //-----------------------------------------------------------
 // Назначение:

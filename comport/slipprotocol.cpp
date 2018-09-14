@@ -1,3 +1,9 @@
+//------------------------------------------------------------------------------
+//     Данный модуль реализует функции SLIP-протокола
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
 #include <QByteArray>
 #include "slipprotocol.h"
 
@@ -7,14 +13,14 @@ const char S_ESC_END = static_cast<char>(0xDC); // ESC ESC_END means END data
 const char S_ESC_ESC = static_cast<char>(0xDD); // ESC ESC_ESC means ESC data
 
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: конструктор класса
 //-----------------------------------------------------------
 SlipProtocol::SlipProtocol(QObject *parent) : QObject(parent)
 {
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: деструктор класса
 //-----------------------------------------------------------
 void SlipProtocol::GetSlipByteArray(QByteArray slipInputData)
 {
@@ -24,7 +30,7 @@ void SlipProtocol::GetSlipByteArray(QByteArray slipInputData)
         emit outDecodeArray(decodeByteArray);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: декодирование пакета данных
 //-----------------------------------------------------------
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
 {

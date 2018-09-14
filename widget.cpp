@@ -1,3 +1,11 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает
+//     виджет главного окна приложения
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
+
 #include "widget.h"
 
 #include <QAction>
@@ -7,7 +15,7 @@
 #include <QGroupBox>
 #include <QtGlobal>
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: конструктор класса
 //-----------------------------------------------------------
 Widget::Widget(QWidget *parent)
     : QMainWindow ()
@@ -15,6 +23,7 @@ Widget::Widget(QWidget *parent)
     Q_UNUSED(parent);
     ConfigTableDevice=new TableDevice;
     ConfigGyroDevice=new GyroDevice;
+    tmr=new QTimer();
 
     CreateActions();
     CreateMenus();
@@ -24,11 +33,13 @@ Widget::Widget(QWidget *parent)
     initActionConnections();
 
 
+
+
     //ConfigTableDevice->show();
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: деструктор класса
 //-----------------------------------------------------------
 Widget::~Widget()
 {
@@ -42,7 +53,7 @@ void Widget::closeEvent(QCloseEvent *event)
     onWindowClosed();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание действий
 //-----------------------------------------------------------
 void Widget::CreateActions()
 {
@@ -70,7 +81,7 @@ void Widget::initActionConnections()
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание меню
 //-----------------------------------------------------------
 void Widget::CreateMenus()
 {
@@ -102,7 +113,7 @@ void Widget::CreateStatusBar()
 }
 
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание виджета головного окна
 //-----------------------------------------------------------
 void Widget::CreateWidgets()
 {
@@ -194,7 +205,26 @@ void Widget::CreateWidgets()
 
 
     measureWidget->show();
-
-
-
 }
+
+void Widget::CreateConnections()
+{
+    connect(tmr,&QTimer::timeout,
+            this,&Widget::StopTimer);
+    connect(tmr,&QTimer::timeout,
+            ConfigTableDevice,&TableDevice::ExecutePosition);
+}
+
+void Widget::StartTimer()
+{
+    int t=timeAccumulateLineEdit->text().toInt()*1000;
+    tmr->setInterval(t);
+    tmr->start();
+}
+
+void Widget::StopTimer()
+{
+    tmr->stop();
+}
+
+

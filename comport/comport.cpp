@@ -1,3 +1,10 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает класс для управления
+//     COM портом
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
 #include "comport.h"
 
 #include <qdebug.h>
@@ -9,7 +16,7 @@ comPort::comPort(QObject *parent) :
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: конструктор класса
 //-----------------------------------------------------------
 comPort::~comPort()
 {
@@ -28,7 +35,7 @@ void comPort::processPort() //выполняется при старте кла�
             this,SLOT(ReadInPort())); //подключаем чтение с порта по сигналу readyread()
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: деструктор класса
 //-----------------------------------------------------------
 void comPort::ConnectPort(QString name, int baudrate, int DataBits,
                           int Parity, int StopBits, int FlowControl)
@@ -79,9 +86,9 @@ void comPort::ConnectPort(QString name, int baudrate, int DataBits,
     }
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отключить порт
 //-----------------------------------------------------------
-bool comPort::DisconnectPort() //отключаем порт
+bool comPort::DisconnectPort()
 {
     qDebug("comPort::DisconnectedPort()");
     if(thisPort.isOpen())
@@ -94,9 +101,9 @@ bool comPort::DisconnectPort() //отключаем порт
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: проверка ошибок
 //-----------------------------------------------------------
-void comPort::handleError(QSerialPort::SerialPortError error) //проверка ошибок в работе
+void comPort::handleError(QSerialPort::SerialPortError error)
 {
     if((thisPort.isOpen())
             && (error == QSerialPort::ResourceError))
@@ -105,60 +112,26 @@ void comPort::handleError(QSerialPort::SerialPortError error) //проверка
         DisconnectPort();
     }
 }
-//-----------------------------------------------------------
-// Назначение:
-//-----------------------------------------------------------
-char comPort::SlipDecode(QByteArray b, QByteArray &b2)
-{
-    if(b.contains(S_END)){
-        int j=0;
-        while (b.at(j)!=S_END) {
-           if(b.at(j)==S_ESC && b.at(j+1)!=S_ESC_END && b.at(j+1)!=S_ESC_ESC)
-               return 2;
-           if(b.at(j)==S_ESC && b.at(j+1)!=S_ESC_END){
-              b2.append(S_END);
-               j++;
-           }
-           else if(b.at(j)==S_ESC && b.at(j+1)==S_ESC_ESC){
-               b2.append(S_ESC);
-               j++;
-           }
-           else
-               b2.append(b.at(j));
-           j++;
-        } return 1;
-    }
-    else
-        return  0;
-}
 
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отправка данных в COM порт
 //-----------------------------------------------------------
-void comPort::WriteToPort(const QByteArray &data) //запись данных в порт
+void comPort::WriteToPort(const QByteArray &data)
 {
     if(thisPort.isOpen())
         thisPort.write(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: чтение данных из COM порта
 //-----------------------------------------------------------
-void comPort::ReadInPort() //чтение данных из порта
+void comPort::ReadInPort()
 {
     QByteArray inputData;
     inputData.append(thisPort.readAll());
     dataOutput(inputData);
-
-//    QByteArray decodeInputData;
-//    char r=SlipDecode(inputData,decodeInputData);
-//    dataOutput(decodeInputData);
-//    if(r==1){
-//        //разбор пакета
-//        qDebug("SlipDecode is Ok");
-//    }
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: вызов сигнала для остановки потока
 //-----------------------------------------------------------
 void comPort::Stop()
 {

@@ -1,3 +1,10 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает виджет окна
+//     с параметрами и настройкой COM порта.
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
 #include "settingsdialog.h"
 
 #include "ui_settingsdialog.h"
@@ -12,7 +19,7 @@
 static const QString isBusy = QObject::tr("isBusy");
 static const QString noBusy = QObject::tr("noBusy");
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: консруктор класса
 //-----------------------------------------------------------
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QWidget(parent),
@@ -39,21 +46,21 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
       updateSettings();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: деструктор класса
 //-----------------------------------------------------------
 SettingsDialog::~SettingsDialog()
 {
     delete ui;
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: возвращает текущие настройки
 //-----------------------------------------------------------
 SettingsDialog::Settings SettingsDialog::settings() const
 {
     return currentSettings;
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отображение информации о COM порте
 //-----------------------------------------------------------
 void SettingsDialog::showPortInfo(int idx)
 {
@@ -72,7 +79,9 @@ void SettingsDialog::showPortInfo(int idx)
         //ui->busyLabel->setStyleSheet("QLabel{color:red}");
     }
 }
-
+//-----------------------------------------------------------
+// Назначение: действие по кнопке Apply
+//-----------------------------------------------------------
 void SettingsDialog::apply()
 {
     updateSettings();
@@ -80,7 +89,7 @@ void SettingsDialog::apply()
     emit isUpdateSettings();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: установка нестандартных скоротей COM порта
 //-----------------------------------------------------------
 void SettingsDialog::checkCustomBaudRatePolicy(int idx)
 {
@@ -93,7 +102,7 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
     }
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отображение настраиваемых параметров COM
 //-----------------------------------------------------------
 void SettingsDialog::fillPortsParameters()
 {
@@ -129,7 +138,7 @@ void SettingsDialog::fillPortsParameters()
     ui->flowControlBox->addItem(QStringLiteral("XON/XOFF"), QSerialPort::SoftwareControl);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отображение информации о COM порте
 //-----------------------------------------------------------
 void SettingsDialog::fillPortsInfo()
 {
@@ -158,8 +167,15 @@ void SettingsDialog::fillPortsInfo()
         ui->serialPortInfoBox->addItem(list.first(), list);
     }
 }
+
+void SettingsDialog::showWidget()
+{
+    fillPortsInfo();
+    show();
+
+}
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: обновление(запись) текущих настроек
 //-----------------------------------------------------------
 void SettingsDialog::updateSettings()
 {

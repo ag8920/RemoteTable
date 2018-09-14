@@ -1,25 +1,40 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает виджет окна
+//     с параметрами и настройков поворотного
+//     утройства.
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
+
 #include "tabledevice.h"
 
+enum { HEX=1,DEC,OCT,BIN,ASCII,};
+
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: конструктор класса
 //-----------------------------------------------------------
 TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 {
     SettingsComPort = new SettingsDialog;
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
+    ConsoleWidget = new Console;
+    isPosition=false;
     AddThreads();
     CreateWidgets();
     CreateConnections();
 
 }
-
+//-----------------------------------------------------------
+// Назначение: деструктор класса
+//-------------------------------------------------------
 TableDevice::~TableDevice()
 {
     ComPortThread->quit();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: открыть порт
 //-----------------------------------------------------------
 void TableDevice::OpenSerialPort()
 {
@@ -34,71 +49,156 @@ void TableDevice::OpenSerialPort()
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: Закрыть порт
 //-----------------------------------------------------------
 void TableDevice::CloseSerialPort()
 {
     emit DisconnectComPort();
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: проверка обновления состояний портов
+//-------------------------------------------------------
+void TableDevice::UpdateSettingsComPort()
+{
+    OnComPortButton->setEnabled(true);
+    updateSettingsPort=1;
+}
+//-----------------------------------------------------------
+// Назначение:  показать/скрыть панель позиционирования
+//-----------------------------------------------------------
+void TableDevice::PositioningParamVisible()
+{
+    if(PositioningButton->isChecked())
+        PositioningBox->show();
+    else
+        PositioningBox->hide();
+}
+//-----------------------------------------------------------
+// Назначение:  выполнить позиционирование
+//-----------------------------------------------------------
+void TableDevice::ExecutePosition()
+{
+    QByteArray data;
+    QString str;
+    isPosition=true;
+
+    if(AbsolutPositioningCheckBox->isChecked())
+    {
+        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
+                +PositioningLineEdit->text()+";bg;";
+    }
+    else
+    {
+        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PR="
+                +PositioningLineEdit->text()+";bg;";
+    }
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение: возрат в нулевое положение
+//-----------------------------------------------------------
+void TableDevice::ZeroPostion()
+{
+    QByteArray data;
+    QString str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA=0;bg;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+
+void TableDevice::MeasurePostion()
+{
+    QByteArray data;
+    QString str;
+    isPosition=true;
+    static int numMeasure=0;
+    int Angle;
+    switch (numMeasure) {
+    case 1:
+        Angle=200000;
+        break;
+    case 2:
+        Angle=100000;
+        break;
+    case 3:
+        Angle=300000;
+        break;
+    case 4:
+        Angle=400000;
+        numMeasure=0;
+        break;
+    default:
+        break;
+    }
+
+    if(AbsolutPositioningCheckBox->isChecked())
+    {
+        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
+                +PositioningLineEdit->text()+";bg;";
+    }
+    else
+    {
+        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PR="
+                +PositioningLineEdit->text()+";bg;";
+    }
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+
+//-----------------------------------------------------------
+// Назначение: Включить привод
 //-----------------------------------------------------------
 void TableDevice::OnMotion()
 {
     QByteArray data;
     QString str="mo=1;";
     data=str.toLocal8Bit();
-    OnMotionButton->setEnabled(false);
-    startButton->setEnabled(true);
-    stopButton->setEnabled(false);
-    OffMotionButton->setEnabled(true);
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: начать вращение(команда старт)
 //-----------------------------------------------------------
 void TableDevice::BeginMotion()
 {
     QByteArray data;
     QString str="bg;";
-    this->SettingsRotation();
+    if(!isPosition)
+        this->SettingsRotation();
     data=str.toLocal8Bit();
-    startButton->setEnabled(false);
-    stopButton->setEnabled(true);
-    OnMotionButton->setEnabled(false);
-    OffMotionButton->setEnabled(false);
-
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: остановить вращение(команда стоп)
 //-----------------------------------------------------------
 void TableDevice::StopMotion()
 {
     QByteArray data;
     QString str="st;";
     data=str.toLocal8Bit();
-    startButton->setEnabled(true);
-    OffMotionButton->setEnabled(true);
-    stopButton->setEnabled(false);
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: отключить привод
 //-----------------------------------------------------------
 void TableDevice::OffMotion()
 {
     QByteArray data;
     QString str="mo=0;";
     data=str.toLocal8Bit();
-    OnMotionButton->setEnabled(true);
-    OffMotionButton->setEnabled(false);
-    stopButton->setEnabled(false);
-    startButton->setEnabled(false);
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: сброс абсолютной координаты
+//-----------------------------------------------------------
+void TableDevice::ResetAbsCoord()
+{
+    QByteArray data;
+    QString str="mo=0;px=0;mo=1;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение: отправка команд(ручной режим работы)
 //-----------------------------------------------------------
 void TableDevice::ManualMode()
 {
@@ -107,7 +207,7 @@ void TableDevice::ManualMode()
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: настройка скорости и направления вращения
 //-----------------------------------------------------------
 void TableDevice::SettingsRotation()
 {
@@ -121,7 +221,19 @@ void TableDevice::SettingsRotation()
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: установка формата отображения
+//             принятых от стола данных
+//-----------------------------------------------------------
+void TableDevice::SetFormatConsole()
+{
+    if(AsciiFormatCheckBox->isChecked())
+        emit ConsoleSetFormat(ASCII);
+    else
+        emit ConsoleSetFormat(HEX);
+}
+//-----------------------------------------------------------
+// Назначение: установка состояния кнопок
+//             при подключении порта
 //-----------------------------------------------------------
 void TableDevice::isConnectedComPort(const QString msg)
 {
@@ -132,61 +244,57 @@ void TableDevice::isConnectedComPort(const QString msg)
     SendCommandButton->setEnabled(true);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: установка состояния кнопок
+//             при отключении порта
 //-----------------------------------------------------------
 void TableDevice::isNotConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);
-    OnComPortButton->setEnabled(true);
+    if(updateSettingsPort)
+        OnComPortButton->setEnabled(true);
     OffComPortButton->setEnabled(false);
     SendCommandButton->setEnabled(false);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание виджета окна
 //-----------------------------------------------------------
 void TableDevice::CreateWidgets()
 {
-     QRegExp regExp("[1-9][0-9]{0,4}");
-
-    QGroupBox *TypeTableGroupBox=new QGroupBox(tr("Тип поворотного утройства"));
+    ConsoleWidget->setEnabled(true);
+    QRegExp regExp("[0-9][0-9]{0,6}");
+    //-----------------------------------------------------------
     TypeTableComboBox=new QComboBox;
     TypeTableComboBox->addItem(QStringLiteral("Поворотный стол Б"));
     TypeTableLabel = new QLabel(tr("Тип поворотного устройства:"));
-    TypeTableLabel->setBuddy(TypeTableGroupBox);
-
-    RateOfTurnLineEdit=new QLineEdit;
-    RateOfTurnLineEdit->setValidator(new QRegExpValidator(regExp,this));
-    RateOfTurnLabel = new QLabel(tr("Скорость вращения (меток/сек)"));
+    TypeTableLabel->setBuddy(TypeTableComboBox);
 
     CurrPositionLineEdit=new QLineEdit;
     CurrPositionLineEdit->setReadOnly(true);
-
     CurrPositionLabel=new QLabel("Текущая позиция(метки):");
     CurrPositionLabel->setBuddy(CurrPositionLineEdit);
-
-    OnMotionButton=new QPushButton(tr("Включить привод"));
-    OnMotionButton->setEnabled(true);
-    OffMotionButton=new QPushButton(tr("Отключить привод"));
-    OffMotionButton->setEnabled(false);
-    startButton=new QPushButton(tr("Начать вращение"));
-    startButton->setEnabled(false);
-    stopButton=new QPushButton(tr("Остановить вращение"));
-    stopButton->setEnabled(false);
-    SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
-    OnComPortButton=new QPushButton(tr("Подключить"));
-    OffComPortButton=new QPushButton(tr("Отключить"));
-
-
+    RateOfTurnLineEdit=new QLineEdit;
+    RateOfTurnLineEdit->setValidator(new QRegExpValidator(regExp,this));
+    RateOfTurnLineEdit->setText("0");
+    RateOfTurnLabel = new QLabel(tr("Скорость вращения (меток/сек)"));
     PositveRotationCheckBox=new QCheckBox(tr("Положительное направление"));
     NegativeRotationCheckBox=new QCheckBox(tr("Отрицательное направление"));
     NegativeRotationCheckBox->hide();
+    PositioningButton=new QPushButton(tr("Позиционирование..."));
+    PositioningButton->setCheckable(true);
+
+    //-----------------------------------------------------------
+
+
+    AsciiFormatCheckBox=new QCheckBox(tr("Отображать в ASCII"));
+
+
+
 
 
     QGridLayout *MainLayout=new QGridLayout;
     QGridLayout *SettingsTableLayout=new QGridLayout;
-
-    QGroupBox *TableSettingsBox=new QGroupBox(tr("Настройка поворотного устройства"));
+    QGroupBox *TableSettingsBox=new QGroupBox(tr("Параметры поворотного устройства"));
 
 
     SettingsTableLayout->addWidget(TypeTableLabel,0,0);
@@ -198,10 +306,28 @@ void TableDevice::CreateWidgets()
     SettingsTableLayout->addWidget(RateOfTurnLineEdit,2,1);
     SettingsTableLayout->addWidget(PositveRotationCheckBox,3,0);
     SettingsTableLayout->addWidget(NegativeRotationCheckBox,4,0);
+    SettingsTableLayout->addWidget(PositioningButton,3,1);
 
     TableSettingsBox->setLayout(SettingsTableLayout);
-
+    //-----------------------------------------------------------
     QVBoxLayout *SettingsButtonLayout=new QVBoxLayout;
+    OnMotionButton=new QPushButton(tr("Включить привод"));
+    OnMotionButton->setEnabled(true);
+    OffMotionButton=new QPushButton(tr("Отключить привод"));
+    OffMotionButton->setEnabled(true);
+    startButton=new QPushButton(tr("Начать вращение"));
+    startButton->setEnabled(true);
+    stopButton=new QPushButton(tr("Остановить вращение"));
+    stopButton->setEnabled(true);
+    SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
+    SettingsPortButton->setEnabled(true);
+    OnComPortButton=new QPushButton(tr("Подключить"));
+    OnComPortButton->setEnabled(false);
+    OffComPortButton=new QPushButton(tr("Отключить"));
+    OffComPortButton->setEnabled(false);
+
+
+    ClearConsoleButton=new QPushButton(tr("Очистить"));
     SettingsButtonLayout->addWidget(SettingsPortButton);
     SettingsButtonLayout->addWidget(OnComPortButton);
     SettingsButtonLayout->addWidget(OffComPortButton);
@@ -210,9 +336,46 @@ void TableDevice::CreateWidgets()
     SettingsButtonLayout->addWidget(startButton);
     SettingsButtonLayout->addWidget(stopButton);
     SettingsButtonLayout->addWidget(OffMotionButton);
+    //SettingsButtonLayout->addWidget(ResetAbsolutCoordButton);
+    SettingsButtonLayout->addStretch();
+    SettingsButtonLayout->addWidget(ClearConsoleButton);
+    //SettingsButtonLayout->addWidget(AsciiFormatCheckBox);
 
 
+    //позиционирование
+    //-----------------------------------------------------------
+    PositioningBox=new QGroupBox(tr("Позиционирование"));
 
+    PositionCommand=new QMenu;
+    PositionCommand->addMenu(tr("Выполнить"));
+    PositionCommand->addMenu(tr("Нулевое положение"));
+    PositionCommand->addMenu(tr("Обнул.абс.координаты"));
+
+    QGridLayout *PositioningLayout=new QGridLayout;
+    ResetAbsolutCoordButton=new QPushButton(tr("Обнул.абс.координаты"));
+    ExecutePositioningButton=new QPushButton(tr("Выполнить"));
+    ZeroPositionButton=new QPushButton(tr("Нулевое положение"));
+    PositioningLineEdit=new QLineEdit;
+    PositioningLineEdit->setText("0");
+    PositioningLabel=new QLabel(tr("угол поворота(метки)"));
+    PositioningLabel->setBuddy(PositioningLabel);
+    PositioningLineEdit->setValidator(new QRegExpValidator(regExp,this));
+    AbsolutPositioningCheckBox=new QCheckBox(tr("Абc.позиционирование"));
+    RelativePositioningCheckBox=new QCheckBox(tr("Относительное позиционирование"));
+    RelativePositioningCheckBox->hide();
+    PositioningLayout->addWidget(AbsolutPositioningCheckBox,1,0);
+    PositioningLayout->addWidget(RelativePositioningCheckBox,0,1);
+    PositioningLayout->addWidget(PositioningLabel,0,0);
+    PositioningLayout->addWidget(PositioningLineEdit,0,1);
+    PositioningLayout->addWidget(ResetAbsolutCoordButton,1,1);
+    PositioningLayout->addWidget(ZeroPositionButton,2,1);
+    PositioningLayout->addWidget(ExecutePositioningButton,2,0);
+    PositioningBox->setLayout(PositioningLayout);
+    PositioningBox->hide();
+
+
+    //отправка команд
+    //-----------------------------------------------------------
     QGroupBox *SendCommandBox=new QGroupBox(tr("Отправка команд (ручной режим)"));
     QGridLayout *SendCommandLayout=new QGridLayout;
     SendCommandButton=new QPushButton(tr("Отправить"));
@@ -221,30 +384,39 @@ void TableDevice::CreateWidgets()
     SendCommandLayout->addWidget(SendCommandLineEdit,0,0);
     SendCommandLayout->addWidget(SendCommandButton,0,1);
     SendCommandBox->setLayout(SendCommandLayout);
-
+    //-----------------------------------------------------------
     QVBoxLayout *LeftLayout=new QVBoxLayout;
     LeftLayout->addWidget(TableSettingsBox);
+    LeftLayout->addWidget(PositioningBox);
     LeftLayout->addWidget(SendCommandBox);
-
+    //-----------------------------------------------------------
     MainLayout->addLayout(LeftLayout,0,0);
     MainLayout->addLayout(SettingsButtonLayout,0,1);
+    //-----------------------------------------------------------
+    QVBoxLayout *GeneralLayout=new QVBoxLayout;
+    GeneralLayout->addLayout(MainLayout);
+    GeneralLayout->addWidget(AsciiFormatCheckBox);
+    GeneralLayout->addWidget(ConsoleWidget);
 
     MainWidget=new QWidget;
-    MainWidget->setLayout(MainLayout);
+    MainWidget->setLayout(GeneralLayout);
     MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
                               "border-width: 1px;"
                               "min-height: 1.2em; min-width:5em;max-width:10em}");
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Настройка поворотного устройства"));
 
-    this->statusBar()->showMessage(tr("Выполните настройку Com-порта"));
+    this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: соединение сигналов и слотов
 //-----------------------------------------------------------
 void TableDevice::CreateConnections()
 {
-    connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
+    connect(SettingsComPort,&SettingsDialog::isUpdateSettings,
+            this,&TableDevice::UpdateSettingsComPort);
+    connect(SettingsPortButton,&QPushButton::pressed,
+            SettingsComPort,&SettingsDialog::showWidget);
     connect(OnMotionButton,&QPushButton::pressed,
             this,&TableDevice::OnMotion);
     connect(OffMotionButton,&QPushButton::pressed,
@@ -253,6 +425,11 @@ void TableDevice::CreateConnections()
             this,&TableDevice::BeginMotion);
     connect(stopButton,&QPushButton::pressed,
             this,&TableDevice::StopMotion);
+    connect(ResetAbsolutCoordButton,&QPushButton::pressed,
+            this,&TableDevice::ResetAbsCoord);
+    connect(ExecutePositioningButton,&QPushButton::pressed,
+            this,&TableDevice::ExecutePosition);
+
     connect(SendCommandButton,&QPushButton::pressed,
             this,&TableDevice::ManualMode);
     connect(OnComPortButton,SIGNAL(pressed()),
@@ -271,9 +448,23 @@ void TableDevice::CreateConnections()
     connect(this,&TableDevice::OutputToComPort,
             DeviceComPort,&comPort::WriteToPort);
 
+    connect(DeviceComPort,&comPort::dataOutput,
+            ConsoleWidget,&Console::putData);
+    connect(ClearConsoleButton,&QPushButton::pressed,
+            ConsoleWidget,&Console::clear);
+    connect(AsciiFormatCheckBox,&QCheckBox::clicked,
+            this,&TableDevice::SetFormatConsole);
+    connect(this,&TableDevice::ConsoleSetFormat,
+            ConsoleWidget,&Console::SetFormat);
+
+    connect(PositioningButton,&QPushButton::toggled,
+            this,&TableDevice::PositioningParamVisible);
+    connect(ZeroPositionButton,&QPushButton::pressed,
+            this,&TableDevice::ZeroPostion);
+
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: выделение нового потока
 //-----------------------------------------------------------
 void TableDevice::AddThreads()
 {
@@ -295,7 +486,7 @@ void TableDevice::AddThreads()
     ComPortThread->start(QThread::TimeCriticalPriority);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: остановка всех потоков
 //-----------------------------------------------------------
 void TableDevice::StopThread()
 {
