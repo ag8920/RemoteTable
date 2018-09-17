@@ -31,7 +31,7 @@ Widget::Widget(QWidget *parent)
     CreateStatusBar();
     CreateWidgets();
     initActionConnections();
-
+    CreateConnections();
 
 
 
@@ -70,6 +70,10 @@ void Widget::CreateActions()
     ConfigTabelDevAction = new QAction(tr("Поворотное устройство"));
 
     ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"));
+
+    StartTimerAction = new QAction(tr("Запуск"));
+    StopTimerAction = new QAction(tr("Стоп"));
+
 }
 
 void Widget::initActionConnections()
@@ -79,6 +83,13 @@ void Widget::initActionConnections()
     connect(this,SIGNAL(onWindowClosed()),ConfigTableDevice,SLOT(close()));
     connect(this,SIGNAL(onWindowClosed()),ConfigGyroDevice,SLOT(close()));
 
+    connect(StartTimerAction,&QAction::triggered,this,&Widget::StartTimer);
+    connect(StartTimerAction,&QAction::triggered,
+            this->ConfigTableDevice, &TableDevice::ResetAbsCoord);
+
+    connect(StopTimerAction,&QAction::triggered,this,&Widget::StopTimer);
+    connect(StopTimerAction,&QAction::triggered,
+            this->ConfigTableDevice, &TableDevice::FinishedMotion);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -92,6 +103,8 @@ void Widget::CreateMenus()
 //    fileMenu->addSeparator();
     fileMenu->addAction(OneMeasurementAction);
     fileMenu->addAction(MultiMeasurementAction);
+    fileMenu->addAction(StartTimerAction);
+    fileMenu->addAction(StopTimerAction);
 
     configMenu = menuBar()->addMenu(tr("&Инструменты"));
     configMenu->addAction(ConfigTabelDevAction);
@@ -156,7 +169,7 @@ void Widget::CreateWidgets()
 
     timeAccumulateLineEdit=new QLineEdit;
     timeAccumulateLineEdit->setValidator(new QRegExpValidator(regExp,this));
-
+    timeAccumulateLineEdit->setText("600");
 
 
     azimuthMeasureLineEdit=new QLineEdit;
@@ -209,15 +222,17 @@ void Widget::CreateWidgets()
 
 void Widget::CreateConnections()
 {
+//    connect(tmr,&QTimer::timeout,
+//            this,&Widget::StopTimer);
     connect(tmr,&QTimer::timeout,
-            this,&Widget::StopTimer);
-    connect(tmr,&QTimer::timeout,
-            ConfigTableDevice,&TableDevice::ExecutePosition);
+            ConfigTableDevice,&TableDevice::DispOfMeasure);
 }
 
 void Widget::StartTimer()
 {
-    int t=timeAccumulateLineEdit->text().toInt()*1000;
+    int t=10000;
+    if(!timeAccumulateLineEdit->text().isEmpty())
+        t=(timeAccumulateLineEdit->text().toInt()*1000)/4;
     tmr->setInterval(t);
     tmr->start();
 }

@@ -25,7 +25,8 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
-
+    void StartTimer();
+    void StopTimer();
 public:
     QTimer *tmr;
 
@@ -38,8 +39,7 @@ private:
     void CreateWidgets();
     void CreateConnections();
 
-    void StartTimer();
-    void StopTimer();
+
     QAction *DeltaPsProtocolAction;
     QAction *Rate2ProtocolAction;
     QAction *DadvttProtocolAction;
@@ -49,6 +49,9 @@ private:
 
     QAction *ConfigTabelDevAction;
     QAction *ConfigGyroDevAction;
+
+    QAction *StartTimerAction;
+    QAction *StopTimerAction;
 
     QMenu *fileMenu;
 

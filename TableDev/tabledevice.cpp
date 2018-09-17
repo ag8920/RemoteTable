@@ -7,6 +7,7 @@
 //
 //------------------------------------------------------------------------------
 
+#include <QtMath>
 #include "tabledevice.h"
 
 enum { HEX=1,DEC,OCT,BIN,ASCII,};
@@ -20,11 +21,16 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
+
+    tmr = new QTimer;
     isPosition=false;
+    isStopedRotation=true;
+    currPosition=0;
+    prevPosition=0;
     AddThreads();
     CreateWidgets();
     CreateConnections();
-
+    SetTimer();
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -32,6 +38,7 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 TableDevice::~TableDevice()
 {
     ComPortThread->quit();
+    tmr->stop();
 }
 //-----------------------------------------------------------
 // Назначение: открыть порт
@@ -106,44 +113,54 @@ void TableDevice::ZeroPostion()
     emit OutputToComPort(data);
 }
 
-void TableDevice::MeasurePostion()
+void TableDevice::DispOfMeasure()
 {
     QByteArray data;
     QString str;
     isPosition=true;
-    static int numMeasure=0;
-    int Angle;
+    static int numMeasure=1;
+    QString Angle;
     switch (numMeasure) {
+    case 0:
+        Angle="0";
+        numMeasure++;
+        break;
     case 1:
-        Angle=200000;
+        Angle="200000";
+        numMeasure++;
         break;
     case 2:
-        Angle=100000;
+        Angle="300000";
+        numMeasure++;
         break;
     case 3:
-        Angle=300000;
+        Angle="100000";
+        numMeasure++;
         break;
     case 4:
-        Angle=400000;
-        numMeasure=0;
+        Angle="0";
+        numMeasure=1;
         break;
     default:
         break;
     }
 
-    if(AbsolutPositioningCheckBox->isChecked())
-    {
-        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
-                +PositioningLineEdit->text()+";bg;";
-    }
-    else
-    {
-        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PR="
-                +PositioningLineEdit->text()+";bg;";
-    }
+    str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
+                    +Angle+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
+//-----------------------------------------------------------
+// Назначение: Запрос текущего полжения
+//-----------------------------------------------------------
+void TableDevice::RequestPosition()
+{
+    QByteArray data;
+    QString str="px;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+
 
 //-----------------------------------------------------------
 // Назначение: Включить привод
@@ -187,6 +204,17 @@ void TableDevice::OffMotion()
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
+//-----------------------------------------------------------
+// Назначение: остановить вращение(команда стоп) и отключить привод
+//-----------------------------------------------------------
+void TableDevice::FinishedMotion()
+{
+    QByteArray data;
+    QString str="st;mo=0;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+
 //-----------------------------------------------------------
 // Назначение: сброс абсолютной координаты
 //-----------------------------------------------------------
@@ -275,11 +303,13 @@ void TableDevice::CreateWidgets()
     CurrPositionLabel->setBuddy(CurrPositionLineEdit);
     RateOfTurnLineEdit=new QLineEdit;
     RateOfTurnLineEdit->setValidator(new QRegExpValidator(regExp,this));
-    RateOfTurnLineEdit->setText("0");
+    RateOfTurnLineEdit->setText("30000");
     RateOfTurnLabel = new QLabel(tr("Скорость вращения (меток/сек)"));
     PositveRotationCheckBox=new QCheckBox(tr("Положительное направление"));
     NegativeRotationCheckBox=new QCheckBox(tr("Отрицательное направление"));
     NegativeRotationCheckBox->hide();
+    RequestPostionCheckBox = new QCheckBox(tr("Запрос текущего положения"));
+    RequestPostionCheckBox->setChecked(true);
     PositioningButton=new QPushButton(tr("Позиционирование..."));
     PositioningButton->setCheckable(true);
 
@@ -306,6 +336,7 @@ void TableDevice::CreateWidgets()
     SettingsTableLayout->addWidget(RateOfTurnLineEdit,2,1);
     SettingsTableLayout->addWidget(PositveRotationCheckBox,3,0);
     SettingsTableLayout->addWidget(NegativeRotationCheckBox,4,0);
+    SettingsTableLayout->addWidget(RequestPostionCheckBox,5,0);
     SettingsTableLayout->addWidget(PositioningButton,3,1);
 
     TableSettingsBox->setLayout(SettingsTableLayout);
@@ -356,7 +387,7 @@ void TableDevice::CreateWidgets()
     ExecutePositioningButton=new QPushButton(tr("Выполнить"));
     ZeroPositionButton=new QPushButton(tr("Нулевое положение"));
     PositioningLineEdit=new QLineEdit;
-    PositioningLineEdit->setText("0");
+    PositioningLineEdit->setText("200000");
     PositioningLabel=new QLabel(tr("угол поворота(метки)"));
     PositioningLabel->setBuddy(PositioningLabel);
     PositioningLineEdit->setValidator(new QRegExpValidator(regExp,this));
@@ -462,6 +493,12 @@ void TableDevice::CreateConnections()
     connect(ZeroPositionButton,&QPushButton::pressed,
             this,&TableDevice::ZeroPostion);
 
+    connect(RequestPostionCheckBox,&QCheckBox::clicked,
+            this,&TableDevice::SetTimer);
+    connect(tmr,&QTimer::timeout,this,&TableDevice::RequestPosition);
+
+    connect(DeviceComPort,&comPort::dataOutput,
+            this,&TableDevice::GetPosition);
 }
 //-----------------------------------------------------------
 // Назначение: выделение нового потока
@@ -484,6 +521,7 @@ void TableDevice::AddThreads()
 //            DeviceComPort,&comPort::Stop);
 
     ComPortThread->start(QThread::TimeCriticalPriority);
+
 }
 //-----------------------------------------------------------
 // Назначение: остановка всех потоков
@@ -491,5 +529,54 @@ void TableDevice::AddThreads()
 void TableDevice::StopThread()
 {
     emit StopAll();
+}
+
+void TableDevice::SetTimer()
+{
+    if(RequestPostionCheckBox->isChecked()){
+        tmr->setInterval(1000);
+        tmr->start();
+    }
+    else
+        tmr->stop();
+}
+//-----------------------------------------------------------
+// Назначение: разбор пакета с текущей позицией
+//-----------------------------------------------------------
+void TableDevice::GetPosition(QByteArray data)
+{
+    static QString str=nullptr;
+    static bool start=false;
+    static bool end=false;
+
+
+    if(data.startsWith("px;")){start=true;end=false;}
+    if(start && !end)
+    {
+        for(int pos=0;pos<data.length();pos++)
+        {
+            QChar symbol=data.at(pos);
+            if((symbol>='0'&& symbol<='9') || symbol=='-')
+            {
+                str+=symbol;
+            }
+        }
+    }
+    if(data.endsWith(";")) {end=true;start=false;}
+    if(!str.isEmpty() && end) {
+        currPosition=str.toInt();
+        CurrPositionLineEdit->setText(str);
+        str=nullptr;
+    }
+    if(std::abs(currPosition-prevPosition)<=5){
+       isStopedRotation=true;
+    }
+    else {
+        isStopedRotation=false;
+    }
+    prevPosition=currPosition;
+
+
+
 }
 

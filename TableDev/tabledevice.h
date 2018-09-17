@@ -43,24 +43,33 @@ public slots:
     void PositioningParamVisible();
     void ExecutePosition();
     void ZeroPostion();
-    void MeasurePostion(); //придумать нормальное имя
+    void RequestPosition();
+    void DispOfMeasure(); //придумать нормальное имя
+
 
     void OnMotion();
     void BeginMotion();
     void StopMotion();
     void OffMotion();
+    void FinishedMotion();
     void ResetAbsCoord();
 
     void ManualMode();
 
     void SettingsRotation();
     void SetFormatConsole();
+
+    void SetTimer();
+    void GetPosition(QByteArray data);
+
+
 private:
 
     void CreateWidgets();
     void CreateConnections();
     void AddThreads();
     void StopThread();
+
 
     QWidget *MainWidget;
     QComboBox *TypeTableComboBox;
@@ -83,6 +92,7 @@ private:
     QCheckBox *PositveRotationCheckBox;
     QCheckBox *NegativeRotationCheckBox;
     QCheckBox *AsciiFormatCheckBox;
+    QCheckBox *RequestPostionCheckBox;
 
     QPushButton *PositioningButton;
     QPushButton *ExecutePositioningButton;
@@ -108,10 +118,14 @@ private:
 
     QMenu *PositionCommand;
 
+    QTimer *tmr;
+
     unsigned char updateSettingsPort;
     bool isPosition;
     int currPosition;
+    int prevPosition;
     int velocity;
+    bool isStopedRotation;
 
 };
 
