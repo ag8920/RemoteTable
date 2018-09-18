@@ -90,6 +90,8 @@ void Widget::initActionConnections()
     connect(StopTimerAction,&QAction::triggered,this,&Widget::StopTimer);
     connect(StopTimerAction,&QAction::triggered,
             this->ConfigTableDevice, &TableDevice::FinishedMotion);
+    connect(StopTimerAction,&QAction::triggered,
+            this->ConfigTableDevice,&TableDevice::EndOfMeasure);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -226,6 +228,14 @@ void Widget::CreateConnections()
 //            this,&Widget::StopTimer);
     connect(tmr,&QTimer::timeout,
             ConfigTableDevice,&TableDevice::DispOfMeasure);
+    connect(ConfigTableDevice,&TableDevice::StopRotation,
+            this,&Widget::StartTimer);
+    connect(ConfigTableDevice,&TableDevice::StartRotation,
+            this,&Widget::StopTimer);
+    connect(ConfigTableDevice,&TableDevice::StartRotation,
+            ConfigGyroDevice->Measure,&GyroMeasure::StartRotation);
+    connect(ConfigTableDevice,&TableDevice::StopRotation,
+            ConfigGyroDevice->Measure,&GyroMeasure::StopRotation);
 }
 
 void Widget::StartTimer()
@@ -235,6 +245,7 @@ void Widget::StartTimer()
         t=(timeAccumulateLineEdit->text().toInt()*1000)/4;
     tmr->setInterval(t);
     tmr->start();
+    emit StartMeasure();
 }
 
 void Widget::StopTimer()

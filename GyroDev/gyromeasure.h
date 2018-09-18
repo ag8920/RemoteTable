@@ -31,9 +31,14 @@ signals:
     void outCountPacket(const QString);
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
 public slots:
-    void Measure();
+    void Measure(int num);
+    void AccumulateData();
     void GetData(QByteArray inputArray);
     void SortData(QByteArray data);
+    void GetPosition(int position);
+    void GetNumMeasure(int num);
+    void StopRotation();
+    void StartRotation();
 private:
     SlipProtocol *Slip;
     void FillOutList(FastPacket packet);
@@ -44,6 +49,17 @@ public:
     FastPacket packet;
     QList<QString> *lstVal;
     QList<QString> *lstName;
+    
+    int numMeasure;
+    int numPosition;
+    bool isAccumulateData;
+    
+    float Azimuth;
+    float da[4];
+    float sko;
+    float meanValue;
+    float minValue;
+    float maxValue;
 };
 
 #endif // GYROMEASURE_H

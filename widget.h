@@ -22,11 +22,13 @@ public:
     ~Widget();
 signals:
     void onWindowClosed();
+    void StartMeasure();
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
     void StartTimer();
     void StopTimer();
+
 public:
     QTimer *tmr;
 

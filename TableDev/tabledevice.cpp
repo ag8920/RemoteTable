@@ -24,9 +24,12 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 
     tmr = new QTimer;
     isPosition=false;
+    isMeasuring=false;
     isStopedRotation=true;
     currPosition=0;
     prevPosition=0;
+    numPosition=0;
+    numMeasure=0;
     AddThreads();
     CreateWidgets();
     CreateConnections();
@@ -112,34 +115,38 @@ void TableDevice::ZeroPostion()
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void TableDevice::DispOfMeasure()
 {
     QByteArray data;
     QString str;
     isPosition=true;
-    static int numMeasure=1;
+    isMeasuring=true;
+
     QString Angle;
-    switch (numMeasure) {
+    switch (numPosition) {
     case 0:
-        Angle="0";
-        numMeasure++;
+        Angle="200000";
+        nextPosition=200000;
+        numPosition++;
         break;
     case 1:
-        Angle="200000";
-        numMeasure++;
+        Angle="300000";
+        nextPosition=300000;
+        numPosition++;
         break;
     case 2:
-        Angle="300000";
-        numMeasure++;
+        Angle="100000";
+        nextPosition=100000;
+        numPosition++;
         break;
     case 3:
-        Angle="100000";
-        numMeasure++;
-        break;
-    case 4:
         Angle="0";
-        numMeasure=1;
+        nextPosition=0;
+        numPosition=0;
+        numMeasure++;
         break;
     default:
         break;
@@ -147,6 +154,18 @@ void TableDevice::DispOfMeasure()
 
     str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
                     +Angle+";bg;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::EndOfMeasure()
+{
+    isMeasuring=false;
+    QByteArray data;
+    QString str;
+    str="st;mo=0;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
@@ -541,14 +560,14 @@ void TableDevice::SetTimer()
         tmr->stop();
 }
 //-----------------------------------------------------------
-// Назначение: разбор пакета с текущей позицией
+// Назначение: получение текущей позиции и
+//             определение движения поворотного стола
 //-----------------------------------------------------------
 void TableDevice::GetPosition(QByteArray data)
 {
     static QString str=nullptr;
     static bool start=false;
     static bool end=false;
-
 
     if(data.startsWith("px;")){start=true;end=false;}
     if(start && !end)
@@ -568,15 +587,26 @@ void TableDevice::GetPosition(QByteArray data)
         CurrPositionLineEdit->setText(str);
         str=nullptr;
     }
-    if(std::abs(currPosition-prevPosition)<=5){
-       isStopedRotation=true;
-    }
-    else {
-        isStopedRotation=false;
+
+    if(isMeasuring)
+    {
+        if((std::abs(currPosition-nextPosition)<=2) && !isStopedRotation ){
+           isStopedRotation=true;
+           emit StopRotation();          
+           emit SendNumPosition(numPosition);             
+        }
+        else if((std::abs(currPosition-nextPosition)>=2) && isStopedRotation){
+            isStopedRotation=false;
+            emit StartRotation();
+        }
     }
     prevPosition=currPosition;
 
-
-
 }
+
+
+
+
+
+
 

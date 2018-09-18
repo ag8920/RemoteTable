@@ -75,7 +75,7 @@ private:
 
     Console *ConsoleWidget;
 
-    GyroMeasure *Measure;
+
 
     TableModel *m_model;
     MyDelegate *m_delegate;
@@ -83,5 +83,7 @@ private:
     QWidget *tableWidget;
 
     unsigned char updateSettingsPort;
+public:
+    GyroMeasure *Measure;
 };
 #endif // GYRODEVICE_H

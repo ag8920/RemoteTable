@@ -8,6 +8,7 @@
 #include "gyromeasure.h"
 #include <QDebug>
 #include <QDataStream>
+#include <QtMath>
 
 //-----------------------------------------------------------
 // Назначение: десереализация принятого пакета
@@ -41,15 +42,51 @@ GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
             tr("dat1[град/час]"),tr("dat2[град/час]"),tr("dat3[град/час]"),
             tr("dvt1[м/с2]"),tr("dvt2[м/с2]"),tr("dvt3[м/с2]")
             ,tr("Время[сек]"),tr("Контр.сумма")};
-
+    isAccumulateData=false;
+    numMeasure=0;
+    numPosition=0;
 
 }
 //-----------------------------------------------------------
 // Назначение:
 //-----------------------------------------------------------
-void GyroMeasure::Measure()
+void GyroMeasure::Measure(int num)
 {
-
+    if(num && numMeasure<num )
+    {
+        numMeasure=num;
+        Azimuth=qRadiansToDegrees(static_cast<float>(atan2((da[0]-da[1]),(da[2]-da[3]))));
+    
+        meanValue=Azimuth/static_cast<float>(numMeasure);
+    
+        maxValue>Azimuth?maxValue=Azimuth:maxValue;
+    
+        minValue<Azimuth?minValue=Azimuth:minValue;
+    //TODO : пересчет СКО
+        da[0]=0;da[1]=0;da[2]=0;da[3]=0;
+    }
+    
+}
+//-----------------------------------------------------------
+// Назначение: накопление данных
+//-----------------------------------------------------------
+void GyroMeasure::AccumulateData()
+{
+    switch (numPosition) {
+    case 1:
+        da[0]+=packet.da2;
+        break;
+    case 2:
+        da[1]+=packet.da2;
+        break;
+    case 3:
+        da[2]+=packet.da2;
+        break;
+    case 4:
+        da[3]+=packet.da2;
+        break;
+    default: break;
+    }
 }
 //-----------------------------------------------------------
 // Назначение: прием данных
@@ -72,15 +109,47 @@ void GyroMeasure::SortData(QByteArray data)
 
     countPacket++;
     stream>>packet;
+    
 
     FillOutList(packet);
+    if(isAccumulateData)
+        this->AccumulateData();
+    
     emit outCountPacket(QVariant(countPacket).toString());
     emit SendDataToTable(lstVal,lstName);
-
+    
 }
 //-----------------------------------------------------------
-// Назначение: заполнение данных для список
-//             для табличного отображения в форма
+// Назначение: получение текущей позиции 
+//-----------------------------------------------------------
+void GyroMeasure::GetPosition(int position)
+{
+    numPosition=position;
+}
+//-----------------------------------------------------------
+// Назначение: количество завершенных измерений 
+//-----------------------------------------------------------
+void GyroMeasure::GetNumMeasure(int num)
+{
+    numMeasure=num;
+}
+//-----------------------------------------------------------
+// Назначение: управление признаком накопления данных 
+//-----------------------------------------------------------
+void GyroMeasure::StopRotation()
+{
+    isAccumulateData=true;
+}
+//-----------------------------------------------------------
+// Назначение: управление признаком накопления данных 
+//-----------------------------------------------------------
+void GyroMeasure::StartRotation()
+{
+    isAccumulateData=false;
+}
+//-----------------------------------------------------------
+// Назначение: заполнение данных в список
+//             для табличного отображения в форме
 //-----------------------------------------------------------
 void GyroMeasure::FillOutList(FastPacket packet)
 {

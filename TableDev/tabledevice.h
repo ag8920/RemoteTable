@@ -33,6 +33,12 @@ signals:
     void StopAll();
     void OutputToComPort(const QByteArray &data);
     void ConsoleSetFormat(const int Format);
+
+    void StopRotation();
+    void StartRotation();
+    
+    void SendNumPosition(int pos);
+    void SendNumMeasure(int num);
 public slots:
     void OpenSerialPort();
     void isConnectedComPort(const QString msg);
@@ -44,7 +50,8 @@ public slots:
     void ExecutePosition();
     void ZeroPostion();
     void RequestPosition();
-    void DispOfMeasure(); //придумать нормальное имя
+    void DispOfMeasure();
+    void EndOfMeasure();
 
 
     void OnMotion();
@@ -60,6 +67,7 @@ public slots:
     void SetFormatConsole();
 
     void SetTimer();
+
     void GetPosition(QByteArray data);
 
 
@@ -120,11 +128,16 @@ private:
 
     QTimer *tmr;
 
+public:
     unsigned char updateSettingsPort;
+    bool isMeasuring;
     bool isPosition;
     int currPosition;
     int prevPosition;
+    int nextPosition;
     int velocity;
+    int numPosition;
+    int numMeasure;
     bool isStopedRotation;
 
 };
