@@ -32,13 +32,13 @@ signals:
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
 public slots:
     void Measure(int num);
-    void AccumulateData();
+    void Accumulate();
     void GetData(QByteArray inputArray);
     void SortData(QByteArray data);
     void GetPosition(int position);
     void GetNumMeasure(int num);
-    void StopRotation();
-    void StartRotation();
+    void AccumulateData();
+    void NoAccumulateData();
 private:
     SlipProtocol *Slip;
     void FillOutList(FastPacket packet);

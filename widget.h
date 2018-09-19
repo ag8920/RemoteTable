@@ -23,6 +23,7 @@ public:
 signals:
     void onWindowClosed();
     void StartMeasure();
+    void StopMeasure();
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:

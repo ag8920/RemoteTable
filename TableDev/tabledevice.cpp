@@ -116,9 +116,9 @@ void TableDevice::ZeroPostion()
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: диспетчер позиционирования
 //-----------------------------------------------------------
-void TableDevice::DispOfMeasure()
+void TableDevice::DispOfPosition()
 {
     QByteArray data;
     QString str;
@@ -134,12 +134,12 @@ void TableDevice::DispOfMeasure()
         break;
     case 1:
         Angle="300000";
-        nextPosition=300000;
+        nextPosition=300000;       
         numPosition++;
         break;
     case 2:
         Angle="100000";
-        nextPosition=100000;
+        nextPosition=100000;        
         numPosition++;
         break;
     case 3:
@@ -147,6 +147,7 @@ void TableDevice::DispOfMeasure()
         nextPosition=0;
         numPosition=0;
         numMeasure++;
+        emit SendNumMeasure(numMeasure);
         break;
     default:
         break;
@@ -154,8 +155,56 @@ void TableDevice::DispOfMeasure()
 
     str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
                     +Angle+";bg;";
-    data=str.toLocal8Bit();
+    data=str.toLocal8Bit();    
     emit OutputToComPort(data);
+    emit StartRotation();
+
+    isStopedRotation=false;
+
+}
+//-----------------------------------------------------------
+// Назначение: получение текущей позиции и
+//             определение движения поворотного стола
+//-----------------------------------------------------------
+void TableDevice::GetPosition(QByteArray data)
+{
+    static QString str=nullptr;
+    static bool start=false;
+    static bool end=false;
+
+    if(data.startsWith("px;")){start=true;end=false;}
+    if(start && !end)
+    {
+        for(int pos=0;pos<data.length();pos++)
+        {
+            QChar symbol=data.at(pos);
+            if((symbol>='0'&& symbol<='9') || symbol=='-')
+            {
+                str+=symbol;
+            }
+        }
+    }
+    if(data.endsWith(";")) {end=true;start=false;}
+    if(!str.isEmpty() && end) {
+        currPosition=str.toInt();
+        CurrPositionLineEdit->setText(str);
+        str=nullptr;
+    }
+
+    if(isMeasuring)
+    {
+        if((std::abs(currPosition-nextPosition)<=2) && !isStopedRotation ){
+           isStopedRotation=true;
+           emit StopRotation();
+           emit SendNumPosition(numPosition);
+        }
+        else if((std::abs(currPosition-nextPosition)>=2) && isStopedRotation){
+            isStopedRotation=false;
+            emit StartRotation();
+        }
+    }
+    prevPosition=currPosition;
+
 }
 //-----------------------------------------------------------
 // Назначение:
@@ -559,50 +608,7 @@ void TableDevice::SetTimer()
     else
         tmr->stop();
 }
-//-----------------------------------------------------------
-// Назначение: получение текущей позиции и
-//             определение движения поворотного стола
-//-----------------------------------------------------------
-void TableDevice::GetPosition(QByteArray data)
-{
-    static QString str=nullptr;
-    static bool start=false;
-    static bool end=false;
 
-    if(data.startsWith("px;")){start=true;end=false;}
-    if(start && !end)
-    {
-        for(int pos=0;pos<data.length();pos++)
-        {
-            QChar symbol=data.at(pos);
-            if((symbol>='0'&& symbol<='9') || symbol=='-')
-            {
-                str+=symbol;
-            }
-        }
-    }
-    if(data.endsWith(";")) {end=true;start=false;}
-    if(!str.isEmpty() && end) {
-        currPosition=str.toInt();
-        CurrPositionLineEdit->setText(str);
-        str=nullptr;
-    }
-
-    if(isMeasuring)
-    {
-        if((std::abs(currPosition-nextPosition)<=2) && !isStopedRotation ){
-           isStopedRotation=true;
-           emit StopRotation();          
-           emit SendNumPosition(numPosition);             
-        }
-        else if((std::abs(currPosition-nextPosition)>=2) && isStopedRotation){
-            isStopedRotation=false;
-            emit StartRotation();
-        }
-    }
-    prevPosition=currPosition;
-
-}
 
 
 

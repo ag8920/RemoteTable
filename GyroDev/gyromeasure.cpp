@@ -70,19 +70,19 @@ void GyroMeasure::Measure(int num)
 //-----------------------------------------------------------
 // Назначение: накопление данных
 //-----------------------------------------------------------
-void GyroMeasure::AccumulateData()
+void GyroMeasure::Accumulate()
 {
     switch (numPosition) {
-    case 1:
+    case 0:
         da[0]+=packet.da2;
         break;
-    case 2:
+    case 1:
         da[1]+=packet.da2;
         break;
-    case 3:
+    case 2:
         da[2]+=packet.da2;
         break;
-    case 4:
+    case 3:
         da[3]+=packet.da2;
         break;
     default: break;
@@ -113,7 +113,7 @@ void GyroMeasure::SortData(QByteArray data)
 
     FillOutList(packet);
     if(isAccumulateData)
-        this->AccumulateData();
+        this->Accumulate();
     
     emit outCountPacket(QVariant(countPacket).toString());
     emit SendDataToTable(lstVal,lstName);
@@ -136,14 +136,14 @@ void GyroMeasure::GetNumMeasure(int num)
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
 //-----------------------------------------------------------
-void GyroMeasure::StopRotation()
+void GyroMeasure::AccumulateData()
 {
     isAccumulateData=true;
 }
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
 //-----------------------------------------------------------
-void GyroMeasure::StartRotation()
+void GyroMeasure::NoAccumulateData()
 {
     isAccumulateData=false;
 }

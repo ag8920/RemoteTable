@@ -50,7 +50,7 @@ public slots:
     void ExecutePosition();
     void ZeroPostion();
     void RequestPosition();
-    void DispOfMeasure();
+    void DispOfPosition();
     void EndOfMeasure();
 
 

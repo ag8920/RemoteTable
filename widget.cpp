@@ -84,14 +84,8 @@ void Widget::initActionConnections()
     connect(this,SIGNAL(onWindowClosed()),ConfigGyroDevice,SLOT(close()));
 
     connect(StartTimerAction,&QAction::triggered,this,&Widget::StartTimer);
-    connect(StartTimerAction,&QAction::triggered,
-            this->ConfigTableDevice, &TableDevice::ResetAbsCoord);
-
     connect(StopTimerAction,&QAction::triggered,this,&Widget::StopTimer);
-    connect(StopTimerAction,&QAction::triggered,
-            this->ConfigTableDevice, &TableDevice::FinishedMotion);
-    connect(StopTimerAction,&QAction::triggered,
-            this->ConfigTableDevice,&TableDevice::EndOfMeasure);
+
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -227,15 +221,30 @@ void Widget::CreateConnections()
 //    connect(tmr,&QTimer::timeout,
 //            this,&Widget::StopTimer);
     connect(tmr,&QTimer::timeout,
-            ConfigTableDevice,&TableDevice::DispOfMeasure);
+            ConfigTableDevice,&TableDevice::DispOfPosition);
     connect(ConfigTableDevice,&TableDevice::StopRotation,
             this,&Widget::StartTimer);
     connect(ConfigTableDevice,&TableDevice::StartRotation,
             this,&Widget::StopTimer);
     connect(ConfigTableDevice,&TableDevice::StartRotation,
-            ConfigGyroDevice->Measure,&GyroMeasure::StartRotation);
+            ConfigGyroDevice->Measure,&GyroMeasure::NoAccumulateData);
+
     connect(ConfigTableDevice,&TableDevice::StopRotation,
-            ConfigGyroDevice->Measure,&GyroMeasure::StopRotation);
+            ConfigGyroDevice->Measure,&GyroMeasure::AccumulateData);
+
+    connect(ConfigTableDevice,&TableDevice::SendNumPosition,
+            ConfigGyroDevice->Measure,&GyroMeasure::GetPosition);
+
+    connect(ConfigTableDevice,&TableDevice::SendNumMeasure,
+            ConfigGyroDevice->Measure,&GyroMeasure::Measure);
+
+    connect(this,&Widget::StartMeasure,
+            ConfigGyroDevice->Measure,&GyroMeasure::AccumulateData);
+
+    connect(StartTimerAction,&QAction::triggered,
+            ConfigTableDevice, &TableDevice::ResetAbsCoord);
+    connect(StopTimerAction,&QAction::triggered,
+            ConfigTableDevice,&TableDevice::EndOfMeasure);
 }
 
 void Widget::StartTimer()
@@ -251,6 +260,7 @@ void Widget::StartTimer()
 void Widget::StopTimer()
 {
     tmr->stop();
+//    emit StopMeasure();
 }
 
 
