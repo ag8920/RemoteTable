@@ -116,44 +116,6 @@ void TableDevice::ZeroPostion()
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение: диспетчер позиционирования при измерении
-//-----------------------------------------------------------
-void TableDevice::DispOfPosition()
-{
-
-        switch (numPosition) {
-        case 0:
-            nextPosition=0;
-            this->GoToPosition(nextPosition);
-            numPosition++;
-            emit SendNumPosition(numPosition);
-            break;
-        case 1:
-            nextPosition=200000;
-            this->GoToPosition(nextPosition);
-            numPosition++;
-            emit SendNumPosition(numPosition);
-            break;
-        case 2:
-            nextPosition=300000;
-            this->GoToPosition(nextPosition);
-            numPosition++;
-            emit SendNumPosition(numPosition);
-            break;
-        case 3:
-            nextPosition=100000;
-            this->GoToPosition(nextPosition);
-            numPosition=0;
-            numMeasure++;
-            emit SendNumMeasure(numMeasure);
-            emit SendNumPosition(numPosition);
-            break;
-        default:
-            break;
-        } //...switch
-
-}
-//-----------------------------------------------------------
 // Назначение: получение текущей позиции и
 //             определение движения поворотного стола
 //-----------------------------------------------------------
@@ -202,6 +164,7 @@ void TableDevice::GoToPosition(QVariant position)
 {
     QByteArray data;
     QString str;
+    nextPosition=position.toInt();
     str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
                     +position.toString()+";bg;";
     data=str.toLocal8Bit();
@@ -549,7 +512,8 @@ void TableDevice::CreateConnections()
 
     connect(RequestPostionCheckBox,&QCheckBox::clicked,
             this,&TableDevice::SetTimer);
-    connect(tmr,&QTimer::timeout,this,&TableDevice::RequestPosition);
+    connect(tmr,&QTimer::timeout,
+            this,&TableDevice::RequestPosition);
 
     connect(DeviceComPort,&comPort::dataOutput,
             this,&TableDevice::GetPosition);

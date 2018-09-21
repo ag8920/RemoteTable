@@ -25,6 +25,8 @@ signals:
     void StartMeasure();
     void StopMeasureSignal();
     void AccumulateDataSignal();
+    void GotoPosition(QVariant position);
+    void ResetAbsCoord();
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
@@ -33,8 +35,7 @@ public slots:
     void StopTimer();
     bool SetTime();
     void StopMeasureSlot();
-    void GetMeasureData(const QString Azimuth, const QString mean,
-                        const QString min, const QString max, const QString sko);
+    void Measure();
 
 public:
     QTimer *tmr;

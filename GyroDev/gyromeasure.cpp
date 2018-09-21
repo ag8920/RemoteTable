@@ -32,7 +32,7 @@ QDataStream &operator>>(QDataStream &in, FastPacket &packet)
 //-----------------------------------------------------------
 GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
 {
-    countPacket=0;
+
     Slip=new SlipProtocol;
     connect(Slip,&SlipProtocol::outDecodeArray,
             this,&GyroMeasure::SortData);
@@ -42,72 +42,13 @@ GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
             tr("dat1[град/час]"),tr("dat2[град/час]"),tr("dat3[град/час]"),
             tr("dvt1[м/с2]"),tr("dvt2[м/с2]"),tr("dvt3[м/с2]")
             ,tr("Время[сек]"),tr("Контр.сумма")};
-    isAccumulateData=false;
-    numMeasure=0;
-    numPosition=0;
+
+    this->isAccumulateData=false;
     this->summ=0;
+    this->countPacket=0;
+}
 
-}
-//-----------------------------------------------------------
-// Назначение:
-//-----------------------------------------------------------
-void GyroMeasure::Measure(int num)
-{
-    static float SummAzimuth=0.;;
-    if(num && numMeasure<num )
-    {
-        numMeasure=num;
-        Azimuth=qRadiansToDegrees(static_cast<float>(atan2((da[0]-da[1]),(da[2]-da[3]))));
-        SummAzimuth+=Azimuth;
-        if(numMeasure>1){
-        meanValue=Azimuth/static_cast<float>(numMeasure);
-    
-        maxValue>Azimuth?maxValue:maxValue=Azimuth;
-    
-        minValue<Azimuth?minValue:minValue=Azimuth;
-        }
-        else{
-            meanValue=maxValue=minValue=Azimuth;
 
-        }
-    //TODO : пересчет СКО
-        da[0]=0;da[1]=0;da[2]=0;da[3]=0;
-        emit SendMeasureData(
-                    static_cast<QVariant>(Azimuth).toString(),
-                    static_cast<QVariant>(meanValue).toString(),
-                    static_cast<QVariant>(minValue).toString(),
-                    static_cast<QVariant>(maxValue).toString(),
-                    static_cast<QVariant>(sko).toString()
-                );
-    }
-    
-}
-//-----------------------------------------------------------
-// Назначение: накопление данных
-//-----------------------------------------------------------
-void GyroMeasure::Accumulate()
-{
-    static int position=0;
-    switch (position) {
-    case 0:
-        da[0]+=packet.da2;
-        position++;
-        break;
-    case 1:
-        da[1]+=packet.da2;
-        position++;
-        break;
-    case 2:
-        da[2]+=packet.da2;
-        position++;
-        break;
-    case 3:
-        da[3]+=packet.da2;
-        position=0;
-        break;
-    default: break;
-    }
-}
 //-----------------------------------------------------------
 // Назначение: прием данных
 //-----------------------------------------------------------
@@ -132,40 +73,26 @@ void GyroMeasure::SortData(QByteArray data)
     
 
     FillOutList(packet);
-    if(isAccumulateData)
-        this->Accumulate();
+    if(this->isAccumulateData)
+        this->summ+=packet.da2;
     
     emit outCountPacket(QVariant(countPacket).toString());
     emit SendDataToTable(lstVal,lstName);
     
 }
 //-----------------------------------------------------------
-// Назначение: получение текущей позиции 
-//-----------------------------------------------------------
-void GyroMeasure::GetPosition(int position)
-{
-    numPosition=position;
-}
-//-----------------------------------------------------------
-// Назначение: количество завершенных измерений 
-//-----------------------------------------------------------
-void GyroMeasure::GetNumMeasure(int num)
-{
-    numMeasure=num;
-}
-//-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
 //-----------------------------------------------------------
 void GyroMeasure::AccumulateData()
 {
-    isAccumulateData=true;
+    this->isAccumulateData=true;
 }
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
 //-----------------------------------------------------------
 void GyroMeasure::NoAccumulateData()
 {
-    isAccumulateData=false;
+    this->isAccumulateData=false;
 }
 //-----------------------------------------------------------
 // Назначение: заполнение данных в список

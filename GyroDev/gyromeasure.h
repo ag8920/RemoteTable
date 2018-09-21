@@ -33,12 +33,8 @@ signals:
     void SendMeasureData(const QString Azimuth,const QString mean,
                          const QString min,const QString max,const QString sko);
 public slots:
-    void Measure(int num);
-    void Accumulate();
     void GetData(QByteArray inputArray);
     void SortData(QByteArray data);
-    void GetPosition(int position);
-    void GetNumMeasure(int num);
     void AccumulateData();
     void NoAccumulateData();
 private:
@@ -51,19 +47,9 @@ public:
     FastPacket packet;
     QList<QString> *lstVal;
     QList<QString> *lstName;
-    
-    int numMeasure;
-    int numPosition;
-    bool isAccumulateData;
-    
-    float Azimuth;
-    float da[4];
-    float sko;
-    float meanValue;
-    float minValue;
-    float maxValue;
 
     float summ;
+    bool isAccumulateData;
 };
 
 #endif // GYROMEASURE_H
