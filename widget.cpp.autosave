@@ -215,7 +215,8 @@ void Widget::CreateWidgets()
     */
     measureWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
                                  "border-width: 1px;"
-                                 "min-height: 1.2em;max-height: 2em; min-width:5em;max-width:5em}");
+                                 "min-height: 1.2em;max-height: 2em; "
+                                 "min-width:5em;max-width:5em}");
 
 
     measureWidget->show();
@@ -330,4 +331,48 @@ void Widget::GetMeasureData(const QString Azimuth,
 }
 
 
-
+void Widget::Dispatcher()
+{
+    static int prevMeasure=0;
+    static int numMeasure=0;
+    static int numPosition=0;
+    static float Azimuth=0;
+    
+    static float pos1=0,pos2=0,pos3=0,pos4=0.;
+    this->ConfigTableDevice->ResetAbsCoord(); //привязать к кнопке
+    
+    switch (numPosition) {
+    case 0:
+        pos1=this->ConfigGyroDevice->Measure->summ;
+        this->ConfigGyroDevice->Measure->summ=0;
+        this->ConfigTableDevice->GoToPosition(200000);
+        numPosition++;
+        break;
+    case 1:
+        pos2=this->ConfigGyroDevice->Measure->summ;
+        this->ConfigGyroDevice->Measure->summ=0;
+        this->ConfigTableDevice->GoToPosition(300000);
+        numPosition++;
+        break;
+    case 2:
+        pos3=this->ConfigGyroDevice->Measure->summ;
+        this->ConfigGyroDevice->Measure->summ=0;
+        this->ConfigTableDevice->GoToPosition(100000);
+        numPosition++;
+        break;
+    case 3:
+        pos4=this->ConfigGyroDevice->Measure->summ;
+        this->ConfigGyroDevice->Measure->summ=0;
+        this->ConfigTableDevice->GoToPosition(0);
+        numPosition=0;
+        numMeasure++;
+    default:
+        break;
+    }
+    if(numMeasure>prevMeasure){
+        //пересчет параметров
+         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos1-pos2),(pos3-pos4))));
+         currValueLineEdit->setText(QVariant(Azimuth).toString());
+    }
+    
+}

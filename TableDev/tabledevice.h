@@ -51,8 +51,8 @@ public slots:
     void ZeroPostion();
     void RequestPosition();
     void DispOfPosition();
-    void EndOfMeasure();
 
+    void GoToPosition(QVariant position);
 
     void OnMotion();
     void BeginMotion();
@@ -71,6 +71,8 @@ public slots:
     void GetPosition(QByteArray data);
 
 
+    void StartMeasure();
+    void StopMeasure();
 private:
 
     void CreateWidgets();
@@ -130,15 +132,16 @@ private:
 
 public:
     unsigned char updateSettingsPort;
-    bool isMeasuring;
+    bool isMeasuring;//признак измерения
     bool isPosition;
+    bool isRotation; //признак движения
     int currPosition;
     int prevPosition;
     int nextPosition;
     int velocity;
     int numPosition;
     int numMeasure;
-    bool isStopedRotation;
+
 
 };
 

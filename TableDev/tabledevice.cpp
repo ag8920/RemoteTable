@@ -25,7 +25,7 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
     tmr = new QTimer;
     isPosition=false;
     isMeasuring=false;
-    isStopedRotation=true;
+    isRotation=false;
     currPosition=0;
     prevPosition=0;
     numPosition=0;
@@ -54,7 +54,7 @@ void TableDevice::OpenSerialPort()
     int dataBits=static_cast<int>(p.dataBits);
     int parity=static_cast<int>(p.parity);
     int stopBits=static_cast<int>(p.stopBits);
-    int flowControl=static_cast<int>(p.flowControl);
+    int flowControl=static_cast<int>(p.flowControl);    
     //emit ConnectComPort(p);
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
 }
@@ -116,50 +116,41 @@ void TableDevice::ZeroPostion()
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение: диспетчер позиционирования
+// Назначение: диспетчер позиционирования при измерении
 //-----------------------------------------------------------
 void TableDevice::DispOfPosition()
 {
-    QByteArray data;
-    QString str;
-    isPosition=true;
-    isMeasuring=true;
 
-    QString Angle;
-    switch (numPosition) {
-    case 0:
-        Angle="200000";
-        nextPosition=200000;
-        numPosition++;
-        break;
-    case 1:
-        Angle="300000";
-        nextPosition=300000;       
-        numPosition++;
-        break;
-    case 2:
-        Angle="100000";
-        nextPosition=100000;        
-        numPosition++;
-        break;
-    case 3:
-        Angle="0";
-        nextPosition=0;
-        numPosition=0;
-        numMeasure++;
-        emit SendNumMeasure(numMeasure);
-        break;
-    default:
-        break;
-    }
-
-    str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
-                    +Angle+";bg;";
-    data=str.toLocal8Bit();    
-    emit OutputToComPort(data);
-    emit StartRotation();
-
-    isStopedRotation=false;
+        switch (numPosition) {
+        case 0:
+            nextPosition=0;
+            this->GoToPosition(nextPosition);
+            numPosition++;
+            emit SendNumPosition(numPosition);
+            break;
+        case 1:
+            nextPosition=200000;
+            this->GoToPosition(nextPosition);
+            numPosition++;
+            emit SendNumPosition(numPosition);
+            break;
+        case 2:
+            nextPosition=300000;
+            this->GoToPosition(nextPosition);
+            numPosition++;
+            emit SendNumPosition(numPosition);
+            break;
+        case 3:
+            nextPosition=100000;
+            this->GoToPosition(nextPosition);
+            numPosition=0;
+            numMeasure++;
+            emit SendNumMeasure(numMeasure);
+            emit SendNumPosition(numPosition);
+            break;
+        default:
+            break;
+        } //...switch
 
 }
 //-----------------------------------------------------------
@@ -190,31 +181,29 @@ void TableDevice::GetPosition(QByteArray data)
         CurrPositionLineEdit->setText(str);
         str=nullptr;
     }
-
     if(isMeasuring)
     {
-        if((std::abs(currPosition-nextPosition)<=2) && !isStopedRotation ){
-           isStopedRotation=true;
+        if((std::abs(currPosition-nextPosition)<=2) && isRotation){
            emit StopRotation();
-           emit SendNumPosition(numPosition);
+           isRotation=false;
         }
-        else if((std::abs(currPosition-nextPosition)>=2) && isStopedRotation){
-            isStopedRotation=false;
+        else if((std::abs(currPosition-nextPosition)>=2) && !isRotation){
             emit StartRotation();
+            isRotation=true;
         }
     }
     prevPosition=currPosition;
 
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: абсолютное позиционирование
 //-----------------------------------------------------------
-void TableDevice::EndOfMeasure()
+void TableDevice::GoToPosition(QVariant position)
 {
-    isMeasuring=false;
     QByteArray data;
     QString str;
-    str="st;mo=0;";
+    str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
+                    +position.toString()+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
@@ -228,8 +217,6 @@ void TableDevice::RequestPosition()
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
-
-
 //-----------------------------------------------------------
 // Назначение: Включить привод
 //-----------------------------------------------------------
@@ -282,7 +269,6 @@ void TableDevice::FinishedMotion()
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
-
 //-----------------------------------------------------------
 // Назначение: сброс абсолютной координаты
 //-----------------------------------------------------------
@@ -598,20 +584,32 @@ void TableDevice::StopThread()
 {
     emit StopAll();
 }
-
+//-----------------------------------------------------------
+// Назначение: установка таймера для опроса текущих координат
+//-----------------------------------------------------------
 void TableDevice::SetTimer()
 {
     if(RequestPostionCheckBox->isChecked()){
-        tmr->setInterval(1000);
+        tmr->setInterval(500);
         tmr->start();
     }
     else
         tmr->stop();
 }
-
-
-
-
+//-----------------------------------------------------------
+// Назначение: установка признака isMeasuring
+//-----------------------------------------------------------
+void TableDevice::StartMeasure()
+{
+    this->isMeasuring=true;
+}
+//-----------------------------------------------------------
+// Назначение: сброс признака isMeasuring
+//-----------------------------------------------------------
+void TableDevice::StopMeasure()
+{
+    this->isMeasuring=false;
+}
 
 
 

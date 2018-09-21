@@ -23,16 +23,22 @@ public:
 signals:
     void onWindowClosed();
     void StartMeasure();
-    void StopMeasure();
+    void StopMeasureSignal();
+    void AccumulateDataSignal();
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
+    void StartMeasureSlot();
     void StartTimer();
     void StopTimer();
+    bool SetTime();
+    void StopMeasureSlot();
+    void GetMeasureData(const QString Azimuth, const QString mean,
+                        const QString min, const QString max, const QString sko);
 
 public:
     QTimer *tmr;
-
+    int timeSec;
 private:
     void CreateActions();
     void initActionConnections();
