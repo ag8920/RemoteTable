@@ -23,10 +23,8 @@ Widget::Widget(QWidget *parent)
     Q_UNUSED(parent);
     ConfigTableDevice=new TableDevice;
     ConfigGyroDevice=new GyroDevice;
-    tmr=new QTimer();
 
-    this->timeSec=0;
-
+    InitVariable();
     CreateActions();
     CreateMenus();
     CreateToolBars();
@@ -150,6 +148,7 @@ void Widget::CreateWidgets()
 
     currValueLineEdit=new QLineEdit;
     currValueLineEdit->setReadOnly(true);
+    currValueLineEdit->setValidator(regExp2);
     //currValueLabel->setBuddy(currValueLineEdit);
 
     meanVelueLineEdit=new QLineEdit;
@@ -236,7 +235,7 @@ void Widget::CreateConnections()
     //установка вермени измерений и вызов сигнала StartMeasure
     connect(StartTimerAction,&QAction::triggered,
             this,&Widget::StartMeasureSlot);
-    //Сигнал старта измерений
+    //Сигнал старта измерений (ConfigTableDevice->isMeasuring=true)
     connect(this,&Widget::StartMeasure,
             ConfigTableDevice,&TableDevice::StartMeasure);
 
@@ -249,25 +248,9 @@ void Widget::CreateConnections()
     //вызов StopMeasureSignal
     connect(StopTimerAction,&QAction::triggered,
             this,&Widget::StopMeasureSlot);
-    //сброс таймера
-    connect(StopTimerAction,&QAction::triggered,
-            this,&Widget::StopTimer);
-    //сброс признака TableDevice->isMeasuring
+    //сброс признака (TableDevice->isMeasuring=false)
     connect(this,&Widget::StopMeasureSignal,
             ConfigTableDevice, &TableDevice::StopMeasure);
-
-
-
-    //---------------------------------
-    //действия по timeout таймера
-    //---------------------------------
-    //окончание накопления данных при начале поворота стола
-    connect(tmr,&QTimer::timeout,
-            ConfigGyroDevice->Measure,
-            &GyroMeasure::NoAccumulateData);
-    //вызов алгоритма по таймеру
-    connect(tmr,&QTimer::timeout,
-            this,&Widget::Measure);
 
     //---------------------------------
     //запуск таймера
@@ -275,19 +258,6 @@ void Widget::CreateConnections()
     //запуск таймера обратного отсчета при остановке стола
     connect(ConfigTableDevice,&TableDevice::StopRotation,
             this,&Widget::StartTimer);
-    //включение накопления данных ( выполняется при остановке стола)
-    connect(this,&Widget::AccumulateDataSignal,
-            ConfigGyroDevice->Measure,
-            &GyroMeasure::AccumulateData);
-
-
-    //---------------------------------
-    //остановка таймера
-    //---------------------------------
-    //остановка(сброс) таймера при повороте стола
-    connect(ConfigTableDevice,&TableDevice::StartRotation,
-            this,&Widget::StopTimer);
-
     //---------------------------------
     //Взаимодействие с поворотным столом
     //---------------------------------
@@ -296,6 +266,34 @@ void Widget::CreateConnections()
     //сброс абс.координат
     connect(this,&Widget::ResetAbsCoord,
             ConfigTableDevice,&TableDevice::ResetAbsCoord);
+
+    //----------------------------------
+    //взаимодействие с гироскопом
+    //-----------------------------------
+    //включение накопления данных ( выполняется при остановке стола)
+    connect(this,&Widget::StartAccumulateDataSignal,
+            ConfigGyroDevice->Measure,
+            &GyroMeasure::AccumulateData);
+    //окончание накопления данных при начале поворота стола
+    //вызывается в функции Measure()
+    connect(this,&Widget::StopAccumulateDataSignal,
+            ConfigGyroDevice->Measure,
+            &GyroMeasure::NoAccumulateData);
+}
+//-----------------------------------------------------------
+// Назначение: инициализация переменных
+//-----------------------------------------------------------
+void Widget::InitVariable()
+{
+    this->timeSec=0.;
+    this->prevMeasure=0;
+    this->numMeasure=0;
+    this->numPosition=0;
+    this->Azimuth=0.;
+    this->pos1=0.;
+    this->pos2=0.;
+    this->pos3=0.;
+    this->pos4=0.;
 }
 
 
@@ -318,26 +316,18 @@ void Widget::StartMeasureSlot()
 //-----------------------------------------------------------
 void Widget::StopMeasureSlot()
 {
-   this->timeAccumulateLineEdit->setEnabled(true);
+    this->InitVariable();
+    this->timeAccumulateLineEdit->setEnabled(true);
     emit StopMeasureSignal();
 }
 //-----------------------------------------------------------
-// Назначение: запуск таймера и испускание сигнала
+// Назначение: запуск таймера и вызов  сигнала
 //             накопления данных
 //-----------------------------------------------------------
 void Widget::StartTimer()
 {
-        tmr->setInterval(timeSec);
-        tmr->start();
-        emit AccumulateDataSignal();
-}
-//-----------------------------------------------------------
-// Назначение: остановка таймера
-//-----------------------------------------------------------
-void Widget::StopTimer()
-{
-    tmr->stop();
-    //    emit StopMeasure();
+        QTimer::singleShot(timeSec,Qt::PreciseTimer,this,SLOT(Measure()));
+        emit StartAccumulateDataSignal();
 }
 //-----------------------------------------------------------
 // Назначение: установка времени накопления данных
@@ -360,38 +350,29 @@ bool Widget::SetTime()
 
 void Widget::Measure()
 {
-    static int prevMeasure=0;
-    static int numMeasure=0;
-    static int numPosition=0;
-    static float Azimuth=0;
-    static float pos1=0,pos2=0,pos3=0,pos4=0.;
-
+    emit StopAccumulateDataSignal();
     switch (numPosition) {
     case 0:
         pos1=this->ConfigGyroDevice->Measure->summ;
         this->ConfigGyroDevice->Measure->summ=0;
-        //this->ConfigTableDevice->GoToPosition(200000);
         numPosition++;
         emit GotoPosition(200000);
         break;
     case 1:
         pos2=this->ConfigGyroDevice->Measure->summ;
         this->ConfigGyroDevice->Measure->summ=0;
-//        this->ConfigTableDevice->GoToPosition(300000);
         numPosition++;
         emit GotoPosition(300000);
         break;
     case 2:
         pos3=this->ConfigGyroDevice->Measure->summ;
         this->ConfigGyroDevice->Measure->summ=0;
-//        this->ConfigTableDevice->GoToPosition(100000);
         numPosition++;
         emit GotoPosition(100000);
         break;
     case 3:
         pos4=this->ConfigGyroDevice->Measure->summ;
         this->ConfigGyroDevice->Measure->summ=0;
-//        this->ConfigTableDevice->GoToPosition(0);
         numPosition=0;
         numMeasure++;
         emit GotoPosition(0);
@@ -402,7 +383,8 @@ void Widget::Measure()
         prevMeasure=numMeasure;
         //пересчет параметров
          Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos1-pos2),(pos3-pos4))));
-         currValueLineEdit->setText(QVariant(Azimuth).toString());
+//         currValueLineEdit->setText(QVariant(Azimuth).toString());
+         currValueLineEdit->setText(QString::number(Azimuth));
     }
 
 }

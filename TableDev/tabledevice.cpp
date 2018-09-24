@@ -149,7 +149,7 @@ void TableDevice::GetPosition(QByteArray data)
            emit StopRotation();
            isRotation=false;
         }
-        else if((std::abs(currPosition-nextPosition)>=2) && !isRotation){
+        else if((std::abs(currPosition-nextPosition)>=100) && !isRotation){
             emit StartRotation();
             isRotation=true;
         }
@@ -496,8 +496,8 @@ void TableDevice::CreateConnections()
     connect(this,&TableDevice::OutputToComPort,
             DeviceComPort,&comPort::WriteToPort);
 
-    connect(DeviceComPort,&comPort::dataOutput,
-            ConsoleWidget,&Console::putData);
+//    connect(DeviceComPort,&comPort::dataOutput,
+//            ConsoleWidget,&Console::putData);
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
     connect(AsciiFormatCheckBox,&QCheckBox::clicked,

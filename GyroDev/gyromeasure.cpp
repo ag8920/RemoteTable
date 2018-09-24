@@ -46,6 +46,7 @@ GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
     this->isAccumulateData=false;
     this->summ=0;
     this->countPacket=0;
+    this->cntsumm=0;
 }
 
 
@@ -73,8 +74,10 @@ void GyroMeasure::SortData(QByteArray data)
     
 
     FillOutList(packet);
-    if(this->isAccumulateData)
+    if(this->isAccumulateData){
         this->summ+=packet.da2;
+        this->cntsumm++;
+    }
     
     emit outCountPacket(QVariant(countPacket).toString());
     emit SendDataToTable(lstVal,lstName);
@@ -86,6 +89,8 @@ void GyroMeasure::SortData(QByteArray data)
 void GyroMeasure::AccumulateData()
 {
     this->isAccumulateData=true;
+    this->summ=0; //TODO
+    this->cntsumm=0;
 }
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 

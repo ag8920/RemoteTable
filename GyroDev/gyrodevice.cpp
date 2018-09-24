@@ -230,8 +230,8 @@ void GyroDevice::CreateConnections()
     connect(DeviceComPort,&comPort::isNotConnectedPort,this,&GyroDevice::isNotConnectedComPort);
     connect(this,&GyroDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
 
-    connect(DeviceComPort,&comPort::dataOutput,
-            ConsoleWidget,&Console::putData);
+//    connect(DeviceComPort,&comPort::dataOutput,
+//            ConsoleWidget,&Console::putData);
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
 

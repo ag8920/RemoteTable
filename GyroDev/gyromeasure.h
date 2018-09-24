@@ -49,6 +49,7 @@ public:
     QList<QString> *lstName;
 
     float summ;
+    int cntsumm;
     bool isAccumulateData;
 };
 

@@ -24,7 +24,8 @@ signals:
     void onWindowClosed();
     void StartMeasure();
     void StopMeasureSignal();
-    void AccumulateDataSignal();
+    void StartAccumulateDataSignal();
+    void StopAccumulateDataSignal();
     void GotoPosition(QVariant position);
     void ResetAbsCoord();
 protected:
@@ -32,13 +33,11 @@ protected:
 public slots:
     void StartMeasureSlot();
     void StartTimer();
-    void StopTimer();
     bool SetTime();
     void StopMeasureSlot();
     void Measure();
 
 public:
-    QTimer *tmr;
     int timeSec;
 private:
     void CreateActions();
@@ -48,7 +47,7 @@ private:
     void CreateStatusBar();
     void CreateWidgets();
     void CreateConnections();
-
+    void InitVariable();
 
     QAction *DeltaPsProtocolAction;
     QAction *Rate2ProtocolAction;
@@ -91,7 +90,14 @@ private:
     GyroDevice *ConfigGyroDevice;
 
 
-
+    int prevMeasure;
+    int numMeasure;
+    int numPosition;
+    float Azimuth;
+    float pos1;
+    float pos2;
+    float pos3;
+    float pos4;
 };
 
 #endif // WIDGET_H

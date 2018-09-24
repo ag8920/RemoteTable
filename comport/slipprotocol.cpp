@@ -20,7 +20,7 @@ SlipProtocol::SlipProtocol(QObject *parent) : QObject(parent)
 
 }
 //-----------------------------------------------------------
-// Назначение: деструктор класса
+// Назначение: декодирование пакета
 //-----------------------------------------------------------
 void SlipProtocol::GetSlipByteArray(QByteArray slipInputData)
 {
@@ -30,7 +30,7 @@ void SlipProtocol::GetSlipByteArray(QByteArray slipInputData)
         emit outDecodeArray(decodeByteArray);
 }
 //-----------------------------------------------------------
-// Назначение: декодирование пакета данных
+// Назначение: SLIP-декодирование пакета данных
 //-----------------------------------------------------------
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
 {
