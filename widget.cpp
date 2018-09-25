@@ -14,6 +14,11 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QtGlobal>
+#include <chrono>
+
+#ifdef Q_OS_WIN
+#include <winbase.h>
+#endif
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //-----------------------------------------------------------
@@ -21,8 +26,11 @@ Widget::Widget(QWidget *parent)
     : QMainWindow ()
 {
     Q_UNUSED(parent);
-    ConfigTableDevice=new TableDevice;
-    ConfigGyroDevice=new GyroDevice;
+    ConfigTableDevice = new TableDevice;
+    ConfigGyroDevice = new GyroDevice;
+
+    ptmr = new PTimer;
+
 
     InitVariable();
     CreateActions();
@@ -34,6 +42,7 @@ Widget::Widget(QWidget *parent)
     CreateConnections();
 
 
+//    QueryPerformanceFrequency()
 
     //ConfigTableDevice->show();
 
@@ -49,8 +58,11 @@ Widget::~Widget()
 
 void Widget::closeEvent(QCloseEvent *event)
 {
-    Q_UNUSED(event);
+//    Q_UNUSED(event);
+    ptmr->stop();
+    ptmr->wait();
     onWindowClosed();
+    event->accept();
 }
 //-----------------------------------------------------------
 // Назначение: создание действий
@@ -279,6 +291,8 @@ void Widget::CreateConnections()
     connect(this,&Widget::StopAccumulateDataSignal,
             ConfigGyroDevice->Measure,
             &GyroMeasure::NoAccumulateData);
+
+    connect(ptmr,&PTimer::timeout,this,&Widget::Measure);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -326,8 +340,11 @@ void Widget::StopMeasureSlot()
 //-----------------------------------------------------------
 void Widget::StartTimer()
 {
-        QTimer::singleShot(timeSec,Qt::PreciseTimer,this,SLOT(Measure()));
-        emit StartAccumulateDataSignal();
+        QTimer::singleShot(timeSec,Qt::PreciseTimer,
+                           this,SLOT(Measure()));
+//    ptmr->setInterval(timeSec);
+//    ptmr->start(QThread::TimeCriticalPriority);
+    emit StartAccumulateDataSignal();
 }
 //-----------------------------------------------------------
 // Назначение: установка времени накопления данных
@@ -337,6 +354,7 @@ bool Widget::SetTime()
     if(!timeAccumulateLineEdit->text().isEmpty())
     {
         this->timeSec=(timeAccumulateLineEdit->text().toInt()*1000)/4;
+//        this->timeSec=(timeAccumulateLineEdit->text().toDouble())/4;
         this->timeAccumulateLineEdit->setEnabled(false);
         return true;
     }

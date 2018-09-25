@@ -11,6 +11,7 @@
 
 #include "TableDev/tabledevice.h"
 #include "GyroDev/gyrodevice.h"
+#include "Timer/ptimer.h"
 
 
 class Widget : public QMainWindow
@@ -98,6 +99,8 @@ private:
     float pos2;
     float pos3;
     float pos4;
+
+    PTimer *ptmr;
 };
 
 #endif // WIDGET_H
