@@ -85,5 +85,6 @@ private:
     unsigned char updateSettingsPort;
 public:
     GyroMeasure *Measure;
+    QThread *MeasureThread;
 };
 #endif // GYRODEVICE_H

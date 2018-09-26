@@ -13,8 +13,9 @@ signals:
     void outDecodeArray(QByteArray);
 public slots:
     void GetSlipByteArray(QByteArray slipInputData);
-private:
+public:
     char SlipDecode(QByteArray b, QByteArray &b2);
+    char SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt);
 };
 
 #endif // SLIPPROTOCOL_H

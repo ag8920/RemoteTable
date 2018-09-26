@@ -20,6 +20,7 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     ConsoleWidget = new Console;
 
     Measure = new GyroMeasure;
+    MeasureThread=new QThread;
 
     tableWidget=new QWidget(this);
     m_tableView=new QTableView(tableWidget);
@@ -262,6 +263,14 @@ void GyroDevice::AddThread()
             DeviceComPort,&comPort::Stop);
 
     ComPortThread->start(QThread::TimeCriticalPriority);
+
+
+//    Measure->moveToThread(MeasureThread);
+//    connect(MeasureThread,&QThread::started,
+//            Measure,&GyroMeasure::process);
+//    connect(Measure,&GyroMeasure::finished,
+//            MeasureThread,&QThread::quit);
+//    MeasureThread->start();
 }
 //-----------------------------------------------------------
 // Назначение: остановка всех потоков

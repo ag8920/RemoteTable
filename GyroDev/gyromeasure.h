@@ -3,12 +3,13 @@
 
 #include <QObject>
 #include <QVariant>
+#include <QTimer>
 #include "../comport/slipprotocol.h"
 
 
-const int LenghtFastPacket=34;
+const int LenghtFastPacket=32;
 struct FastPacket{
-    uint8_t Header;
+//    uint8_t Header;
     uint32_t cnt;
     float da1;
     float da2;
@@ -17,7 +18,7 @@ struct FastPacket{
     float dv2;
     float dv3;
     float Tmsk;
-    uint8_t CRC;
+//    uint8_t CRC;
 } ;
 
 
@@ -26,17 +27,23 @@ class GyroMeasure : public QObject
     Q_OBJECT
 public:
     explicit GyroMeasure(QObject *parent = nullptr);
-
+    ~GyroMeasure();
+    void process();
 signals:
     void outCountPacket(const QString);
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
     void SendMeasureData(const QString Azimuth,const QString mean,
                          const QString min,const QString max,const QString sko);
+    void finished();
 public slots:
     void GetData(QByteArray inputArray);
     void SortData(QByteArray data);
     void AccumulateData();
     void NoAccumulateData();
+
+    void Unpack();
+    void ReadByte(char byte);
+    void OutData();
 private:
     SlipProtocol *Slip;
     void FillOutList(FastPacket packet);
@@ -51,6 +58,12 @@ public:
     float summ;
     int cntsumm;
     bool isAccumulateData;
+
+    QTimer *tmr;
+
+    QByteArray inputbuffer;
+    QByteArray buffer2;
+    QByteArray decodebuffer;
 };
 
 #endif // GYROMEASURE_H

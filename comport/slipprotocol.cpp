@@ -55,3 +55,21 @@ char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
     else
         return  0;
 }
+
+char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt)
+{
+       if(cnt>=l*2-1)  return 2;   // overflow error protection
+        if(b[cnt-1]==S_END && cnt)
+        {   int e=0, c=0; cnt=0;
+            while(b[c]!=S_END)
+            {   if(b[c]==S_ESC && (b[c+1]!=S_ESC_END && b[c+1]!=S_ESC_ESC)) return 2;
+                if      (b[c]==S_ESC && b[c+1]==S_ESC_END)  {b2[e]=S_END; c++;}
+                else if (b[c]==S_ESC && b[c+1]==S_ESC_ESC)  {b2[e]=S_ESC; c++;}
+                else                                         b2[e]=b[c];
+                e++; c++;
+            }   return 1;
+        }else   return 0;
+}
+
+
+
