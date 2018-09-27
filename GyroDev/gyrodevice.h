@@ -40,8 +40,9 @@ public slots:
     void isNotConnectedComPort(const QString msg);
     void CloseSerialPort();
     void UpdateSettingsComPort();
-    void UpdateCountPacketLineEdit(const QString packet);
+    void UpdateCountPacketLineEdit(const QString packet, const QString error);
     void AdditionalParamsVisible();
+    void ConsoleVisible();
 private:
     void CreateTable();
     void CreateWidgets();
@@ -68,6 +69,7 @@ private:
 
     QPushButton *AdditionalParamButton;
 
+    QCheckBox *ConsoleVisibleCheckBox;
 
     SettingsDialog *SettingsComPort;
     comPort *DeviceComPort;

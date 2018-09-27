@@ -46,17 +46,22 @@ void GyroMeasure::process()
     Slip=new SlipProtocol;
     connect(Slip,&SlipProtocol::outDecodeArray,
             this,&GyroMeasure::SortData);
+
     lstVal=new QList<QString>;
+    this->FillFirstList(this->packet);
+
     lstName=new QList<QString>{
-            /*tr("Заголовок"),*/tr("Число пакетов"),
+            tr("Номер пакета"),
             tr("dat1[град/час]"),tr("dat2[град/час]"),tr("dat3[град/час]"),
             tr("dvt1[м/с2]"),tr("dvt2[м/с2]"),tr("dvt3[м/с2]")
-            ,tr("Время[сек]")/*,tr("Контр.сумма")*/};
+            ,tr("Время[сек]")};
 
     this->isAccumulateData=false;
-    this->summ=0;
+    this->summ=0.;
     this->countPacket=0;
     this->cntsumm=0;
+    this->errorPacket=0;
+    this->diff=0.;
 
     tmr=new QTimer;
     tmr->setInterval(10);
@@ -74,7 +79,7 @@ void GyroMeasure::GetData(QByteArray inputArray)
     this->inputbuffer.append(inputArray);
 }
 //-----------------------------------------------------------
-// Назначение: прием данных
+// Назначение: распаковка данных
 //-----------------------------------------------------------
 void GyroMeasure::Unpack()
 {
@@ -98,7 +103,6 @@ void GyroMeasure::ReadByte(char byte)
         buffer2.clear();
         this->SortData(decodebuffer);
         decodebuffer.clear();
-
     }
 }
 //-----------------------------------------------------------
@@ -107,27 +111,28 @@ void GyroMeasure::ReadByte(char byte)
 //-----------------------------------------------------------
 void GyroMeasure::SortData(QByteArray data)
 {
-
+    static int prevcnt;
     QDataStream stream(data);
     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     stream.setByteOrder(QDataStream::LittleEndian);
 
     countPacket++;
-    stream>>packet;    
+    stream>>packet;
+
+    if(abs(packet.cnt-prevcnt)>1) this->errorPacket++;
+    prevcnt=packet.cnt;
 
     if(this->isAccumulateData){
         this->summ+=packet.da2;
         this->cntsumm++;
+        this->diff=summ/cntsumm;
     }
-    
-//    FillOutList(packet);
-//    emit outCountPacket(QString::number(countPacket));
-//    emit SendDataToTable(lstVal,lstName);
 }
 void GyroMeasure::OutData()
 {
     FillOutList(packet);
-    emit outCountPacket(QString::number(countPacket));
+    emit outCountPacket(QString::number(countPacket),
+                        QString::number(errorPacket));
     emit SendDataToTable(lstVal,lstName);
 
 }
@@ -139,6 +144,7 @@ void GyroMeasure::AccumulateData()
     this->isAccumulateData=true;
     this->summ=0; //TODO
     this->cntsumm=0;
+    this->diff=0;
 }
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
@@ -154,25 +160,29 @@ void GyroMeasure::NoAccumulateData()
 //-----------------------------------------------------------
 void GyroMeasure::FillOutList(FastPacket packet)
 {
-    lstVal->clear();
-//    ListAppend(lstVal,packet.Header);
-    ListAppend(lstVal,packet.cnt);
-    ListAppend(lstVal,packet.da1);
-    ListAppend(lstVal,packet.da2);
-    ListAppend(lstVal,packet.da3);
-    ListAppend(lstVal,packet.dv1);
-    ListAppend(lstVal,packet.dv2);
-    ListAppend(lstVal,packet.dv3);
-    ListAppend(lstVal,packet.Tmsk);
-//    ListAppend(lstVal,packet.CRC);
+    if(!lstVal->isEmpty()){
+        lstVal->replace(0,QString::number(packet.cnt));
+        lstVal->replace(1,QString::number(packet.da1));
+        lstVal->replace(2,QString::number(packet.da2));
+        lstVal->replace(3,QString::number(packet.da3));
+        lstVal->replace(4,QString::number(packet.dv1));
+        lstVal->replace(5,QString::number(packet.dv2));
+        lstVal->replace(6,QString::number(packet.dv3));
+        lstVal->replace(7,QString::number(packet.Tmsk));
+    }
 }
-//-----------------------------------------------------------
-// Назначение: занесение разнотипных данных в строковый
-//            список
-//-----------------------------------------------------------
-inline void GyroMeasure::ListAppend(QList<QString> *lst, QVariant val)
+
+void GyroMeasure::FillFirstList(FastPacket packet)
 {
-    lst->append(val.toString());
+    lstVal->clear();
+    lstVal->append(QString::number(packet.cnt));
+    lstVal->append(QString::number(packet.da1));
+    lstVal->append(QString::number(packet.da2));
+    lstVal->append(QString::number(packet.da3));
+    lstVal->append(QString::number(packet.dv1));
+    lstVal->append(QString::number(packet.dv2));
+    lstVal->append(QString::number(packet.dv3));
+    lstVal->append(QString::number(packet.Tmsk));
 }
 
 

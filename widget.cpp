@@ -149,7 +149,7 @@ void Widget::CreateWidgets()
     QGroupBox *leftgroupBox = new QGroupBox(tr("Измерения азимута"));
     QGroupBox *rightgroupBox = new QGroupBox;
 
-    currValueLabel=new QLabel(tr("Текущее значение:"));
+    currValueLabel=new QLabel(tr("Значение Азимута:"));
     meanValueLabel=new QLabel(tr("Среднее значение:"));
     minValueLabel=new QLabel(tr("Минимальное значение:"));
     maxValueLabel=new QLabel(tr("Максимальное значение:"));
@@ -157,6 +157,7 @@ void Widget::CreateWidgets()
 
     timeAccumulateLabel=new QLabel(tr("Время накопления данных"));
     azimuthMeasureLabel=new QLabel(tr("Измеренное значение азимута"));
+    azimuthMeasureLabel->hide();
 
     currValueLineEdit=new QLineEdit;
     currValueLineEdit->setReadOnly(true);
@@ -185,6 +186,7 @@ void Widget::CreateWidgets()
     azimuthMeasureLineEdit=new QLineEdit;
     azimuthMeasureLineEdit->setValidator(regExp2);
     azimuthMeasureLineEdit->setReadOnly(true);
+    azimuthMeasureLineEdit->hide();
 
     LeftLayout->addWidget(currValueLabel,0,0);
     LeftLayout->addWidget(currValueLineEdit,0,1);
@@ -308,6 +310,14 @@ void Widget::InitVariable()
     this->pos2=0.;
     this->pos3=0.;
     this->pos4=0.;
+    this->Azimuth=0.;
+    this->SummAzimuth=0.;
+    this->MeanAzimuth=0.;
+    this->MinAzimuth=0.;
+    this->MaxAzimuth=0.;
+    this->SKO=0.;
+    this->numerator=0.;
+    this->denumerator=0.;
 }
 
 
@@ -371,26 +381,26 @@ void Widget::Measure()
     emit StopAccumulateDataSignal();
     switch (numPosition) {
     case 0:
-        pos1=this->ConfigGyroDevice->Measure->summ;
-        this->ConfigGyroDevice->Measure->summ=0;
+        pos1=this->ConfigGyroDevice->Measure->diff;
+        this->ConfigGyroDevice->Measure->diff=0;
         numPosition++;
         emit GotoPosition(200000);
         break;
     case 1:
-        pos2=this->ConfigGyroDevice->Measure->summ;
-        this->ConfigGyroDevice->Measure->summ=0;
+        pos2=this->ConfigGyroDevice->Measure->diff;
+        this->ConfigGyroDevice->Measure->diff=0;
         numPosition++;
         emit GotoPosition(300000);
         break;
     case 2:
-        pos3=this->ConfigGyroDevice->Measure->summ;
-        this->ConfigGyroDevice->Measure->summ=0;
+        pos3=this->ConfigGyroDevice->Measure->diff;
+        this->ConfigGyroDevice->Measure->diff=0;
         numPosition++;
         emit GotoPosition(100000);
         break;
     case 3:
-        pos4=this->ConfigGyroDevice->Measure->summ;
-        this->ConfigGyroDevice->Measure->summ=0;
+        pos4=this->ConfigGyroDevice->Measure->diff;
+        this->ConfigGyroDevice->Measure->diff=0;
         numPosition=0;
         numMeasure++;
         emit GotoPosition(0);
@@ -399,10 +409,25 @@ void Widget::Measure()
     }
     if(numMeasure>prevMeasure){
         prevMeasure=numMeasure;
+
         //пересчет параметров
-         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos1-pos2),(pos3-pos4))));
-//         currValueLineEdit->setText(QVariant(Azimuth).toString());
+         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos1-pos2),
+                                                            (pos3-pos4))));
+         Azimuth<0?Azimuth+=360.0:Azimuth;
+         SummAzimuth+=Azimuth;
+         MeanAzimuth=SummAzimuth/numMeasure;
+         MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
+         MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
+
+         numerator+=powf((Azimuth-MeanAzimuth),2);
+         numMeasure>1?denumerator=numMeasure-1:denumerator=1;
+         SKO=sqrt(numerator/denumerator);
+
          currValueLineEdit->setText(QString::number(Azimuth));
+         meanVelueLineEdit->setText(QString::number(MeanAzimuth));
+         minValueLineEdit->setText(QString::number(MinAzimuth));
+         maxValueLineEdit->setText(QString::number(MaxAzimuth));
+         skoLineEdit->setText(QString::number(SKO));
     }
 
 }

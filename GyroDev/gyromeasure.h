@@ -30,7 +30,7 @@ public:
     ~GyroMeasure();
     void process();
 signals:
-    void outCountPacket(const QString);
+    void outCountPacket(const QString,const QString);
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
     void SendMeasureData(const QString Azimuth,const QString mean,
                          const QString min,const QString max,const QString sko);
@@ -47,16 +47,18 @@ public slots:
 private:
     SlipProtocol *Slip;
     void FillOutList(FastPacket packet);
-    inline void ListAppend(QList<QString> *lst, QVariant val);
+    void FillFirstList(FastPacket packet);
 public:
     friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
     uint32_t countPacket;
+    uint32_t errorPacket;
     FastPacket packet;
     QList<QString> *lstVal;
     QList<QString> *lstName;
 
     float summ;
     int cntsumm;
+    float diff;
     bool isAccumulateData;
 
     QTimer *tmr;

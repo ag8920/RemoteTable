@@ -95,6 +95,13 @@ private:
     int numMeasure;
     int numPosition;
     float Azimuth;
+    float SummAzimuth;
+    float MeanAzimuth;
+    float MaxAzimuth;
+    float MinAzimuth;
+    float numerator;
+    float denumerator;
+    float SKO;
     float pos1;
     float pos2;
     float pos3;

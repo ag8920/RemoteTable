@@ -73,9 +73,10 @@ void GyroDevice::UpdateSettingsComPort()
 //-----------------------------------------------------------
 // Назначение: обновление счетчика пакетов (число пакетов)
 //-----------------------------------------------------------
-void GyroDevice::UpdateCountPacketLineEdit(const QString packet)
+void GyroDevice::UpdateCountPacketLineEdit(const QString packet,const QString error)
 {
     CountPacketLineEdit->setText(packet);
+    CountErrorLineEdit->setText(error);
 }
 //-----------------------------------------------------------
 // Назначение: отображение принятых данных
@@ -87,6 +88,16 @@ void GyroDevice::AdditionalParamsVisible()
         m_tableView->show();
     else
         m_tableView->hide();
+}
+//-----------------------------------------------------------
+// Назначение: отображение консоли
+//-----------------------------------------------------------
+void GyroDevice::ConsoleVisible()
+{
+    if(ConsoleVisibleCheckBox->isChecked())
+        ConsoleWidget->show();
+    else
+        ConsoleWidget->hide();
 }
 //-----------------------------------------------------------
 // Назначение: установка состояния кнопок
@@ -133,6 +144,7 @@ void GyroDevice::CreateTable()
 void GyroDevice::CreateWidgets()
 {
     ConsoleWidget->setEnabled(true);
+    ConsoleWidget->hide();
     TypeProtocolComboBox=new QComboBox;
 //    TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
 //    TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
@@ -142,7 +154,7 @@ void GyroDevice::CreateWidgets()
 
     CountPacketLineEdit=new QLineEdit;
     CountPacketLineEdit->setReadOnly(true);
-    CountPacketLabel=new QLabel(tr("число пакетов:"));
+    CountPacketLabel=new QLabel(tr("число принятых пакетов:"));
     CountPacketLabel->setBuddy(CountPacketLineEdit);
 
 
@@ -155,6 +167,9 @@ void GyroDevice::CreateWidgets()
     ValueLineEdit->setReadOnly(true);
     ValueLabel=new QLabel(tr("Показания:"));
     ValueLabel->setBuddy(ValueLineEdit);
+
+    ConsoleVisibleCheckBox=new QCheckBox(tr("Показать консоль"));
+    ConsoleVisibleCheckBox->setChecked(false);
 
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     SettingsPortButton->setEnabled(true);
@@ -178,13 +193,15 @@ void GyroDevice::CreateWidgets()
     LeftLayout->addWidget(CountPacketLineEdit,1,1);
     LeftLayout->addWidget(CountErrorLabel,2,0);
     LeftLayout->addWidget(CountErrorLineEdit,2,1);
-    LeftLayout->addWidget(ValueLabel,3,0);
-    LeftLayout->addWidget(ValueLineEdit,3,1);
+//    LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
+    //LeftLayout->addWidget(ValueLabel,3,0);
+    //LeftLayout->addWidget(ValueLineEdit,3,1);
     LeftLayout->addWidget(AdditionalParamButton,4,0);
 
     QVBoxLayout *LeftAll=new QVBoxLayout;
     LeftAll->addLayout(LeftLayout);
     LeftAll->addWidget(m_tableView);
+    LeftAll->addWidget(ConsoleVisibleCheckBox);
     GyroSettingsBox->setLayout(LeftAll);
 
     QVBoxLayout *RightLayout=new QVBoxLayout;
@@ -206,7 +223,7 @@ void GyroDevice::CreateWidgets()
     MainWidget->setLayout(GeneralLayout);
     MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
                               "border-width: 1px;"
-                              "min-height: 1.2em;max-height: 2em; min-width:5em;max-width:5em}");
+                              "min-height: 1.2em;max-height: 1.2em; min-width:5em;max-width:10em}");
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
     this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
@@ -217,22 +234,33 @@ void GyroDevice::CreateWidgets()
 //-----------------------------------------------------------
 void GyroDevice::CreateConnections()
 {
-    connect(SettingsPortButton,SIGNAL(pressed()),SettingsComPort,SLOT(show()));
+    connect(SettingsPortButton,&QPushButton::pressed,
+            SettingsComPort,&SettingsDialog::show);
     connect(SettingsComPort,&SettingsDialog::isUpdateSettings,
             this,&GyroDevice::UpdateSettingsComPort);
 
-    connect(OnComPortButton,SIGNAL(pressed()),this,SLOT(OpenSerialPort()));
-    connect(OffComPortButton,&QPushButton::pressed,this,&GyroDevice::CloseSerialPort);
+    connect(OnComPortButton,&QPushButton::pressed,
+            this,&GyroDevice::OpenSerialPort);
+    connect(OffComPortButton,&QPushButton::pressed,
+            this,&GyroDevice::CloseSerialPort);
+
+    connect(ConsoleVisibleCheckBox,&QCheckBox::clicked,
+            this,&GyroDevice::ConsoleVisible);
+
     connect(AdditionalParamButton,&QPushButton::toggled,
             this,&GyroDevice::AdditionalParamsVisible);
 
-    connect(this,&GyroDevice::ConnectComPort,DeviceComPort,&comPort::ConnectPort);
-    connect(DeviceComPort,&comPort::isConnectedPort,this,&GyroDevice::isConnectedComPort);
-    connect(DeviceComPort,&comPort::isNotConnectedPort,this,&GyroDevice::isNotConnectedComPort);
-    connect(this,&GyroDevice::DisconnectComPort,DeviceComPort,&comPort::DisconnectPort);
+    connect(this,&GyroDevice::ConnectComPort,
+            DeviceComPort,&comPort::ConnectPort);
+    connect(DeviceComPort,&comPort::isConnectedPort,
+            this,&GyroDevice::isConnectedComPort);
+    connect(DeviceComPort,&comPort::isNotConnectedPort,
+            this,&GyroDevice::isNotConnectedComPort);
+    connect(this,&GyroDevice::DisconnectComPort,
+            DeviceComPort,&comPort::DisconnectPort);
 
-//    connect(DeviceComPort,&comPort::dataOutput,
-//            ConsoleWidget,&Console::putData);
+    connect(DeviceComPort,&comPort::dataOutput,
+            ConsoleWidget,&Console::putData);
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
 

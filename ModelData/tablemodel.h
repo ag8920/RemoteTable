@@ -33,7 +33,7 @@ class TableModel : public QAbstractTableModel
        bool hasChildren(const QModelIndex &parent=QModelIndex()) const;
 
    public slots:
-       void loadData(QList<QString> *value,QList<QString>*name);
+       void loadData(QList<QString> *value, QList<QString> *name);
 
    private:
        QList <QString> *varName;   //наименование элемента

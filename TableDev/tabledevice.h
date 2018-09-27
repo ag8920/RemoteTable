@@ -70,9 +70,10 @@ public slots:
 
     void GetPosition(QByteArray data);
 
-
     void StartMeasure();
     void StopMeasure();
+
+    void ConsoleVisible();
 private:
 
     void CreateWidgets();
@@ -102,6 +103,7 @@ private:
     QCheckBox *PositveRotationCheckBox;
     QCheckBox *NegativeRotationCheckBox;
     QCheckBox *AsciiFormatCheckBox;
+    QCheckBox *ConsoleVisibleCheckBox;
     QCheckBox *RequestPostionCheckBox;
 
     QPushButton *PositioningButton;

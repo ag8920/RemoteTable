@@ -21,6 +21,7 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
+    ConsoleWidget->hide();
 
     tmr = new QTimer;
     isPosition=false;
@@ -332,9 +333,9 @@ void TableDevice::CreateWidgets()
 
     //-----------------------------------------------------------
 
-
+    ConsoleVisibleCheckBox=new QCheckBox(tr("Показать консоль"));
     AsciiFormatCheckBox=new QCheckBox(tr("Отображать в ASCII"));
-
+    AsciiFormatCheckBox->hide();
 
 
 
@@ -443,8 +444,10 @@ void TableDevice::CreateWidgets()
     //-----------------------------------------------------------
     QVBoxLayout *GeneralLayout=new QVBoxLayout;
     GeneralLayout->addLayout(MainLayout);
+    GeneralLayout->addWidget(ConsoleVisibleCheckBox);
     GeneralLayout->addWidget(AsciiFormatCheckBox);
     GeneralLayout->addWidget(ConsoleWidget);
+
 
     MainWidget=new QWidget;
     MainWidget->setLayout(GeneralLayout);
@@ -455,6 +458,7 @@ void TableDevice::CreateWidgets()
     this->setWindowTitle(tr("Настройка поворотного устройства"));
 
     this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
+
 }
 //-----------------------------------------------------------
 // Назначение: соединение сигналов и слотов
@@ -496,12 +500,15 @@ void TableDevice::CreateConnections()
     connect(this,&TableDevice::OutputToComPort,
             DeviceComPort,&comPort::WriteToPort);
 
-//    connect(DeviceComPort,&comPort::dataOutput,
-//            ConsoleWidget,&Console::putData);
+    connect(DeviceComPort,&comPort::dataOutput,
+            ConsoleWidget,&Console::putData);
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
     connect(AsciiFormatCheckBox,&QCheckBox::clicked,
             this,&TableDevice::SetFormatConsole);
+    connect (ConsoleVisibleCheckBox,&QCheckBox::clicked,
+             this,&TableDevice::ConsoleVisible);
+
     connect(this,&TableDevice::ConsoleSetFormat,
             ConsoleWidget,&Console::SetFormat);
 
@@ -573,6 +580,23 @@ void TableDevice::StartMeasure()
 void TableDevice::StopMeasure()
 {
     this->isMeasuring=false;
+}
+//-----------------------------------------------------------
+// Назначение: отображение консоли
+//-----------------------------------------------------------
+void TableDevice::ConsoleVisible()
+{
+    if(ConsoleVisibleCheckBox->isChecked()){
+        ConsoleWidget->show();
+        AsciiFormatCheckBox->show();
+        this->window()->resize(minimumSizeHint());
+        this->window()->adjustSize();
+    }else{
+        ConsoleWidget->hide();
+        AsciiFormatCheckBox->hide();
+        this->window()->adjustSize();
+        this->window()->resize(minimumSizeHint());
+    }
 }
 
 
