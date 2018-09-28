@@ -63,5 +63,10 @@
         <file>main.cpp</file>
         <file>widget.cpp</file>
         <file>widget.h</file>
+        <file>icons/gyroscope.png</file>
+        <file>icons/onestart.png</file>
+        <file>icons/start.png</file>
+        <file>icons/stop.png</file>
+        <file>icons/table.png</file>
     </qresource>
 </RCC>
