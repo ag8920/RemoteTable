@@ -98,7 +98,13 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
     if (isCustomBaudRate) {
         ui->baudRateBox->clearEditText();
         QLineEdit *edit = ui->baudRateBox->lineEdit();
-        edit->setValidator(intValidator);
+        edit->setStyleSheet(" background-color: #232629;"
+                            " padding: 5px;"
+                            "border-style: solid;"
+                            "border: 0px solid #76797C;"
+                            "border-radius: 0px;"
+                            "color: #eff0f1;");
+       edit->setValidator(intValidator);
     }
 }
 //-----------------------------------------------------------
@@ -170,6 +176,7 @@ void SettingsDialog::fillPortsInfo()
 
 void SettingsDialog::showWidget()
 {
+    qApp->processEvents();
     fillPortsInfo();
     show();
 

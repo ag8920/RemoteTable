@@ -451,9 +451,9 @@ void TableDevice::CreateWidgets()
 
     MainWidget=new QWidget;
     MainWidget->setLayout(GeneralLayout);
-    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
-                              "border-width: 1px;"
-                              "min-height: 1.2em; min-width:5em;max-width:10em}");
+//    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
+//                              "border-width: 1px;"
+//                              "min-height: 1.2em; min-width:5em;max-width:10em}");
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Настройка поворотного устройства"));
 

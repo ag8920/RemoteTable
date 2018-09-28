@@ -59,8 +59,8 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid() || !varName->count())
             return QVariant();
-    if(role == Qt::TextColorRole)
-        return QColor(Qt::black);
+//    if(role == Qt::TextColorRole)
+//        return QColor(Qt::white);
     if(role == Qt::DisplayRole || role==Qt::EditRole)
             return varValue->at(index.row());
         return QVariant();

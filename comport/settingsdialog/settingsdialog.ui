@@ -6,9 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>394</width>
-    <height>279</height>
+    <width>400</width>
+    <height>305</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>305</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>305</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Configure to serial port</string>
@@ -17,10 +35,16 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>0</y>
+     <y>10</y>
      <width>191</width>
-     <height>181</height>
+     <height>191</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <property name="title">
     <string>Select Serial Port</string>
@@ -29,8 +53,8 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>44</y>
-      <width>171</width>
+      <y>54</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -48,8 +72,8 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>63</y>
-      <width>181</width>
+      <y>73</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -67,8 +91,8 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>82</y>
-      <width>171</width>
+      <y>92</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -86,8 +110,8 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>101</y>
-      <width>171</width>
+      <y>111</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -105,7 +129,7 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>120</y>
+      <y>130</y>
       <width>131</width>
       <height>16</height>
      </rect>
@@ -130,8 +154,8 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>139</y>
-      <width>171</width>
+      <y>149</y>
+      <width>151</width>
       <height>16</height>
      </rect>
     </property>
@@ -149,10 +173,16 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>23</y>
+      <y>33</y>
       <width>81</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="minimumSize">
      <size>
@@ -165,8 +195,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>160</y>
-      <width>181</width>
+      <y>170</y>
+      <width>151</width>
       <height>16</height>
      </rect>
     </property>
@@ -179,10 +209,16 @@
    <property name="geometry">
     <rect>
      <x>220</x>
-     <y>0</y>
+     <y>10</y>
      <width>171</width>
-     <height>161</height>
+     <height>191</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <property name="title">
     <string>Select Parameters</string>
@@ -191,8 +227,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
-      <width>142</width>
+      <y>30</y>
+      <width>151</width>
       <height>146</height>
      </rect>
     </property>
@@ -201,13 +237,26 @@
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QLabel" name="baudRateLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string>BaudRate</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="baudRateBox"/>
+        <widget class="QComboBox" name="baudRateBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -221,7 +270,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="dataBitsBox"/>
+        <widget class="QComboBox" name="dataBitsBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -235,7 +291,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="parityBox"/>
+        <widget class="QComboBox" name="parityBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -249,7 +312,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="stopBitsBox"/>
+        <widget class="QComboBox" name="stopBitsBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -258,12 +328,19 @@
        <item>
         <widget class="QLabel" name="flowControlLabel">
          <property name="text">
-          <string>Flow Control</string>
+          <string>Flow</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="flowControlBox"/>
+        <widget class="QComboBox" name="flowControlBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -274,10 +351,16 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>180</y>
-     <width>351</width>
-     <height>41</height>
+     <y>210</y>
+     <width>381</width>
+     <height>51</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <property name="title">
     <string>Additional options</string>
@@ -286,8 +369,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
-      <width>70</width>
+      <y>30</y>
+      <width>81</width>
       <height>17</height>
      </rect>
     </property>
@@ -300,8 +383,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>230</y>
-     <width>351</width>
+     <y>270</y>
+     <width>381</width>
      <height>31</height>
     </rect>
    </property>
@@ -321,6 +404,12 @@
     </item>
     <item>
      <widget class="QPushButton" name="updateInfoButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>update</string>
       </property>
@@ -329,7 +418,7 @@
     <item>
      <widget class="QPushButton" name="applyButton">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>

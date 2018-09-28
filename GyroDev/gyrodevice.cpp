@@ -184,6 +184,8 @@ void GyroDevice::CreateWidgets()
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
     AdditionalParamButton->setCheckable(true);
 
+
+
     QGroupBox *GyroSettingsBox=new QGroupBox(tr("Параметры гироскопического устройства"));
 
     QGridLayout *LeftLayout=new QGridLayout;
@@ -221,9 +223,9 @@ void GyroDevice::CreateWidgets()
 
     MainWidget=new QWidget;
     MainWidget->setLayout(GeneralLayout);
-    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
-                              "border-width: 1px;"
-                              "min-height: 1.2em;max-height: 1.2em; min-width:5em;max-width:10em}");
+//    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
+//                              "border-width: 1px;"
+//                              "min-height: 1.2em;max-height: 1.2em; min-width:5em;max-width:10em}");
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
     this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
@@ -259,8 +261,8 @@ void GyroDevice::CreateConnections()
     connect(this,&GyroDevice::DisconnectComPort,
             DeviceComPort,&comPort::DisconnectPort);
 
-    connect(DeviceComPort,&comPort::dataOutput,
-            ConsoleWidget,&Console::putData);
+//    connect(DeviceComPort,&comPort::dataOutput,
+//            ConsoleWidget,&Console::putData);
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
 

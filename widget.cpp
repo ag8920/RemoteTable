@@ -229,10 +229,10 @@ void Widget::CreateWidgets()
     pal.setColor(QPalette::Background,Qt::black);
     measureWidget->setPalette(pal);
     */
-    measureWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
-                                 "border-width: 1px;"
-                                 "min-height: 1.2em;max-height: 2em; "
-                                 "min-width:5em;max-width:5em}");
+//    measureWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
+//                                 "border-width: 1px;"
+//                                 "min-height: 1.2em;max-height: 2em; "
+//                                 "min-width:5em;max-width:5em}");
 
 
     measureWidget->show();
