@@ -105,7 +105,7 @@ void Widget::initActionConnections()
 //-----------------------------------------------------------
 void Widget::CreateMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("&Файл"));
+    fileMenu = menuBar()->addMenu(tr("&Меню"));
 //    fileMenu->addAction(DeltaPsProtocolAction);
 //    fileMenu->addAction(Rate2ProtocolAction);
 //    fileMenu->addAction(DadvttProtocolAction);
@@ -149,7 +149,7 @@ void Widget::CreateWidgets()
     QGroupBox *leftgroupBox = new QGroupBox(tr("Измерения азимута"));
     QGroupBox *rightgroupBox = new QGroupBox;
 
-    currValueLabel=new QLabel(tr("Значение Азимута:"));
+    currValueLabel=new QLabel(tr("Значение азимута:"));
     meanValueLabel=new QLabel(tr("Среднее значение:"));
     minValueLabel=new QLabel(tr("Минимальное значение:"));
     maxValueLabel=new QLabel(tr("Максимальное значение:"));

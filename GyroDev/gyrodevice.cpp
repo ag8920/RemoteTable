@@ -154,7 +154,7 @@ void GyroDevice::CreateWidgets()
 
     CountPacketLineEdit=new QLineEdit;
     CountPacketLineEdit->setReadOnly(true);
-    CountPacketLabel=new QLabel(tr("число принятых пакетов:"));
+    CountPacketLabel=new QLabel(tr("Число принятых пакетов:"));
     CountPacketLabel->setBuddy(CountPacketLineEdit);
 
 
