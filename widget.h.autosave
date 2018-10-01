@@ -45,7 +45,7 @@ public slots:
     void StopMeasureSlot();///<останавливает измерения
     void Measure();///<реализует четырех позиционный алгоритм
 private slots:
-    void OneMeasureSlot();
+    void OneMeasureSlot();///<устанавливает признак однократного измерения
 public:
     int timeSec;
 private:
@@ -100,7 +100,7 @@ private:
     GyroDevice *ConfigGyroDevice;
 
 
-    bool isOneMeasure;
+    bool isOneMeasure; ///< признак однократного измерения
     int prevMeasure;
     int numMeasure;
     int numPosition;

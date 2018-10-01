@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>style.qss</file>
         <file>style2.qss</file>
-        <file>comport/settingsdialog/settingsdialog.cpp</file>
         <file>comport/settingsdialog/settingsdialog.h</file>
         <file>comport/comport.cpp</file>
         <file>comport/comport.h</file>
@@ -68,5 +67,7 @@
         <file>icons/start.png</file>
         <file>icons/stop.png</file>
         <file>icons/table.png</file>
+        <file>icons/settings.png</file>
+        <file>icons/compas.png</file>
     </qresource>
 </RCC>

@@ -1,3 +1,9 @@
+/*!
+    @mainpage Программа "ГироКомпас"
+    @author Александр Щербаков
+    @date  13.09.18
+
+*/
 #include "widget.h"
 #include <QApplication>
 

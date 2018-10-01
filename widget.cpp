@@ -1,11 +1,3 @@
-//------------------------------------------------------------------------------
-//     Данный модуль создает
-//     виджет главного окна приложения
-//     Автор: Щербаков Александр
-//     дата создания: 13.09.2018
-//
-//------------------------------------------------------------------------------
-
 #include "widget.h"
 
 #include <QAction>
@@ -29,7 +21,7 @@ Widget::Widget(QWidget *parent)
     ConfigTableDevice = new TableDevice;
     ConfigGyroDevice = new GyroDevice;
 
-    ptmr = new PTimer;
+    ptmr = new QTimer;
 
 
     InitVariable();
@@ -55,12 +47,13 @@ Widget::~Widget()
     delete ConfigTableDevice;
     delete ConfigGyroDevice;
 }
-
+//-----------------------------------------------------------
+// Назначение: закрытие окна
+//-----------------------------------------------------------
 void Widget::closeEvent(QCloseEvent *event)
 {
 //    Q_UNUSED(event);
-    ptmr->stop();
-    ptmr->wait();
+    ptmr->stop();    
     onWindowClosed();
     event->accept();
 }
@@ -76,15 +69,22 @@ void Widget::CreateActions()
     DadvttProtocolAction = new QAction(tr("Протокол \"Dadvtt\" "));
 
     OneMeasurementAction = new QAction(tr("Выполнить однократное измерение"));
+    OneMeasurementAction->setIcon(QIcon(":/icons/onestart.png"));
 
     MultiMeasurementAction = new QAction(tr("Выполнить серию измерений"));
 
     ConfigTabelDevAction = new QAction(tr("Поворотное устройство"));
+    ConfigTabelDevAction->setIcon(QIcon(":/icons/table.png"));
 
     ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"));
+    ConfigGyroDevAction->setIcon(QIcon(":/icons/gyroscope.png"));
 
     StartTimerAction = new QAction(tr("Запуск"));
+    StartTimerAction->setIcon(QIcon(":/icons/start.png"));
+
     StopTimerAction = new QAction(tr("Стоп"));
+    StopTimerAction->setIcon(QIcon(":/icons/stop.png"));
+
 
 }
 
@@ -115,7 +115,7 @@ void Widget::CreateMenus()
     fileMenu->addAction(StartTimerAction);
     fileMenu->addAction(StopTimerAction);
 
-    configMenu = menuBar()->addMenu(tr("&Инструменты"));
+    configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
 }
@@ -124,7 +124,16 @@ void Widget::CreateMenus()
 //-----------------------------------------------------------
 void Widget::CreateToolBars()
 {
-
+    toolbar=addToolBar(tr("Меню"));
+    toolbar->addAction(OneMeasurementAction);
+    toolbar->addAction(StartTimerAction);
+    toolbar->addAction(StopTimerAction);
+    toolbar->addSeparator();
+    toolbar->addAction(ConfigGyroDevAction);
+    toolbar->addAction(ConfigTabelDevAction);
+    toolbar->setIconSize(QSize(20,20));
+    toolbar->setFloatable(false);
+    toolbar->setMovable(false);
 }
 //-----------------------------------------------------------
 // Назначение:
@@ -155,7 +164,7 @@ void Widget::CreateWidgets()
     maxValueLabel=new QLabel(tr("Максимальное значение:"));
     skoLabel=new QLabel(tr("СКО:"));
 
-    timeAccumulateLabel=new QLabel(tr("Время накопления данных"));
+    timeAccumulateLabel=new QLabel(tr("Время накопления(сек.)"));
     azimuthMeasureLabel=new QLabel(tr("Измеренное значение азимута"));
     azimuthMeasureLabel->hide();
 
@@ -234,8 +243,8 @@ void Widget::CreateWidgets()
 //                                 "min-height: 1.2em;max-height: 2em; "
 //                                 "min-width:5em;max-width:5em}");
 
-
-    measureWidget->show();
+   this->setWindowIcon(QIcon(":/icons/compas.png"));
+   measureWidget->show();
 }
 //-----------------------------------------------------------
 // Назначение: создание соединений СИГНАЛ-СЛОТ
@@ -253,6 +262,10 @@ void Widget::CreateConnections()
     connect(this,&Widget::StartMeasure,
             ConfigTableDevice,&TableDevice::StartMeasure);
 
+    connect(OneMeasurementAction,&QAction::triggered,
+            this,&Widget::StartMeasureSlot);
+    connect(OneMeasurementAction,&QAction::triggered,
+            this,&Widget::OneMeasureSlot);///< @todo доделать однократный запуск
     //---------------------------------
     //действия по нажатию кнопки СТОП
     //---------------------------------
@@ -294,7 +307,8 @@ void Widget::CreateConnections()
             ConfigGyroDevice->Measure,
             &GyroMeasure::NoAccumulateData);
 
-    connect(ptmr,&PTimer::timeout,this,&Widget::Measure);
+    connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
+
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -318,6 +332,7 @@ void Widget::InitVariable()
     this->SKO=0.;
     this->numerator=0.;
     this->denumerator=0.;
+    this->isOneMeasure=false;
 }
 
 
@@ -340,6 +355,7 @@ void Widget::StartMeasureSlot()
 //-----------------------------------------------------------
 void Widget::StopMeasureSlot()
 {
+    ptmr->stop();
     this->InitVariable();
     this->timeAccumulateLineEdit->setEnabled(true);
     emit StopMeasureSignal();
@@ -348,12 +364,14 @@ void Widget::StopMeasureSlot()
 // Назначение: запуск таймера и вызов  сигнала
 //             накопления данных
 //-----------------------------------------------------------
+///< @todo проверить работу таймера, если результат не удастся вернуться к signgleshot()
 void Widget::StartTimer()
 {
-        QTimer::singleShot(timeSec,Qt::PreciseTimer,
-                           this,SLOT(Measure()));
-//    ptmr->setInterval(timeSec);
-//    ptmr->start(QThread::TimeCriticalPriority);
+//        QTimer::singleShot(timeSec,Qt::PreciseTimer,
+//                           this,SLOT(Measure()));
+    ptmr->setInterval(timeSec);
+    ptmr->setSingleShot(true);//(QThread::TimeCriticalPriority);
+    ptmr->start();
     emit StartAccumulateDataSignal();
 }
 //-----------------------------------------------------------
@@ -364,7 +382,6 @@ bool Widget::SetTime()
     if(!timeAccumulateLineEdit->text().isEmpty())
     {
         this->timeSec=(timeAccumulateLineEdit->text().toInt()*1000)/4;
-//        this->timeSec=(timeAccumulateLineEdit->text().toDouble())/4;
         this->timeAccumulateLineEdit->setEnabled(false);
         return true;
     }
@@ -404,8 +421,8 @@ void Widget::Measure()
         numPosition=0;
         numMeasure++;
         emit GotoPosition(0);
-    default:
         break;
+    default: break;
     }
     if(numMeasure>prevMeasure){
         prevMeasure=numMeasure;
@@ -428,6 +445,16 @@ void Widget::Measure()
          minValueLineEdit->setText(QString::number(MinAzimuth));
          maxValueLineEdit->setText(QString::number(MaxAzimuth));
          skoLineEdit->setText(QString::number(SKO));
+
+         if(isOneMeasure){
+             isOneMeasure=false;
+             this->StopMeasureSlot();
+         }
     }
 
+}
+
+void Widget::OneMeasureSlot()
+{
+    this->isOneMeasure=true;
 }

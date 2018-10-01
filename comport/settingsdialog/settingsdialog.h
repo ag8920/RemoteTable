@@ -1,3 +1,4 @@
+
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
@@ -10,11 +11,28 @@ namespace Ui {
 class SettingsDialog;
 }
 
+/*!
+    @class SettingsDialog
+    @brief класс создает виджет окна
+    с параметрами и информацией COM-порта.
+    Класс позваляет задавать настройки порта.
+    @author Щербаков Александр
+    @date 13.09.2018
+*/
 class SettingsDialog : public QWidget
 {
     Q_OBJECT
 
 public:
+    /*!
+     * \brief настройки COM-порта
+     * \param name имя порта
+     * \param baudrate скорость передачи данных (БОД/сек)
+     * \param DataBits число бит данных
+     * \param Parity четность
+     * \param StopBits число стоповых битов
+     * \param FlowControl управление потоком передачи данных
+     */
     struct Settings {
             QString name;
             int baudRate;
@@ -29,22 +47,35 @@ public:
             QString stringFlowControl;
             bool localEchoEnabled;
         };
-    explicit SettingsDialog(QWidget *parent = nullptr);
-    ~SettingsDialog();
 
-    Settings settings()const;
+    explicit SettingsDialog(QWidget *parent = nullptr);///<конструктор класса
+    ~SettingsDialog();///<деструктор класса
+
+    Settings settings()const;///<объект настроек порта
 signals:
-    void isUpdateSettings();
+    void isUpdateSettings();///<сигнал для обновления данных
 private slots:
+    /*!
+     * \brief отображение информации о COM-порте
+     * \param idx
+     */
     void showPortInfo(int idx);
+    /*!
+     * \brief действия по кнопке "Применить"
+     */
     void apply();
+    /*!
+     * \brief установка не стандартных(Custom)скоростей
+     * \param idx
+     */
     void checkCustomBaudRatePolicy(int idx);
-    void fillPortsInfo();
+
+    void fillPortsInfo();///<считывание информации о COM-порте
 public slots:
-    void showWidget();
+    void showWidget();///<отображение виджета настроек
 private:
-    void fillPortsParameters();    
-    void updateSettings();
+    void fillPortsParameters();///<отображение основных настраиваемых параметров
+    void updateSettings();///<обновление(запись) текущих настроек COM-порта
 
 private:
     Ui::SettingsDialog *ui;

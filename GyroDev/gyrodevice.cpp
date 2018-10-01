@@ -227,6 +227,7 @@ void GyroDevice::CreateWidgets()
 //                              "border-width: 1px;"
 //                              "min-height: 1.2em;max-height: 1.2em; min-width:5em;max-width:10em}");
     setCentralWidget(MainWidget);
+    this->setWindowIcon(QIcon(":/icons/gyroscope.png"));
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
     this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
 

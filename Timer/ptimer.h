@@ -1,3 +1,9 @@
+/*!
+     @brief Класс прецезионного таймера на основе тиков процессора
+     @author Щербаков Александр
+     @date 13.09.2018
+     @todo работоспособен исключительно в windows
+*/
 #ifndef PTIMER_H
 #define PTIMER_H
 
@@ -14,9 +20,19 @@ public:
 protected:
     void run();
 signals:
+        /*!
+         * \brief timeout сигнал запуска таймера
+         */
         void timeout();
 public slots:
+        /*!
+         * \brief setInterval устанавливает интервал срабатывания таймера
+         * \param[in] sec время срабатывания в секундах
+         */
         void setInterval(double sec);
+        /*!
+         * \brief stop останавливает таймер
+         */
         void stop();
 
 private:

@@ -29,7 +29,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Configure to serial port</string>
+   <string>Настройка COM-порта</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../resource.qrc">
+    <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
   </property>
   <widget class="QGroupBox" name="selectBox">
    <property name="geometry">
@@ -47,7 +51,7 @@
     </sizepolicy>
    </property>
    <property name="title">
-    <string>Select Serial Port</string>
+    <string>Выбор COM-порта</string>
    </property>
    <widget class="QLabel" name="descriptionLabel">
     <property name="geometry">
@@ -65,7 +69,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Description</string>
+     <string>Описание:</string>
     </property>
    </widget>
    <widget class="QLabel" name="manufacturerLabel">
@@ -84,7 +88,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Manufacturer</string>
+     <string>Производитель:</string>
     </property>
    </widget>
    <widget class="QLabel" name="serialNumberLabel">
@@ -103,7 +107,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Serial Number</string>
+     <string>Сер.номер:</string>
     </property>
    </widget>
    <widget class="QLabel" name="locationLabel">
@@ -122,7 +126,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Location</string>
+     <string>Размещение:</string>
     </property>
    </widget>
    <widget class="QLabel" name="vidLabel">
@@ -147,7 +151,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Vendor ID</string>
+     <string>Идент.произв.:</string>
     </property>
    </widget>
    <widget class="QLabel" name="pidLabel">
@@ -166,7 +170,7 @@
      </size>
     </property>
     <property name="text">
-     <string>Product ID</string>
+     <string>ID:</string>
     </property>
    </widget>
    <widget class="QComboBox" name="serialPortInfoBox">
@@ -201,16 +205,16 @@
      </rect>
     </property>
     <property name="text">
-     <string>Busy</string>
+     <string>Занят</string>
     </property>
    </widget>
   </widget>
   <widget class="QGroupBox" name="parametersBox">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>210</x>
      <y>10</y>
-     <width>171</width>
+     <width>181</width>
      <height>191</height>
     </rect>
    </property>
@@ -221,14 +225,14 @@
     </sizepolicy>
    </property>
    <property name="title">
-    <string>Select Parameters</string>
+    <string>Выбор параметров</string>
    </property>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>151</width>
+      <width>161</width>
       <height>146</height>
      </rect>
     </property>
@@ -244,7 +248,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>BaudRate</string>
+          <string>Скорость</string>
          </property>
         </widget>
        </item>
@@ -265,7 +269,7 @@
        <item>
         <widget class="QLabel" name="dataBitsLabel">
          <property name="text">
-          <string>Data Bits</string>
+          <string>Бит данных</string>
          </property>
         </widget>
        </item>
@@ -286,7 +290,7 @@
        <item>
         <widget class="QLabel" name="parityLabel">
          <property name="text">
-          <string>Parity</string>
+          <string>Четность</string>
          </property>
         </widget>
        </item>
@@ -307,7 +311,7 @@
        <item>
         <widget class="QLabel" name="stopBitsLabel">
          <property name="text">
-          <string>Stop bits</string>
+          <string>Стоп биты</string>
          </property>
         </widget>
        </item>
@@ -328,7 +332,7 @@
        <item>
         <widget class="QLabel" name="flowControlLabel">
          <property name="text">
-          <string>Flow</string>
+          <string>Контроль</string>
          </property>
         </widget>
        </item>
@@ -363,7 +367,7 @@
     </sizepolicy>
    </property>
    <property name="title">
-    <string>Additional options</string>
+    <string>Дополнительные опции</string>
    </property>
    <widget class="QCheckBox" name="localEchoCheckBox">
     <property name="geometry">
@@ -411,7 +415,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>update</string>
+       <string>Обновить</string>
       </property>
      </widget>
     </item>
@@ -424,7 +428,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>apply</string>
+       <string>Применить</string>
       </property>
      </widget>
     </item>
@@ -432,14 +436,18 @@
   </widget>
  </widget>
  <tabstops>
+  <tabstop>serialPortInfoBox</tabstop>
+  <tabstop>baudRateBox</tabstop>
   <tabstop>dataBitsBox</tabstop>
   <tabstop>parityBox</tabstop>
   <tabstop>stopBitsBox</tabstop>
   <tabstop>flowControlBox</tabstop>
-  <tabstop>localEchoCheckBox</tabstop>
-  <tabstop>baudRateBox</tabstop>
   <tabstop>applyButton</tabstop>
+  <tabstop>updateInfoButton</tabstop>
+  <tabstop>localEchoCheckBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

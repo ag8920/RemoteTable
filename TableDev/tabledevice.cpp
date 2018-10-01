@@ -454,6 +454,7 @@ void TableDevice::CreateWidgets()
 //    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
 //                              "border-width: 1px;"
 //                              "min-height: 1.2em; min-width:5em;max-width:10em}");
+    this->setWindowIcon(QIcon(":/icons/table.png"));
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Настройка поворотного устройства"));
 
@@ -517,7 +518,7 @@ void TableDevice::CreateConnections()
     connect(ZeroPositionButton,&QPushButton::pressed,
             this,&TableDevice::ZeroPostion);
 
-    connect(RequestPostionCheckBox,&QCheckBox::clicked,
+    connect(RequestPostionCheckBox,&QCheckBox::stateChanged,
             this,&TableDevice::SetTimer);
     connect(tmr,&QTimer::timeout,
             this,&TableDevice::RequestPosition);
@@ -573,6 +574,18 @@ void TableDevice::SetTimer()
 void TableDevice::StartMeasure()
 {
     this->isMeasuring=true;
+    OnMotionButton->setEnabled(false);
+    OffMotionButton->setEnabled(false);
+    startButton->setEnabled(false);
+    stopButton->setEnabled(false);
+    ResetAbsolutCoordButton->setEnabled(false);
+    ZeroPositionButton->setEnabled(false);
+    ExecutePositioningButton->setEnabled(false);
+    SendCommandButton->setEnabled(false);
+    RequestPostionCheckBox->setChecked(true);
+    RequestPostionCheckBox->setEnabled(false);
+    RateOfTurnLineEdit->setEnabled(false);
+
 }
 //-----------------------------------------------------------
 // Назначение: сброс признака isMeasuring
@@ -580,6 +593,16 @@ void TableDevice::StartMeasure()
 void TableDevice::StopMeasure()
 {
     this->isMeasuring=false;
+    OnMotionButton->setEnabled(true);
+    OffMotionButton->setEnabled(true);
+    startButton->setEnabled(true);
+    stopButton->setEnabled(true);
+    ResetAbsolutCoordButton->setEnabled(true);
+    ZeroPositionButton->setEnabled(true);
+    ExecutePositioningButton->setEnabled(true);
+    SendCommandButton->setEnabled(true);
+    RequestPostionCheckBox->setEnabled(true);
+    RateOfTurnLineEdit->setEnabled(true);
 }
 //-----------------------------------------------------------
 // Назначение: отображение консоли

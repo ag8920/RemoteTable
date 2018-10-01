@@ -16,8 +16,8 @@
 #include <QString>
 
 
-static const QString isBusy = QObject::tr("isBusy");
-static const QString noBusy = QObject::tr("noBusy");
+static const QString isBusy = QObject::tr("Занят");
+static const QString noBusy = QObject::tr("Свободен");
 //-----------------------------------------------------------
 // Назначение: консруктор класса
 //-----------------------------------------------------------
@@ -66,16 +66,16 @@ void SettingsDialog::showPortInfo(int idx)
 {
     if (idx != -1) {
         QStringList list = ui->serialPortInfoBox->itemData(idx).toStringList();
-        ui->descriptionLabel->setText(tr("Description: %1").arg(list.at(1)));
-        ui->manufacturerLabel->setText(tr("Manufacturer: %1").arg(list.at(2)));
-        ui->serialNumberLabel->setText(tr("Serial number: %1").arg(list.at(3)));
-        ui->locationLabel->setText(tr("Location: %1").arg(list.at(4)));
-        ui->vidLabel->setText(tr("Vendor Identifier: %1").arg(list.at(5)));
-        ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.at(6)));
+        ui->descriptionLabel->setText(tr("Описание: %1").arg(list.at(1)));
+        ui->manufacturerLabel->setText(tr("Производитель: %1").arg(list.at(2)));
+        ui->serialNumberLabel->setText(tr("Сер.номер: %1").arg(list.at(3)));
+        ui->locationLabel->setText(tr("Размещение: %1").arg(list.at(4)));
+        ui->vidLabel->setText(tr("ID произв.: %1").arg(list.at(5)));
+        ui->pidLabel->setText(tr("ID : %1").arg(list.at(6)));
         if(list.at(7)==isBusy)
-            ui->busyLabel->setText(tr("Busy: <font color=red>%1</font color>").arg(list.at(7)));
+            ui->busyLabel->setText(tr("Состояние: <font color=red>%1</font color>").arg(list.at(7)));
         else
-            ui->busyLabel->setText(tr("Busy: <font color=green>%1</font color>").arg(list.at(7)));
+            ui->busyLabel->setText(tr("Состояние: <font color=green>%1</font color>").arg(list.at(7)));
         //ui->busyLabel->setStyleSheet("QLabel{color:red}");
     }
 }
