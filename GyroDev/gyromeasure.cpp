@@ -32,15 +32,19 @@ QDataStream &operator>>(QDataStream &in, FastPacket &packet)
 //-----------------------------------------------------------
 GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
 {
-    this->process();
+    //this->process();
 
 }
-
+//-----------------------------------------------------------
+// Назначение: деструктор класса
+//-----------------------------------------------------------
 GyroMeasure::~GyroMeasure()
 {
     emit finished();
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void GyroMeasure::process()
 {
     Slip=new SlipProtocol;
@@ -52,9 +56,13 @@ void GyroMeasure::process()
 
     lstName=new QList<QString>{
             tr("Номер пакета"),
-            tr("dat1[град/час]"),tr("dat2[град/час]"),tr("dat3[град/час]"),
-            tr("dvt1[м/с2]"),tr("dvt2[м/с2]"),tr("dvt3[м/с2]")
-            ,tr("Время[сек]")};
+            tr("dat1[град/час]"),
+            tr("dat2[град/час]"),
+            tr("dat3[град/час]"),
+            tr("dvt1[м/с2]"),
+            tr("dvt2[м/с2]"),
+            tr("dvt3[м/с2]"),
+            tr("Время[сек]")};
 
     this->isAccumulateData=false;
     this->summ=0.;
@@ -67,8 +75,12 @@ void GyroMeasure::process()
     tmr->setInterval(10);
     tmr->start();
 
+    tmr2=new QTimer;
+    tmr2->setInterval(1000);
+    tmr2->start();
+
     connect(tmr,&QTimer::timeout,this,&GyroMeasure::Unpack);
-    connect(tmr,&QTimer::timeout,this,&GyroMeasure::OutData);
+    connect(tmr2,&QTimer::timeout,this,&GyroMeasure::OutData);
 }
 
 //-----------------------------------------------------------
@@ -77,6 +89,10 @@ void GyroMeasure::process()
 void GyroMeasure::GetData(QByteArray inputArray)
 {
     this->inputbuffer.append(inputArray);
+
+    ///> @todo проверить данный способ - показания стали чуть хуже, имеются пропуски пакетов
+//    this->Unpack2(this->inputbuffer);
+//    this->inputbuffer.clear();
 }
 //-----------------------------------------------------------
 // Назначение: распаковка данных
@@ -88,6 +104,14 @@ void GyroMeasure::Unpack()
         this->ReadByte(this->inputbuffer.at(i));
     }
     inputbuffer.clear();
+}
+
+void GyroMeasure::Unpack2(QByteArray inpArray)
+{
+    for(int i=0;i<inpArray.size();i++)
+    {
+        this->ReadByte(inpArray.at(i));
+    }
 }
 //-----------------------------------------------------------
 // Назначение: прием данных
@@ -111,7 +135,8 @@ void GyroMeasure::ReadByte(char byte)
 //-----------------------------------------------------------
 void GyroMeasure::SortData(QByteArray data)
 {
-    static int prevcnt;
+    static uint32_t prevcnt;
+    int32_t diffcnt=0;
     QDataStream stream(data);
     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -119,7 +144,8 @@ void GyroMeasure::SortData(QByteArray data)
     countPacket++;
     stream>>packet;
 
-    if(abs(packet.cnt-prevcnt)>1) this->errorPacket++;
+    diffcnt=abs(static_cast<int32_t>(packet.cnt)-static_cast<int32_t>(prevcnt));
+    if(diffcnt>1) this->errorPacket++;
     prevcnt=packet.cnt;
 
     if(this->isAccumulateData){
@@ -162,13 +188,13 @@ void GyroMeasure::FillOutList(FastPacket packet)
 {
     if(!lstVal->isEmpty()){
         lstVal->replace(0,QString::number(packet.cnt));
-        lstVal->replace(1,QString::number(packet.da1));
-        lstVal->replace(2,QString::number(packet.da2));
-        lstVal->replace(3,QString::number(packet.da3));
-        lstVal->replace(4,QString::number(packet.dv1));
-        lstVal->replace(5,QString::number(packet.dv2));
-        lstVal->replace(6,QString::number(packet.dv3));
-        lstVal->replace(7,QString::number(packet.Tmsk));
+        lstVal->replace(1,QString::number(static_cast<double>(packet.da1)));
+        lstVal->replace(2,QString::number(static_cast<double>(packet.da2)));
+        lstVal->replace(3,QString::number(static_cast<double>(packet.da3)));
+        lstVal->replace(4,QString::number(static_cast<double>(packet.dv1)));
+        lstVal->replace(5,QString::number(static_cast<double>(packet.dv2)));
+        lstVal->replace(6,QString::number(static_cast<double>(packet.dv3)));
+        lstVal->replace(7,QString::number(static_cast<double>(packet.Tmsk)));
     }
 }
 
@@ -176,13 +202,13 @@ void GyroMeasure::FillFirstList(FastPacket packet)
 {
     lstVal->clear();
     lstVal->append(QString::number(packet.cnt));
-    lstVal->append(QString::number(packet.da1));
-    lstVal->append(QString::number(packet.da2));
-    lstVal->append(QString::number(packet.da3));
-    lstVal->append(QString::number(packet.dv1));
-    lstVal->append(QString::number(packet.dv2));
-    lstVal->append(QString::number(packet.dv3));
-    lstVal->append(QString::number(packet.Tmsk));
+    lstVal->append(QString::number(static_cast<double>(packet.da1)));
+    lstVal->append(QString::number(static_cast<double>(packet.da2)));
+    lstVal->append(QString::number(static_cast<double>(packet.da3)));
+    lstVal->append(QString::number(static_cast<double>(packet.dv1)));
+    lstVal->append(QString::number(static_cast<double>(packet.dv2)));
+    lstVal->append(QString::number(static_cast<double>(packet.dv3)));
+    lstVal->append(QString::number(static_cast<double>(packet.Tmsk)));
 }
 
 

@@ -56,11 +56,16 @@ char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
         return  0;
 }
 
+/*!
+ * \brief SlipProtocol::SlipDecode
+ * \todo возможно здесь "сидит" ошибка
+ */
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt)
 {
        if(cnt>=l*2-1)  return 2;   // overflow error protection
-        if(b[cnt-1]==S_END && cnt)
-        {   int e=0, c=0; cnt=0;
+//        if(b[cnt-1]==S_END && cnt)
+       if(b.contains(S_END))
+       {   int e=0, c=0; cnt=0;
             while(b[c]!=S_END)
             {   if(b[c]==S_ESC && (b[c+1]!=S_ESC_END && b[c+1]!=S_ESC_ESC)) return 2;
                 if      (b[c]==S_ESC && b[c+1]==S_ESC_END)  {b2[e]=S_END; c++;}

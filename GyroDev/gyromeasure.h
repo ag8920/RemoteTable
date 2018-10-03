@@ -1,3 +1,4 @@
+///< @todo большой разброс в накоплении угла, необходимо понять в чем дело
 #ifndef GYROMEASURE_H
 #define GYROMEASURE_H
 
@@ -42,6 +43,7 @@ public slots:
     void NoAccumulateData();
 
     void Unpack();
+    void Unpack2(QByteArray inpArray);
     void ReadByte(char byte);
     void OutData();
 private:
@@ -51,7 +53,7 @@ private:
 public:
     friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
     uint32_t countPacket;
-    uint32_t errorPacket;
+    int32_t errorPacket;
     FastPacket packet;
     QList<QString> *lstVal;
     QList<QString> *lstName;
@@ -62,6 +64,7 @@ public:
     bool isAccumulateData;
 
     QTimer *tmr;
+    QTimer *tmr2;
 
     QByteArray inputbuffer;
     QByteArray buffer2;

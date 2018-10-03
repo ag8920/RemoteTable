@@ -264,11 +264,12 @@ void GyroDevice::CreateConnections()
 
 //    connect(DeviceComPort,&comPort::dataOutput,
 //            ConsoleWidget,&Console::putData);
+
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
 
     connect(DeviceComPort,&comPort::dataOutput,
-            Measure,&GyroMeasure::GetData);
+            Measure,&GyroMeasure::GetData/*,Qt::DirectConnection*/); ///< @todo возможно необходимо выставить
     connect(Measure,&GyroMeasure::outCountPacket,
             this,&GyroDevice::UpdateCountPacketLineEdit);
     connect(Measure,&GyroMeasure::SendDataToTable,
@@ -295,13 +296,13 @@ void GyroDevice::AddThread()
 
     ComPortThread->start(QThread::TimeCriticalPriority);
 
-
-//    Measure->moveToThread(MeasureThread);
-//    connect(MeasureThread,&QThread::started,
-//            Measure,&GyroMeasure::process);
-//    connect(Measure,&GyroMeasure::finished,
-//            MeasureThread,&QThread::quit);
-//    MeasureThread->start();
+///< @todo перенести класс Measure в отдельный поток
+    Measure->moveToThread(MeasureThread);
+    connect(MeasureThread,&QThread::started,
+            Measure,&GyroMeasure::process);
+    connect(Measure,&GyroMeasure::finished,
+            MeasureThread,&QThread::quit);
+    MeasureThread->start();
 }
 //-----------------------------------------------------------
 // Назначение: остановка всех потоков

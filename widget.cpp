@@ -33,7 +33,6 @@ Widget::Widget(QWidget *parent)
     initActionConnections();
     CreateConnections();
 
-
 //    QueryPerformanceFrequency()
 
     //ConfigTableDevice->show();
@@ -84,6 +83,7 @@ void Widget::CreateActions()
 
     StopTimerAction = new QAction(tr("Стоп"));
     StopTimerAction->setIcon(QIcon(":/icons/stop.png"));
+    StopTimerAction->setEnabled(false);
 
 
 }
@@ -120,7 +120,7 @@ void Widget::CreateMenus()
     configMenu->addAction(ConfigGyroDevAction);
 }
 //-----------------------------------------------------------
-// Назначение:
+// Назначение: создание панели инструментов
 //-----------------------------------------------------------
 void Widget::CreateToolBars()
 {
@@ -191,6 +191,9 @@ void Widget::CreateWidgets()
     timeAccumulateLineEdit->setValidator(new QRegExpValidator(regExp,this));
     timeAccumulateLineEdit->setText("600");
 
+    countMeasureLabel=new QLabel(tr("Количество измерений"));
+    countMeasureLineEdit=new QLineEdit;
+    countMeasureLineEdit->setReadOnly(true);
 
     azimuthMeasureLineEdit=new QLineEdit;
     azimuthMeasureLineEdit->setValidator(regExp2);
@@ -221,6 +224,8 @@ void Widget::CreateWidgets()
     RightLayout->addWidget(azimuthMeasureLabel,1,0);
     RightLayout->addWidget(azimuthMeasureLineEdit,1,1);
 
+    RightLayout->addWidget(countMeasureLabel,2,0);
+    RightLayout->addWidget(countMeasureLineEdit,2,1);
 
     leftgroupBox->setLayout(LeftLayout);
     rightgroupBox->setLayout(RightLayout);
@@ -346,6 +351,10 @@ void Widget::StartMeasureSlot()
         this->StartTimer();
         emit StartMeasure();
         emit ResetAbsCoord();
+
+        StartTimerAction->setEnabled(false);
+        OneMeasurementAction->setEnabled(false);
+        StopTimerAction->setEnabled(true);
     }
     else
         emit StopMeasureSignal();
@@ -359,6 +368,10 @@ void Widget::StopMeasureSlot()
     this->InitVariable();
     this->timeAccumulateLineEdit->setEnabled(true);
     emit StopMeasureSignal();
+
+    StartTimerAction->setEnabled(true);
+    OneMeasurementAction->setEnabled(true);
+    StopTimerAction->setEnabled(false);
 }
 //-----------------------------------------------------------
 // Назначение: запуск таймера и вызов  сигнала
@@ -428,24 +441,34 @@ void Widget::Measure()
         prevMeasure=numMeasure;
 
         //пересчет параметров
-         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos1-pos2),
-                                                            (pos3-pos4))));
+         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos4-pos3),
+                                                            (pos1-pos2))));
          Azimuth<0?Azimuth+=360.0:Azimuth;
+//         Azimuth=fmodf(Azimuth,360.);
+//         if(Azimuth<0)
+//             Azimuth+=360.;
          SummAzimuth+=Azimuth;
-         MeanAzimuth=SummAzimuth/numMeasure;
-         MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
-         MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
+         if(numMeasure==1){
+             MeanAzimuth=Azimuth;
+             MaxAzimuth=Azimuth;
+             MinAzimuth=Azimuth;
+         }
+         else{
+             MeanAzimuth=SummAzimuth/numMeasure;
+             MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
+             MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
+         }
 
          numerator+=powf((Azimuth-MeanAzimuth),2);
          numMeasure>1?denumerator=numMeasure-1:denumerator=1;
          SKO=sqrt(numerator/denumerator);
 
-         currValueLineEdit->setText(QString::number(Azimuth));
-         meanVelueLineEdit->setText(QString::number(MeanAzimuth));
-         minValueLineEdit->setText(QString::number(MinAzimuth));
-         maxValueLineEdit->setText(QString::number(MaxAzimuth));
-         skoLineEdit->setText(QString::number(SKO));
-
+         currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
+         meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
+         minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
+         maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
+         skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
+         countMeasureLineEdit->setText(QString::number(numMeasure));
          if(isOneMeasure){
              isOneMeasure=false;
              this->StopMeasureSlot();

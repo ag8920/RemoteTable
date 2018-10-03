@@ -45,14 +45,14 @@ public slots:
     void StopMeasureSlot();///<останавливает измерения
     void Measure();///<реализует четырех позиционный алгоритм
 private slots:
-    void OneMeasureSlot();
+    void OneMeasureSlot();///<устанавливает признак однократного измерения
 public:
     int timeSec;
 private:
     void CreateActions();///<создает действия
     void initActionConnections();///<подключает слоты к действиям
     void CreateMenus();///<создание меню
-    void CreateToolBars();
+    void CreateToolBars();///<создание панели инструментов
     void CreateStatusBar();
     void CreateWidgets();///<создание виджета окна
     void CreateConnections();///<создание сигнально-слотовых соединений
@@ -91,6 +91,9 @@ private:
     QLineEdit *maxValueLineEdit;
     QLineEdit *skoLineEdit;
 
+    QLabel *countMeasureLabel;
+    QLineEdit *countMeasureLineEdit;
+
     QLineEdit *timeAccumulateLineEdit;
     QLineEdit *azimuthMeasureLineEdit;
 
@@ -100,7 +103,7 @@ private:
     GyroDevice *ConfigGyroDevice;
 
 
-    bool isOneMeasure;
+    bool isOneMeasure; ///< признак однократного измерения
     int prevMeasure;
     int numMeasure;
     int numPosition;
