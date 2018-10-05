@@ -2,7 +2,10 @@
 #include <QDateTime>
 #include <QFile>
 #include <QDataStream>
+#include <QDir>
 #include <QDebug>
+
+
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //----------------------------------------------------------
@@ -23,20 +26,23 @@ loger::~loger()
      emit finished();
 }
 //-----------------------------------------------------------
-// Назначение: создает новый файл для записи
+// Назначение: создает новый .dat файл для записи
 //----------------------------------------------------------
 void loger::start()
 {
     if(file!=nullptr) return;
-    qDebug("start loger");
-    qDebug()<< QThread::currentThread();
     QDateTime dateTime=QDateTime::currentDateTime();
-    QString fileName = dateTime.toString("ddMMyy_HHmmss_")+"binout.dat";
-    file= new QFile(fileName);
+    QDir dir;
+    QString fileName;
+    fileName = dateTime.toString("ddMMyy_HHmmss_");//+"binout.dat";
+    if(dir.mkpath(QDir::currentPath()+"/record/binout")){
+        file= new QFile(dir.filePath(fileName)+"binout.dat");
+    }else
+        file= new QFile(fileName);
     file->open(QIODevice::WriteOnly);
 }
 //-----------------------------------------------------------
-// Назначение: запись данных в файл
+// Назначение: запись данных в файл .dat
 //----------------------------------------------------------
 void loger::write(QByteArray data)
 {
@@ -47,7 +53,7 @@ void loger::write(QByteArray data)
 
 }
 //-----------------------------------------------------------
-// Назначение: остановка записи(закрывает файли записи)
+// Назначение: остановка записи(закрывает файли записи) .dat
 //----------------------------------------------------------
 void loger::CloseFile()
 {
@@ -57,5 +63,21 @@ void loger::CloseFile()
         file->close();
         delete file;
         file=nullptr;
+    }
+}
+//-----------------------------------------------------------
+// Назначение: запись данных в .log файл
+//----------------------------------------------------------
+void loger::PutLog(QString Data)
+{
+    QDateTime dateTime=QDateTime::currentDateTime();
+    QString writeData;
+    QFile File(dateTime.toString("yyyy.MMM.dd")+".log");
+    QTextStream out(&File);
+    if(File.open(QIODevice::Append|QIODevice::Text)){
+        writeData=QString("%1 %2\n").arg(dateTime.toString("hh::mm::ss\n"))
+                .arg(Data);
+        out<<writeData;
+        File.close();
     }
 }

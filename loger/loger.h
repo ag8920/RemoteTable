@@ -33,6 +33,7 @@ public slots:
      * \brief закрывает файл, вызывается для завершения записи
      */
     void CloseFile();
+    void PutLog(QString Data);
 private:
     QFile *file;///>объект класса QFile
 
