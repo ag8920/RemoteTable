@@ -115,10 +115,10 @@ private:
     float numerator;
     float denumerator;
     float SKO;
-    float pos1;
-    float pos2;
-    float pos3;
-    float pos4;
+    float pos_0;
+    float pos_180;
+    float pos_90;
+    float pos_270;
 
     QTimer *ptmr;
 };

@@ -49,6 +49,7 @@ TableDevice::~TableDevice()
 //-----------------------------------------------------------
 void TableDevice::OpenSerialPort()
 {
+    if(ComPortButton->isChecked()){
     SettingsDialog::Settings p=SettingsComPort->settings();
     QString name=static_cast<QString>(p.name);
     int baudRate=static_cast<int>(p.baudRate);
@@ -58,20 +59,19 @@ void TableDevice::OpenSerialPort()
     int flowControl=static_cast<int>(p.flowControl);    
     //emit ConnectComPort(p);
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
+    ComPortButton->setText(tr("Отключить"));
+    }else{
+         emit DisconnectComPort();
+        ComPortButton->setText(tr("Подключить"));
+    }
 }
-//-----------------------------------------------------------
-// Назначение: Закрыть порт
-//-----------------------------------------------------------
-void TableDevice::CloseSerialPort()
-{
-    emit DisconnectComPort();
-}
+
 //-----------------------------------------------------------
 // Назначение: проверка обновления состояний портов
 //-------------------------------------------------------
 void TableDevice::UpdateSettingsComPort()
 {
-    OnComPortButton->setEnabled(true);
+    ComPortButton->setEnabled(true);
     updateSettingsPort=1;
 }
 //-----------------------------------------------------------
@@ -285,8 +285,6 @@ void TableDevice::isConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(false);
-    OnComPortButton->setEnabled(false);
-    OffComPortButton->setEnabled(true);
     SendCommandButton->setEnabled(true);
 }
 //-----------------------------------------------------------
@@ -298,8 +296,7 @@ void TableDevice::isNotConnectedComPort(const QString msg)
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);
     if(updateSettingsPort)
-        OnComPortButton->setEnabled(true);
-    OffComPortButton->setEnabled(false);
+        ComPortButton->setEnabled(true);
     SendCommandButton->setEnabled(false);
 }
 //-----------------------------------------------------------
@@ -370,16 +367,14 @@ void TableDevice::CreateWidgets()
     stopButton->setEnabled(true);
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     SettingsPortButton->setEnabled(true);
-    OnComPortButton=new QPushButton(tr("Подключить"));
-    OnComPortButton->setEnabled(false);
-    OffComPortButton=new QPushButton(tr("Отключить"));
-    OffComPortButton->setEnabled(false);
+    ComPortButton=new QPushButton(tr("Подключить"));
+    ComPortButton->setEnabled(false);
+    ComPortButton->setCheckable(true);
 
 
     ClearConsoleButton=new QPushButton(tr("Очистить"));
     SettingsButtonLayout->addWidget(SettingsPortButton);
-    SettingsButtonLayout->addWidget(OnComPortButton);
-    SettingsButtonLayout->addWidget(OffComPortButton);
+    SettingsButtonLayout->addWidget(ComPortButton);
     SettingsButtonLayout->addStretch();
     SettingsButtonLayout->addWidget(OnMotionButton);
     SettingsButtonLayout->addWidget(startButton);
@@ -485,10 +480,8 @@ void TableDevice::CreateConnections()
 
     connect(SendCommandButton,&QPushButton::pressed,
             this,&TableDevice::ManualMode);
-    connect(OnComPortButton,SIGNAL(pressed()),
-            this,SLOT(OpenSerialPort()));
-    connect(OffComPortButton,&QPushButton::pressed,
-            this,&TableDevice::CloseSerialPort);
+    connect(ComPortButton,&QPushButton::toggled,
+            this,&TableDevice::OpenSerialPort);
     connect(this,&TableDevice::ConnectComPort,
             DeviceComPort,&comPort::ConnectPort);
     connect(DeviceComPort,&comPort::isConnectedPort,

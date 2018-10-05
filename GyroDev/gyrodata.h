@@ -1,6 +1,6 @@
 ///< @todo большой разброс в накоплении угла, необходимо понять в чем дело
-#ifndef GYROMEASURE_H
-#define GYROMEASURE_H
+#ifndef GYRODATA_H
+#define GYRODATA_H
 
 #include <QObject>
 #include <QVariant>
@@ -23,18 +23,19 @@ struct FastPacket{
 } ;
 
 
-class GyroMeasure : public QObject
+class GyroData : public QObject
 {
     Q_OBJECT
 public:
-    explicit GyroMeasure(QObject *parent = nullptr);
-    ~GyroMeasure();
+    explicit GyroData(QObject *parent = nullptr);
+    ~GyroData();
     void process();
 signals:
     void outCountPacket(const QString,const QString);
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
     void SendMeasureData(const QString Azimuth,const QString mean,
                          const QString min,const QString max,const QString sko);
+    void SendDecodeData(QByteArray data);
     void finished();
 public slots:
     void GetData(QByteArray inputArray);
@@ -71,4 +72,4 @@ public:
     QByteArray decodebuffer;
 };
 
-#endif // GYROMEASURE_H
+#endif // GYRODATA_H

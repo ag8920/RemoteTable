@@ -11,6 +11,8 @@
 #ifdef Q_OS_WIN
 #include <winbase.h>
 #endif
+
+enum position{DEG_90=0,DEG_180,DEG_270,DEG_0};
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //-----------------------------------------------------------
@@ -22,7 +24,7 @@ Widget::Widget(QWidget *parent)
     ConfigGyroDevice = new GyroDevice;
 
     ptmr = new QTimer;
-
+    ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
     InitVariable();
     CreateActions();
@@ -32,11 +34,6 @@ Widget::Widget(QWidget *parent)
     CreateWidgets();
     initActionConnections();
     CreateConnections();
-
-//    QueryPerformanceFrequency()
-
-    //ConfigTableDevice->show();
-
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -152,7 +149,7 @@ void Widget::CreateWidgets()
     QGridLayout *LeftLayout = new  QGridLayout;
     QGridLayout *RightLayout = new QGridLayout;
     QVBoxLayout *MainLayout = new QVBoxLayout;
-    QRegExp regExp("[1-9][0-9]{0,4}");
+    QRegExp regExp("[0-9][0-9]{0,4}");
     QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,5);
 
     QGroupBox *leftgroupBox = new QGroupBox(tr("Измерения азимута"));
@@ -237,17 +234,6 @@ void Widget::CreateWidgets()
     measureWidget->setLayout(MainLayout);
     setCentralWidget(measureWidget);
 
-    /*
-    QPalette pal=measureWidget->palette();
-    pal.setColor(QPalette::Text,Qt::green);
-    pal.setColor(QPalette::Background,Qt::black);
-    measureWidget->setPalette(pal);
-    */
-//    measureWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
-//                                 "border-width: 1px;"
-//                                 "min-height: 1.2em;max-height: 2em; "
-//                                 "min-width:5em;max-width:5em}");
-
    this->setWindowIcon(QIcon(":/icons/compas.png"));
    measureWidget->show();
 }
@@ -305,12 +291,12 @@ void Widget::CreateConnections()
     //включение накопления данных ( выполняется при остановке стола)
     connect(this,&Widget::StartAccumulateDataSignal,
             ConfigGyroDevice->Measure,
-            &GyroMeasure::AccumulateData);
+            &GyroData::AccumulateData);
     //окончание накопления данных при начале поворота стола
     //вызывается в функции Measure()
     connect(this,&Widget::StopAccumulateDataSignal,
             ConfigGyroDevice->Measure,
-            &GyroMeasure::NoAccumulateData);
+            &GyroData::NoAccumulateData);
 
     connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
 
@@ -325,10 +311,10 @@ void Widget::InitVariable()
     this->numMeasure=0;
     this->numPosition=0;
     this->Azimuth=0.;
-    this->pos1=0.;
-    this->pos2=0.;
-    this->pos3=0.;
-    this->pos4=0.;
+    this->pos_0=0.;
+    this->pos_180=0.;
+    this->pos_90=0.;
+    this->pos_270=0.;
     this->Azimuth=0.;
     this->SummAzimuth=0.;
     this->MeanAzimuth=0.;
@@ -377,13 +363,10 @@ void Widget::StopMeasureSlot()
 // Назначение: запуск таймера и вызов  сигнала
 //             накопления данных
 //-----------------------------------------------------------
-///< @todo проверить работу таймера, если результат не удастся вернуться к signgleshot()
 void Widget::StartTimer()
 {
-//        QTimer::singleShot(timeSec,Qt::PreciseTimer,
-//                           this,SLOT(Measure()));
     ptmr->setInterval(timeSec);
-    ptmr->setSingleShot(true);//(QThread::TimeCriticalPriority);
+    ptmr->setSingleShot(true);
     ptmr->start();
     emit StartAccumulateDataSignal();
 }
@@ -410,26 +393,26 @@ void Widget::Measure()
 {
     emit StopAccumulateDataSignal();
     switch (numPosition) {
-    case 0:
-        pos1=this->ConfigGyroDevice->Measure->diff;
+    case DEG_180:
+        pos_0=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
         numPosition++;
-        emit GotoPosition(200000);
+        emit GotoPosition(-200000);
         break;
-    case 1:
-        pos2=this->ConfigGyroDevice->Measure->diff;
+    case DEG_270:
+        pos_180=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
         numPosition++;
-        emit GotoPosition(300000);
+        emit GotoPosition(-300000);
         break;
-    case 2:
-        pos3=this->ConfigGyroDevice->Measure->diff;
+    case DEG_90:
+        pos_90=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
         numPosition++;
-        emit GotoPosition(100000);
+        emit GotoPosition(-100000);
         break;
-    case 3:
-        pos4=this->ConfigGyroDevice->Measure->diff;
+    case DEG_0:
+        pos_270=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
         numPosition=0;
         numMeasure++;
@@ -441,12 +424,9 @@ void Widget::Measure()
         prevMeasure=numMeasure;
 
         //пересчет параметров
-         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos4-pos3),
-                                                            (pos1-pos2))));
+         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos_270-pos_90),
+                                                            (pos_0-pos_180))));
          Azimuth<0?Azimuth+=360.0:Azimuth;
-//         Azimuth=fmodf(Azimuth,360.);
-//         if(Azimuth<0)
-//             Azimuth+=360.;
          SummAzimuth+=Azimuth;
          if(numMeasure==1){
              MeanAzimuth=Azimuth;

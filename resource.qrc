@@ -11,8 +11,8 @@
         <file>Console/console.h</file>
         <file>GyroDev/gyrodevice.cpp</file>
         <file>GyroDev/gyrodevice.h</file>
-        <file>GyroDev/gyromeasure.cpp</file>
-        <file>GyroDev/gyromeasure.h</file>
+        <file>GyroDev/GyroData.cpp</file>
+        <file>GyroDev/GyroData.h</file>
         <file>ModelData/tablemodel.cpp</file>
         <file>ModelData/tablemodel.h</file>
         <file>rc/branch_closed-on.png</file>

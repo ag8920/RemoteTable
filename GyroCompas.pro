@@ -48,10 +48,11 @@ SOURCES += \
     comport/settingsdialog/settingsdialog.cpp \
     comport/comport.cpp \
     Console/console.cpp \
-    GyroDev/gyromeasure.cpp \
+    GyroDev/gyrodata.cpp \
     comport/slipprotocol.cpp \
     ModelData/tablemodel.cpp \
-    Timer/ptimer.cpp
+    Timer/ptimer.cpp \
+    loger/loger.cpp
 
 
 HEADERS += \
@@ -61,10 +62,11 @@ HEADERS += \
     comport/settingsdialog/settingsdialog.h \
     comport/comport.h \
     Console/console.h \
-    GyroDev/gyromeasure.h \
+    GyroDev/gyrodata.h \
     comport/slipprotocol.h \
     ModelData/tablemodel.h \
-    Timer/ptimer.h
+    Timer/ptimer.h \
+    loger/loger.h
 
 
 # Default rules for deployment.

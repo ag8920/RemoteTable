@@ -5,7 +5,7 @@
 //     дата создания: 13.09.2018
 //
 //------------------------------------------------------------------------------
-#include "gyromeasure.h"
+#include "gyrodata.h"
 #include <QDebug>
 #include <QDataStream>
 #include <QtMath>
@@ -30,7 +30,7 @@ QDataStream &operator>>(QDataStream &in, FastPacket &packet)
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //-----------------------------------------------------------
-GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
+GyroData::GyroData(QObject *parent) : QObject(parent)
 {
     //this->process();
 
@@ -38,18 +38,18 @@ GyroMeasure::GyroMeasure(QObject *parent) : QObject(parent)
 //-----------------------------------------------------------
 // Назначение: деструктор класса
 //-----------------------------------------------------------
-GyroMeasure::~GyroMeasure()
+GyroData::~GyroData()
 {
     emit finished();
 }
 //-----------------------------------------------------------
 // Назначение:
 //-----------------------------------------------------------
-void GyroMeasure::process()
+void GyroData::process()
 {
     Slip=new SlipProtocol;
     connect(Slip,&SlipProtocol::outDecodeArray,
-            this,&GyroMeasure::SortData);
+            this,&GyroData::SortData);
 
     lstVal=new QList<QString>;
     this->FillFirstList(this->packet);
@@ -71,7 +71,8 @@ void GyroMeasure::process()
     this->errorPacket=0;
     this->diff=0.;
 
-    tmr=new QTimer;
+    tmr=new QTimer();
+    tmr->setTimerType(Qt::TimerType::PreciseTimer);
     tmr->setInterval(10);
     tmr->start();
 
@@ -79,14 +80,14 @@ void GyroMeasure::process()
     tmr2->setInterval(1000);
     tmr2->start();
 
-    connect(tmr,&QTimer::timeout,this,&GyroMeasure::Unpack);
-    connect(tmr2,&QTimer::timeout,this,&GyroMeasure::OutData);
+    connect(tmr,&QTimer::timeout,this,&GyroData::Unpack);
+    connect(tmr2,&QTimer::timeout,this,&GyroData::OutData);
 }
 
 //-----------------------------------------------------------
 // Назначение: прием данных
 //-----------------------------------------------------------
-void GyroMeasure::GetData(QByteArray inputArray)
+void GyroData::GetData(QByteArray inputArray)
 {
     this->inputbuffer.append(inputArray);
 
@@ -97,7 +98,7 @@ void GyroMeasure::GetData(QByteArray inputArray)
 //-----------------------------------------------------------
 // Назначение: распаковка данных
 //-----------------------------------------------------------
-void GyroMeasure::Unpack()
+void GyroData::Unpack()
 {
     for(int i=0;i<inputbuffer.size();i++)
     {
@@ -106,7 +107,7 @@ void GyroMeasure::Unpack()
     inputbuffer.clear();
 }
 
-void GyroMeasure::Unpack2(QByteArray inpArray)
+void GyroData::Unpack2(QByteArray inpArray)
 {
     for(int i=0;i<inpArray.size();i++)
     {
@@ -116,7 +117,7 @@ void GyroMeasure::Unpack2(QByteArray inpArray)
 //-----------------------------------------------------------
 // Назначение: прием данных
 //-----------------------------------------------------------
-void GyroMeasure::ReadByte(char byte)
+void GyroData::ReadByte(char byte)
 {
     static int cnt=0;
     buffer2.push_back(byte);cnt++;
@@ -126,6 +127,7 @@ void GyroMeasure::ReadByte(char byte)
     if(r==1){
         buffer2.clear();
         this->SortData(decodebuffer);
+        emit SendDecodeData(decodebuffer);
         decodebuffer.clear();
     }
 }
@@ -133,7 +135,7 @@ void GyroMeasure::ReadByte(char byte)
 // Назначение: сортировка принятых данных(занесение в
 //             данных структуры)
 //-----------------------------------------------------------
-void GyroMeasure::SortData(QByteArray data)
+void GyroData::SortData(QByteArray data)
 {
     static uint32_t prevcnt;
     int32_t diffcnt=0;
@@ -154,7 +156,7 @@ void GyroMeasure::SortData(QByteArray data)
         this->diff=summ/cntsumm;
     }
 }
-void GyroMeasure::OutData()
+void GyroData::OutData()
 {
     FillOutList(packet);
     emit outCountPacket(QString::number(countPacket),
@@ -165,7 +167,7 @@ void GyroMeasure::OutData()
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
 //-----------------------------------------------------------
-void GyroMeasure::AccumulateData()
+void GyroData::AccumulateData()
 {
     this->isAccumulateData=true;
     this->summ=0; //TODO
@@ -175,7 +177,7 @@ void GyroMeasure::AccumulateData()
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
 //-----------------------------------------------------------
-void GyroMeasure::NoAccumulateData()
+void GyroData::NoAccumulateData()
 {
     this->isAccumulateData=false;
 }
@@ -184,7 +186,7 @@ void GyroMeasure::NoAccumulateData()
 // Назначение: заполнение данных в список
 //             для табличного отображения в форме
 //-----------------------------------------------------------
-void GyroMeasure::FillOutList(FastPacket packet)
+void GyroData::FillOutList(FastPacket packet)
 {
     if(!lstVal->isEmpty()){
         lstVal->replace(0,QString::number(packet.cnt));
@@ -198,7 +200,7 @@ void GyroMeasure::FillOutList(FastPacket packet)
     }
 }
 
-void GyroMeasure::FillFirstList(FastPacket packet)
+void GyroData::FillFirstList(FastPacket packet)
 {
     lstVal->clear();
     lstVal->append(QString::number(packet.cnt));

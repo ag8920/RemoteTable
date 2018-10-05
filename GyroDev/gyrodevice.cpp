@@ -19,13 +19,16 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
 
-    Measure = new GyroMeasure;
+    Measure = new GyroData;
     MeasureThread=new QThread;
 
     tableWidget=new QWidget(this);
     m_tableView=new QTableView(tableWidget);
     m_model=new TableModel(this);
     m_delegate=new MyDelegate(this);
+
+    log=new loger;
+    logThread=new QThread;
 
     AddThread();
     CreateWidgets();
@@ -39,12 +42,14 @@ GyroDevice::~GyroDevice()
 {
 //    this->StopThreads();
     ComPortThread->quit();
+    logThread->quit();
 }
 //-----------------------------------------------------------
 // Назначение: открыть порт
 //-----------------------------------------------------------
 void GyroDevice::OpenSerialPort()
 {
+    if(ComPortButton->isChecked()){
     SettingsDialog::Settings p=SettingsComPort->settings();
     QString name=static_cast<QString>(p.name);
     int baudRate=static_cast<int>(p.baudRate);
@@ -54,20 +59,18 @@ void GyroDevice::OpenSerialPort()
     int flowControl=static_cast<int>(p.flowControl);
     //emit ConnectComPort(p);
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
-}
-//-----------------------------------------------------------
-// Назначение: Закрыть порт
-//-----------------------------------------------------------
-void GyroDevice::CloseSerialPort()
-{
-    emit DisconnectComPort();
+    ComPortButton->setText(tr("Отключить"));
+    } else{
+         emit DisconnectComPort();
+        ComPortButton->setText(tr("Подключить"));
+    }
 }
 //-----------------------------------------------------------
 // Назначение: проверка обновления состояний портов
 //-----------------------------------------------------------
 void GyroDevice::UpdateSettingsComPort()
 {
-    OnComPortButton->setEnabled(true);
+    ComPortButton->setEnabled(true);
     updateSettingsPort=1;
 }
 //-----------------------------------------------------------
@@ -99,6 +102,18 @@ void GyroDevice::ConsoleVisible()
     else
         ConsoleWidget->hide();
 }
+
+void GyroDevice::SaveData()
+{
+    if(SaveButton->isChecked()){
+        emit BeginRecord();
+        SaveButton->setText(tr("Остановить запись"));
+    }else{
+        emit StopRecord();
+        SaveButton->setText(tr("Начать запись"));
+    }
+
+}
 //-----------------------------------------------------------
 // Назначение: установка состояния кнопок
 //             при подключении порта
@@ -107,8 +122,6 @@ void GyroDevice::isConnectedComPort(const QString msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(false);
-    OnComPortButton->setEnabled(false);
-    OffComPortButton->setEnabled(true);
 //    ConsoleWidget->setEnabled(true);
 
 }
@@ -121,8 +134,7 @@ void GyroDevice::isNotConnectedComPort(const QString msg)
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);
     if(updateSettingsPort)
-        OnComPortButton->setEnabled(true);
-    OffComPortButton->setEnabled(false);
+        ComPortButton->setEnabled(true);
 //    ConsoleWidget->setEnabled(false);
 
 }
@@ -163,20 +175,14 @@ void GyroDevice::CreateWidgets()
     CountErrorLabel=new QLabel(tr("Число ошибок:"));
     CountErrorLabel->setBuddy(CountErrorLineEdit);
 
-    ValueLineEdit=new QLineEdit;
-    ValueLineEdit->setReadOnly(true);
-    ValueLabel=new QLabel(tr("Показания:"));
-    ValueLabel->setBuddy(ValueLineEdit);
-
     ConsoleVisibleCheckBox=new QCheckBox(tr("Показать консоль"));
     ConsoleVisibleCheckBox->setChecked(false);
 
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     SettingsPortButton->setEnabled(true);
-    OnComPortButton=new QPushButton(tr("Подключить"));
-    OnComPortButton->setEnabled(false);
-    OffComPortButton=new QPushButton(tr("Отключить"));
-    OffComPortButton->setEnabled(false);
+    ComPortButton=new QPushButton(tr("Подключить"));
+    ComPortButton->setEnabled(false);
+    ComPortButton->setCheckable(true);
 
     ClearConsoleButton=new QPushButton(tr("Очистить"));
     ClearConsoleButton->setEnabled(true);
@@ -184,7 +190,8 @@ void GyroDevice::CreateWidgets()
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
     AdditionalParamButton->setCheckable(true);
 
-
+    SaveButton=new QPushButton(tr("Начать запись"));
+    SaveButton->setCheckable(true);
 
     QGroupBox *GyroSettingsBox=new QGroupBox(tr("Параметры гироскопического устройства"));
 
@@ -196,8 +203,6 @@ void GyroDevice::CreateWidgets()
     LeftLayout->addWidget(CountErrorLabel,2,0);
     LeftLayout->addWidget(CountErrorLineEdit,2,1);
 //    LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
-    //LeftLayout->addWidget(ValueLabel,3,0);
-    //LeftLayout->addWidget(ValueLineEdit,3,1);
     LeftLayout->addWidget(AdditionalParamButton,4,0);
 
     QVBoxLayout *LeftAll=new QVBoxLayout;
@@ -208,10 +213,11 @@ void GyroDevice::CreateWidgets()
 
     QVBoxLayout *RightLayout=new QVBoxLayout;
     RightLayout->addWidget(SettingsPortButton);
-    RightLayout->addWidget(OnComPortButton);
-    RightLayout->addWidget(OffComPortButton);
+    RightLayout->addWidget(ComPortButton);
+    RightLayout->addWidget(SaveButton);
     RightLayout->addStretch();
     RightLayout->addWidget(ClearConsoleButton);
+
 
     QGridLayout *MainLayout=new QGridLayout;
     MainLayout->addWidget(GyroSettingsBox,0,0);
@@ -223,9 +229,6 @@ void GyroDevice::CreateWidgets()
 
     MainWidget=new QWidget;
     MainWidget->setLayout(GeneralLayout);
-//    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
-//                              "border-width: 1px;"
-//                              "min-height: 1.2em;max-height: 1.2em; min-width:5em;max-width:10em}");
     setCentralWidget(MainWidget);
     this->setWindowIcon(QIcon(":/icons/gyroscope.png"));
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
@@ -242,10 +245,8 @@ void GyroDevice::CreateConnections()
     connect(SettingsComPort,&SettingsDialog::isUpdateSettings,
             this,&GyroDevice::UpdateSettingsComPort);
 
-    connect(OnComPortButton,&QPushButton::pressed,
+    connect(ComPortButton,&QPushButton::toggled,
             this,&GyroDevice::OpenSerialPort);
-    connect(OffComPortButton,&QPushButton::pressed,
-            this,&GyroDevice::CloseSerialPort);
 
     connect(ConsoleVisibleCheckBox,&QCheckBox::clicked,
             this,&GyroDevice::ConsoleVisible);
@@ -269,11 +270,21 @@ void GyroDevice::CreateConnections()
             ConsoleWidget,&Console::clear);
 
     connect(DeviceComPort,&comPort::dataOutput,
-            Measure,&GyroMeasure::GetData/*,Qt::DirectConnection*/); ///< @todo возможно необходимо выставить
-    connect(Measure,&GyroMeasure::outCountPacket,
+            Measure,&GyroData::GetData/*,Qt::DirectConnection*/); ///< @todo возможно необходимо выставить
+    connect(Measure,&GyroData::outCountPacket,
             this,&GyroDevice::UpdateCountPacketLineEdit);
-    connect(Measure,&GyroMeasure::SendDataToTable,
+    connect(Measure,&GyroData::SendDataToTable,
             m_model,&TableModel::loadData);
+
+
+    connect(Measure,&GyroData::SendDecodeData,
+            log,&loger::write);
+    connect(SaveButton,&QPushButton::toggled,
+            this,&GyroDevice::SaveData);
+    connect(this,&GyroDevice::BeginRecord,
+            log,&loger::start);
+    connect(this,&GyroDevice::StopRecord,
+            log,&loger::CloseFile);
 }
 //-----------------------------------------------------------
 // Назначение: выделение нового потока
@@ -296,13 +307,26 @@ void GyroDevice::AddThread()
 
     ComPortThread->start(QThread::TimeCriticalPriority);
 
-///< @todo перенести класс Measure в отдельный поток
+
     Measure->moveToThread(MeasureThread);
     connect(MeasureThread,&QThread::started,
-            Measure,&GyroMeasure::process);
-    connect(Measure,&GyroMeasure::finished,
+            Measure,&GyroData::process);
+    connect(Measure,&GyroData::finished,
             MeasureThread,&QThread::quit);
     MeasureThread->start();
+
+    log->moveToThread(logThread);
+//    connect(logThread,&QThread::started,
+//            log,&loger::start);
+    connect(log,&loger::finished,
+            logThread,&QThread::quit);
+    connect(logThread,&QThread::finished,
+           log,&loger::deleteLater);
+    connect(log,&loger::finished,
+            logThread,&QThread::deleteLater);
+    logThread->start();
+qDebug()<< QThread::currentThread();
+
 }
 //-----------------------------------------------------------
 // Назначение: остановка всех потоков

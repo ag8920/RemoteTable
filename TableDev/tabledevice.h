@@ -43,7 +43,6 @@ public slots:
     void OpenSerialPort();
     void isConnectedComPort(const QString msg);
     void isNotConnectedComPort(const QString msg);
-    void CloseSerialPort();
     void UpdateSettingsComPort();
 
     void PositioningParamVisible();
@@ -116,8 +115,7 @@ private:
     QGroupBox *PositioningBox;
 
     QPushButton *SettingsPortButton;
-    QPushButton *OnComPortButton;
-    QPushButton *OffComPortButton;
+    QPushButton *ComPortButton;
 
     QPushButton *SendCommandButton;
     QLineEdit *SendCommandLineEdit;
