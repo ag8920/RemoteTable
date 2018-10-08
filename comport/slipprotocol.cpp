@@ -58,7 +58,6 @@ char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
 
 /*!
  * \brief SlipProtocol::SlipDecode
- * \todo возможно здесь "сидит" ошибка
  */
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt)
 {

@@ -194,6 +194,9 @@
       <height>0</height>
      </size>
     </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="busyLabel">
     <property name="geometry">
@@ -260,6 +263,9 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -280,6 +286,9 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -302,6 +311,9 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -323,6 +335,9 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -343,6 +358,9 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -417,6 +435,9 @@
       <property name="text">
        <string>Обновить</string>
       </property>
+      <property name="autoDefault">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item>
@@ -429,6 +450,9 @@
       </property>
       <property name="text">
        <string>Применить</string>
+      </property>
+      <property name="autoDefault">
+       <bool>true</bool>
       </property>
      </widget>
     </item>

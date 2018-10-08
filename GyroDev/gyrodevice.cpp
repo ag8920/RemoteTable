@@ -161,6 +161,8 @@ void GyroDevice::CreateWidgets()
 //    TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
 //    TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
     TypeProtocolComboBox->addItem(QStringLiteral("Dadvtt"));
+
+
     TypeProtocolLabel=new QLabel(tr("Тип протокола:"));
     TypeProtocolLabel->setBuddy(TypeProtocolComboBox);
 
@@ -175,23 +177,33 @@ void GyroDevice::CreateWidgets()
     CountErrorLabel=new QLabel(tr("Число ошибок:"));
     CountErrorLabel->setBuddy(CountErrorLineEdit);
 
+    //скрыта
     ConsoleVisibleCheckBox=new QCheckBox(tr("Показать консоль"));
     ConsoleVisibleCheckBox->setChecked(false);
+    ConsoleVisibleCheckBox->hide();
 
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     SettingsPortButton->setEnabled(true);
+    SettingsPortButton->setAutoDefault(true);
+
     ComPortButton=new QPushButton(tr("Подключить"));
     ComPortButton->setEnabled(false);
     ComPortButton->setCheckable(true);
+    ComPortButton->setAutoDefault(true);
 
+    //скрыта
     ClearConsoleButton=new QPushButton(tr("Очистить"));
     ClearConsoleButton->setEnabled(true);
+    ClearConsoleButton->setAutoDefault(true);
+    ClearConsoleButton->hide();
 
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
     AdditionalParamButton->setCheckable(true);
+    AdditionalParamButton->setAutoDefault(true);
 
     SaveButton=new QPushButton(tr("Начать запись"));
     SaveButton->setCheckable(true);
+    SaveButton->setAutoDefault(true);
 
     QGroupBox *GyroSettingsBox=new QGroupBox(tr("Параметры гироскопического устройства"));
 
@@ -270,7 +282,7 @@ void GyroDevice::CreateConnections()
             ConsoleWidget,&Console::clear);
 
     connect(DeviceComPort,&comPort::dataOutput,
-            Measure,&GyroData::GetData/*,Qt::DirectConnection*/); ///< @todo возможно необходимо выставить
+            Measure,&GyroData::GetData);
     connect(Measure,&GyroData::outCountPacket,
             this,&GyroDevice::UpdateCountPacketLineEdit);
     connect(Measure,&GyroData::SendDataToTable,

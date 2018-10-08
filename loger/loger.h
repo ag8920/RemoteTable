@@ -25,7 +25,7 @@ public slots:
      */
     void start();
     /*!
-     * \brief запись данных в файл
+     * \brief запись данных в бинарный файл .dat
      * \param[In] данные для записи
      */
     void write(QByteArray data);
@@ -33,6 +33,10 @@ public slots:
      * \brief закрывает файл, вызывается для завершения записи
      */
     void CloseFile();
+    /*!
+     * \brief запись данных в текстовый файл .log
+     * \param строка для записи
+     */
     void PutLog(QString Data);
 private:
     QFile *file;///>объект класса QFile

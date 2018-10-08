@@ -1,4 +1,3 @@
-///< @todo большой разброс в накоплении угла, необходимо понять в чем дело
 #ifndef GYRODATA_H
 #define GYRODATA_H
 
@@ -40,8 +39,10 @@ signals:
 public slots:
     void GetData(QByteArray inputArray);
     void SortData(QByteArray data);
+
     void AccumulateData();
     void NoAccumulateData();
+    void Stop();
 
     void Unpack();
     void Unpack2(QByteArray inpArray);

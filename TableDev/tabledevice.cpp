@@ -321,16 +321,21 @@ void TableDevice::CreateWidgets()
     RateOfTurnLineEdit->setText("30000");
     RateOfTurnLabel = new QLabel(tr("Скорость вращения (меток/сек)"));
     PositveRotationCheckBox=new QCheckBox(tr("Положительное направление"));
+
+    //скрыта
     NegativeRotationCheckBox=new QCheckBox(tr("Отрицательное направление"));
     NegativeRotationCheckBox->hide();
+
     RequestPostionCheckBox = new QCheckBox(tr("Запрос текущего положения"));
     RequestPostionCheckBox->setChecked(true);
     PositioningButton=new QPushButton(tr("Позиционирование..."));
     PositioningButton->setCheckable(true);
+    PositioningButton->setAutoDefault(true);
 
     //-----------------------------------------------------------
-
+    //скрыта
     ConsoleVisibleCheckBox=new QCheckBox(tr("Показать консоль"));
+    ConsoleVisibleCheckBox->hide();
     AsciiFormatCheckBox=new QCheckBox(tr("Отображать в ASCII"));
     AsciiFormatCheckBox->hide();
 
@@ -359,20 +364,33 @@ void TableDevice::CreateWidgets()
     QVBoxLayout *SettingsButtonLayout=new QVBoxLayout;
     OnMotionButton=new QPushButton(tr("Включить привод"));
     OnMotionButton->setEnabled(true);
+    OnMotionButton->setAutoDefault(true);
+
     OffMotionButton=new QPushButton(tr("Отключить привод"));
     OffMotionButton->setEnabled(true);
+    OffMotionButton->setAutoDefault(true);
+
     startButton=new QPushButton(tr("Начать вращение"));
     startButton->setEnabled(true);
+    startButton->setAutoDefault(true);
+
     stopButton=new QPushButton(tr("Остановить вращение"));
     stopButton->setEnabled(true);
+    stopButton->setAutoDefault(true);
+
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
     SettingsPortButton->setEnabled(true);
+    SettingsPortButton->setAutoDefault(true);
+
     ComPortButton=new QPushButton(tr("Подключить"));
     ComPortButton->setEnabled(false);
     ComPortButton->setCheckable(true);
-
-
+    ComPortButton->setAutoDefault(true);
+    //скрыта
     ClearConsoleButton=new QPushButton(tr("Очистить"));
+    ClearConsoleButton->setAutoDefault(true);
+    ClearConsoleButton->hide();
+
     SettingsButtonLayout->addWidget(SettingsPortButton);
     SettingsButtonLayout->addWidget(ComPortButton);
     SettingsButtonLayout->addStretch();
@@ -381,7 +399,7 @@ void TableDevice::CreateWidgets()
     SettingsButtonLayout->addWidget(stopButton);
     SettingsButtonLayout->addWidget(OffMotionButton);
     //SettingsButtonLayout->addWidget(ResetAbsolutCoordButton);
-    SettingsButtonLayout->addStretch();
+    //SettingsButtonLayout->addStretch();
     SettingsButtonLayout->addWidget(ClearConsoleButton);
     //SettingsButtonLayout->addWidget(AsciiFormatCheckBox);
 
@@ -397,16 +415,25 @@ void TableDevice::CreateWidgets()
 
     QGridLayout *PositioningLayout=new QGridLayout;
     ResetAbsolutCoordButton=new QPushButton(tr("Обнул.абс.координаты"));
+    ResetAbsolutCoordButton->setAutoDefault(true);
+
     ExecutePositioningButton=new QPushButton(tr("Выполнить"));
+    ExecutePositioningButton->setAutoDefault(true);
+
     ZeroPositionButton=new QPushButton(tr("Нулевое положение"));
+    ZeroPositionButton->setAutoDefault(true);
+
     PositioningLineEdit=new QLineEdit;
     PositioningLineEdit->setText("200000");
     PositioningLabel=new QLabel(tr("угол поворота(метки)"));
     PositioningLabel->setBuddy(PositioningLabel);
     PositioningLineEdit->setValidator(new QRegExpValidator(regExp,this));
     AbsolutPositioningCheckBox=new QCheckBox(tr("Абc.позиционирование"));
+
+    //скрыта
     RelativePositioningCheckBox=new QCheckBox(tr("Относительное позиционирование"));
     RelativePositioningCheckBox->hide();
+
     PositioningLayout->addWidget(AbsolutPositioningCheckBox,1,0);
     PositioningLayout->addWidget(RelativePositioningCheckBox,0,1);
     PositioningLayout->addWidget(PositioningLabel,0,0);
@@ -423,7 +450,9 @@ void TableDevice::CreateWidgets()
     QGroupBox *SendCommandBox=new QGroupBox(tr("Отправка команд (ручной режим)"));
     QGridLayout *SendCommandLayout=new QGridLayout;
     SendCommandButton=new QPushButton(tr("Отправить"));
+    SendCommandButton->setAutoDefault(true);
     SendCommandButton->setEnabled(false);
+
     SendCommandLineEdit=new QLineEdit;
     SendCommandLayout->addWidget(SendCommandLineEdit,0,0);
     SendCommandLayout->addWidget(SendCommandButton,0,1);

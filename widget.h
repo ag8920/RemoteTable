@@ -19,7 +19,7 @@
 #include "TableDev/tabledevice.h"
 #include "GyroDev/gyrodevice.h"
 #include "Timer/ptimer.h"
-
+#include "loger/loger.h"
 
 class Widget : public QMainWindow
 {
@@ -29,46 +29,67 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
 signals:
-    void onWindowClosed();///<сигнал закрытия окна приложения
-    void StartMeasure();///<сигнал начала измерений
-    void StopMeasureSignal();///<сигнал остановки измерений
-    void StartAccumulateDataSignal();///<сигнал запуска накопления данных
-    void StopAccumulateDataSignal();///<сигнал остановки накопления данных
-    void GotoPosition(QVariant position);///<сигнал перехода к след. позиции стола
-    void ResetAbsCoord();///<сигнал сброса абсолютных координат стола
+    ///сигнал закрытия окна приложения
+    void onWindowClosed();
+    ///сигнал начала измерений
+    void StartMeasure();
+    ///сигнал остановки измерений
+    void StopMeasureSignal();
+    ///сигнал запуска накопления данных
+    void StartAccumulateDataSignal();
+    ///сигнал остановки накопления данных
+    void StopAccumulateDataSignal();
+    ///сигнал перехода к след. позиции стола
+    void GotoPosition(QVariant position);
+    ///сигнал сброса абсолютных координат стола
+    void ResetAbsCoord();
+    ///логирование данных
+    void PutLog(QString data);
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
-    void StartMeasureSlot();///<запускает измерения
-    void StartTimer();///<запускает таймер и вызывает признак накопления данных
-    bool SetTime();///<устанавливает время накопления данных
-    void StopMeasureSlot();///<останавливает измерения
-    void Measure();///<реализует четырех позиционный алгоритм
+    ///запускает измерения
+    void StartMeasureSlot();
+    ///запускает таймер и вызывает признак накопления данных
+    void StartTimer();
+    ///устанавливает время накопления данных
+    bool SetTime();
+    ///останавливает измерения
+    void StopMeasureSlot();
+    ///реализует четырех позиционный алгоритм
+    void Measure();
 private slots:
-    void OneMeasureSlot();///<устанавливает признак однократного измерения
+    ///устанавливает признак однократного измерения
+    void OneMeasureSlot();
 public:
     int timeSec;
 private:
-    void CreateActions();///<создает действия
-    void initActionConnections();///<подключает слоты к действиям
-    void CreateMenus();///<создание меню
-    void CreateToolBars();///<создание панели инструментов
+    ///создает действия
+    void CreateActions();
+    ///устанавливает соединения СИГНАЛ/СЛОТ
+    void initActionConnections();
+    ///создание меню
+    void CreateMenus();
+    ///создание панели инструментов
+    void CreateToolBars();
     void CreateStatusBar();
-    void CreateWidgets();///<создание виджета окна
-    void CreateConnections();///<создание сигнально-слотовых соединений
-    void InitVariable();///<инициализация переменных
+    ///создание виджета окна
+    void CreateWidgets();
+    ///создание сигнально-слотовых соединений
+    void CreateConnections();
+    ///инициализация переменных
+    void InitVariable();
 
-    QAction *DeltaPsProtocolAction;
-    QAction *Rate2ProtocolAction;
-    QAction *DadvttProtocolAction;
-
-    QAction *OneMeasurementAction;
-    QAction *MultiMeasurementAction;
-
+    ///вызов окна поворотного устройства
     QAction *ConfigTabelDevAction;
+    ///вызов окна гироскопического устройства
     QAction *ConfigGyroDevAction;
 
+    ///выполнить однократное измерение
+    QAction *OneMeasurementAction;
+    ///выполнить серию измерений
     QAction *StartTimerAction;
+    ///остановить измерения
     QAction *StopTimerAction;
 
     QMenu *fileMenu;
@@ -76,51 +97,80 @@ private:
 
     QMenu *configMenu;
 
+    ///надпись "Занчение азимута"
     QLabel *currValueLabel;
+    ///надпись "Среднее значение азимута"
     QLabel *meanValueLabel;
+    ///надпись "Минимальное значение"
     QLabel *minValueLabel;
+    ///надпись "Максимальное значение"
     QLabel *maxValueLabel;
+    ///надпись "СКО"
     QLabel *skoLabel;
 
+    ///надпись "Время накопления"
     QLabel *timeAccumulateLabel;
-    QLabel *azimuthMeasureLabel;
-
-    QLineEdit *currValueLineEdit;
-    QLineEdit *meanVelueLineEdit;
-    QLineEdit *minValueLineEdit;
-    QLineEdit *maxValueLineEdit;
-    QLineEdit *skoLineEdit;
-
-    QLabel *countMeasureLabel;
-    QLineEdit *countMeasureLineEdit;
-
+    ///поле с значением времени накопления данных
     QLineEdit *timeAccumulateLineEdit;
-    QLineEdit *azimuthMeasureLineEdit;
 
+    ///поле с измеренным значение азимута
+    QLineEdit *currValueLineEdit;
+    ///поле с средним значением азимута
+    QLineEdit *meanVelueLineEdit;
+    ///поле с минимальным значением азимута
+    QLineEdit *minValueLineEdit;
+    ///поле с максимальным значением азимута
+    QLineEdit *maxValueLineEdit;
+    ///поле со значением СКО
+    QLineEdit *skoLineEdit;
+    ///надпись "Количество измерений"
+    QLabel *countMeasureLabel;
+    ///поле с значением кол-ва измерений
+    QLineEdit *countMeasureLineEdit;
+    ///виджет главного окна
     QWidget *measureWidget;
-
+    ///объект класса TableDevice
     TableDevice *ConfigTableDevice;
+    ///объект класса GyroDevice
     GyroDevice *ConfigGyroDevice;
-
-
-    bool isOneMeasure; ///< признак однократного измерения
+    ///объект класса loger
+    loger *Log;
+    ///объект класса QTimer
+    QTimer *ptmr;
+    ///признак однократного измерения
+    bool isOneMeasure;
+    ///номер предыдущего измерения(вспом. переменная)
     int prevMeasure;
+    ///номер измерения
     int numMeasure;
+    ///номер позиции( необходим для 4-х позиционного алгоритма)
     int numPosition;
+    ///значение азимута
     float Azimuth;
+    ///сумма значений азимута(при каждом измерении значения суммируются)
     float SummAzimuth;
+    ///среднее значение азимута
     float MeanAzimuth;
+    ///максимальное значение азимута
     float MaxAzimuth;
+    ///минимальное значение азимута
     float MinAzimuth;
+    ///вспомогательная переменная
     float numerator;
+    ///вспомогательная переменная
     float denumerator;
+    ///среднеквадратическая погрешность
     float SKO;
+    ///сумма значений da получаемых из гироскопа в положении 0 град.
     float pos_0;
+    ///сумма значений da получаемых из гироскопа в положении 180 град.
     float pos_180;
+    ///сумма значений da получаемых из гироскопа в положении 90 град.
     float pos_90;
+    ///сумма значений da получаемых из гироскопа в положении 270 град.
     float pos_270;
 
-    QTimer *ptmr;
+
 };
 
 #endif // WIDGET_H

@@ -90,10 +90,6 @@ void GyroData::process()
 void GyroData::GetData(QByteArray inputArray)
 {
     this->inputbuffer.append(inputArray);
-
-    ///> @todo проверить данный способ - показания стали чуть хуже, имеются пропуски пакетов
-//    this->Unpack2(this->inputbuffer);
-//    this->inputbuffer.clear();
 }
 //-----------------------------------------------------------
 // Назначение: распаковка данных
@@ -180,6 +176,16 @@ void GyroData::AccumulateData()
 void GyroData::NoAccumulateData()
 {
     this->isAccumulateData=false;
+}
+//-----------------------------------------------------------
+// Назначение: сброс данных(при остановке измерений)
+//-----------------------------------------------------------
+void GyroData::Stop()
+{
+    this->isAccumulateData=false;
+    this->summ=0;
+    this->cntsumm=0;
+    this->diff=0;
 }
 
 //-----------------------------------------------------------

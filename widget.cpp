@@ -22,6 +22,7 @@ Widget::Widget(QWidget *parent)
     Q_UNUSED(parent);
     ConfigTableDevice = new TableDevice;
     ConfigGyroDevice = new GyroDevice;
+    Log = new loger;
 
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
@@ -58,27 +59,20 @@ void Widget::closeEvent(QCloseEvent *event)
 //-----------------------------------------------------------
 void Widget::CreateActions()
 {
-    DeltaPsProtocolAction = new QAction(tr("Протокол \"Delta_PS\" "));
 
-    Rate2ProtocolAction = new QAction(tr("Протокол \"Rate_2\" "));
-
-    DadvttProtocolAction = new QAction(tr("Протокол \"Dadvtt\" "));
-
-    OneMeasurementAction = new QAction(tr("Выполнить однократное измерение"));
+    OneMeasurementAction = new QAction(tr("Выполнить однократное измерение"),this);
     OneMeasurementAction->setIcon(QIcon(":/icons/onestart.png"));
 
-    MultiMeasurementAction = new QAction(tr("Выполнить серию измерений"));
-
-    ConfigTabelDevAction = new QAction(tr("Поворотное устройство"));
+    ConfigTabelDevAction = new QAction(tr("Поворотное устройство"),this);
     ConfigTabelDevAction->setIcon(QIcon(":/icons/table.png"));
 
-    ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"));
+    ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"),this);
     ConfigGyroDevAction->setIcon(QIcon(":/icons/gyroscope.png"));
 
-    StartTimerAction = new QAction(tr("Запуск"));
+    StartTimerAction = new QAction(tr("Выполнить серию измерений"),this);
     StartTimerAction->setIcon(QIcon(":/icons/start.png"));
 
-    StopTimerAction = new QAction(tr("Стоп"));
+    StopTimerAction = new QAction(tr("Остановить измерения"),this);
     StopTimerAction->setIcon(QIcon(":/icons/stop.png"));
     StopTimerAction->setEnabled(false);
 
@@ -103,12 +97,7 @@ void Widget::initActionConnections()
 void Widget::CreateMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&Меню"));
-//    fileMenu->addAction(DeltaPsProtocolAction);
-//    fileMenu->addAction(Rate2ProtocolAction);
-//    fileMenu->addAction(DadvttProtocolAction);
-//    fileMenu->addSeparator();
     fileMenu->addAction(OneMeasurementAction);
-    fileMenu->addAction(MultiMeasurementAction);
     fileMenu->addAction(StartTimerAction);
     fileMenu->addAction(StopTimerAction);
 
@@ -162,8 +151,6 @@ void Widget::CreateWidgets()
     skoLabel=new QLabel(tr("СКО:"));
 
     timeAccumulateLabel=new QLabel(tr("Время накопления(сек.)"));
-    azimuthMeasureLabel=new QLabel(tr("Измеренное значение азимута"));
-    azimuthMeasureLabel->hide();
 
     currValueLineEdit=new QLineEdit;
     currValueLineEdit->setReadOnly(true);
@@ -192,15 +179,8 @@ void Widget::CreateWidgets()
     countMeasureLineEdit=new QLineEdit;
     countMeasureLineEdit->setReadOnly(true);
 
-    azimuthMeasureLineEdit=new QLineEdit;
-    azimuthMeasureLineEdit->setValidator(regExp2);
-    azimuthMeasureLineEdit->setReadOnly(true);
-    azimuthMeasureLineEdit->hide();
-
     LeftLayout->addWidget(currValueLabel,0,0);
     LeftLayout->addWidget(currValueLineEdit,0,1);
-
-
 
     LeftLayout->addWidget(meanValueLabel,1,0);
     LeftLayout->addWidget(meanVelueLineEdit,1,1);
@@ -217,9 +197,6 @@ void Widget::CreateWidgets()
 
     RightLayout->addWidget(timeAccumulateLabel,0,0);
     RightLayout->addWidget(timeAccumulateLineEdit,0,1);
-
-    RightLayout->addWidget(azimuthMeasureLabel,1,0);
-    RightLayout->addWidget(azimuthMeasureLineEdit,1,1);
 
     RightLayout->addWidget(countMeasureLabel,2,0);
     RightLayout->addWidget(countMeasureLineEdit,2,1);
@@ -256,7 +233,7 @@ void Widget::CreateConnections()
     connect(OneMeasurementAction,&QAction::triggered,
             this,&Widget::StartMeasureSlot);
     connect(OneMeasurementAction,&QAction::triggered,
-            this,&Widget::OneMeasureSlot);///< @todo доделать однократный запуск
+            this,&Widget::OneMeasureSlot);
     //---------------------------------
     //действия по нажатию кнопки СТОП
     //---------------------------------
@@ -270,6 +247,9 @@ void Widget::CreateConnections()
     connect(this,&Widget::StopMeasureSignal,
             ConfigTableDevice, &TableDevice::StopMeasure);
 
+    //остановка накопления данных, сброс всех параметров ГК
+    connect(this,&Widget::StopMeasureSignal,
+            ConfigGyroDevice->Measure,&GyroData::Stop);
     //---------------------------------
     //запуск таймера
     //---------------------------------
@@ -300,6 +280,7 @@ void Widget::CreateConnections()
 
     connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
 
+    connect(this,&Widget::PutLog,Log,&loger::PutLog);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -448,7 +429,17 @@ void Widget::Measure()
          minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
          maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
          skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
-         countMeasureLineEdit->setText(QString::number(numMeasure));
+
+         if(numMeasure==1)
+             emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
+         emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
+                            .arg(static_cast<double>(Azimuth))
+                            .arg(static_cast<double>(MeanAzimuth))
+                            .arg(static_cast<double>(MinAzimuth))
+                            .arg(static_cast<double>(MaxAzimuth))
+                            .arg(static_cast<double>(SKO))
+                         );
+        countMeasureLineEdit->setText(QString::number(numMeasure));
          if(isOneMeasure){
              isOneMeasure=false;
              this->StopMeasureSlot();

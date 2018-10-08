@@ -34,11 +34,15 @@ void loger::start()
     QDateTime dateTime=QDateTime::currentDateTime();
     QDir dir;
     QString fileName;
-    fileName = dateTime.toString("ddMMyy_HHmmss_");//+"binout.dat";
+
     if(dir.mkpath(QDir::currentPath()+"/record/binout")){
-        file= new QFile(dir.filePath(fileName)+"binout.dat");
-    }else
+        dir.cd(QDir::currentPath()+"/record/binout");
+        fileName=dir.filePath(dateTime.toString("ddMMyy_HHmmss_"));
+        file= new QFile(fileName+"binout.dat");
+
+    }else{
         file= new QFile(fileName);
+    }
     file->open(QIODevice::WriteOnly);
 }
 //-----------------------------------------------------------
@@ -72,10 +76,20 @@ void loger::PutLog(QString Data)
 {
     QDateTime dateTime=QDateTime::currentDateTime();
     QString writeData;
-    QFile File(dateTime.toString("yyyy.MMM.dd")+".log");
+    QDir dir;
+    QString fileName;
+
+    if(dir.mkpath(QDir::currentPath()+"/record/log")){
+        dir.cd(QDir::currentPath()+"/record/log");
+        fileName=dir.filePath(dateTime.toString("yyyy_MM_dd")+".log");
+    }
+    else
+        fileName=dateTime.toString("yyyy_MM_dd")+".log";
+
+    QFile File(fileName);
     QTextStream out(&File);
     if(File.open(QIODevice::Append|QIODevice::Text)){
-        writeData=QString("%1 %2\n").arg(dateTime.toString("hh::mm::ss\n"))
+        writeData=QString("%1 %2\n").arg(dateTime.toString("hh:mm:ss\t"))
                 .arg(Data);
         out<<writeData;
         File.close();
