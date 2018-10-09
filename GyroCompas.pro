@@ -83,6 +83,8 @@ FORMS += \
 RESOURCES += \
     resource.qrc
 
+RC_FILE = resources.rc
+
 DISTFILES +=
 
 
