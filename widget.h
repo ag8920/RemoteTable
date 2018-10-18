@@ -20,6 +20,7 @@
 #include "GyroDev/gyrodevice.h"
 #include "Timer/ptimer.h"
 #include "loger/loger.h"
+#include "coordinatedialog/corrddialog.h"
 
 class Widget : public QMainWindow
 {
@@ -61,6 +62,8 @@ public slots:
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
+    ///
+    void viewAngle(QString Roll,QString Pitch);
 public:
     int timeSec;
 private:
@@ -85,6 +88,8 @@ private:
     ///вызов окна гироскопического устройства
     QAction *ConfigGyroDevAction;
 
+    ///
+    QAction *SetCoordianteAction;
     ///выполнить однократное измерение
     QAction *OneMeasurementAction;
     ///выполнить серию измерений
@@ -107,7 +112,6 @@ private:
     QLabel *maxValueLabel;
     ///надпись "СКО"
     QLabel *skoLabel;
-
     ///надпись "Время накопления"
     QLabel *timeAccumulateLabel;
     ///поле с значением времени накопления данных
@@ -127,12 +131,22 @@ private:
     QLabel *countMeasureLabel;
     ///поле с значением кол-ва измерений
     QLineEdit *countMeasureLineEdit;
+    ///
+    QLabel *RollLabel;
+    ///
+    QLineEdit *RollLineEdit;
+    ///
+    QLabel *PitchLabel;
+    ///
+    QLineEdit *PitchLineEdit;
     ///виджет главного окна
     QWidget *measureWidget;
     ///объект класса TableDevice
     TableDevice *ConfigTableDevice;
     ///объект класса GyroDevice
     GyroDevice *ConfigGyroDevice;
+    ///
+    corrdDialog *CoordDialog;
     ///объект класса loger
     loger *Log;
     ///объект класса QTimer
@@ -169,8 +183,6 @@ private:
     float pos_90;
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     float pos_270;
-
-
 };
 
 #endif // WIDGET_H

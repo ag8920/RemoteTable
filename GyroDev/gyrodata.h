@@ -1,3 +1,10 @@
+/*!
+    @class GyroData
+    @brief Класс обработки принятых
+    данных от гироскопического устройства
+    @author Щербаков Александр
+    @date 13.09.2018
+*/
 #ifndef GYRODATA_H
 #define GYRODATA_H
 
@@ -7,7 +14,9 @@
 #include "../comport/slipprotocol.h"
 
 
+///длина пакета одного данных  от гироскопического устройства
 const int LenghtFastPacket=32;
+///структура пакета данных от гироскопического устройства(протокол dadvtt)
 struct FastPacket{
 //    uint8_t Header;
     uint32_t cnt;
@@ -31,6 +40,7 @@ public:
     void process();
 signals:
     void outCountPacket(const QString,const QString);
+    void outAngle(const QString,const QString);
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
     void SendMeasureData(const QString Azimuth,const QString mean,
                          const QString min,const QString max,const QString sko);
@@ -38,7 +48,6 @@ signals:
     void finished();
 public slots:
     void GetData(QByteArray inputArray);
-    void SortData(QByteArray data);
 
     void AccumulateData();
     void NoAccumulateData();
@@ -48,10 +57,14 @@ public slots:
     void Unpack2(QByteArray inpArray);
     void ReadByte(char byte);
     void OutData();
+
+    void GetCoordinate(double *Lat,double *Lon, double *H);
 private:
     SlipProtocol *Slip;
     void FillOutList(FastPacket packet);
     void FillFirstList(FastPacket packet);
+    bool SortData(QByteArray data);
+    void MeasureRollAndPitch();
 public:
     friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
     uint32_t countPacket;
@@ -71,6 +84,16 @@ public:
     QByteArray inputbuffer;
     QByteArray buffer2;
     QByteArray decodebuffer;
+
+    double Roll;
+    double Pitch;
+    double Lat;
+    double Lon;
+    double H;
+    double G;
+    double summDv1;
+    double summDv2;
+    int count;
 };
 
 #endif // GYRODATA_H

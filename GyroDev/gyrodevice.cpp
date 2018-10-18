@@ -214,7 +214,7 @@ void GyroDevice::CreateWidgets()
     LeftLayout->addWidget(CountPacketLineEdit,1,1);
     LeftLayout->addWidget(CountErrorLabel,2,0);
     LeftLayout->addWidget(CountErrorLineEdit,2,1);
-//    LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
+    LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
     LeftLayout->addWidget(AdditionalParamButton,4,0);
 
     QVBoxLayout *LeftAll=new QVBoxLayout;

@@ -22,6 +22,7 @@ Widget::Widget(QWidget *parent)
     Q_UNUSED(parent);
     ConfigTableDevice = new TableDevice;
     ConfigGyroDevice = new GyroDevice;
+    CoordDialog = new corrdDialog;
     Log = new loger;
 
     ptmr = new QTimer;
@@ -77,6 +78,9 @@ void Widget::CreateActions()
     StopTimerAction->setEnabled(false);
 
 
+    SetCoordianteAction = new QAction(tr("Задать координаты"),this);
+    SetCoordianteAction->setIcon(QIcon(":/icons/coordinate.png"));
+
 }
 
 void Widget::initActionConnections()
@@ -89,7 +93,8 @@ void Widget::initActionConnections()
             ConfigTableDevice,&TableDevice::close);
     connect(this,&Widget::onWindowClosed,
             ConfigGyroDevice,&GyroDevice::close);
-
+    connect(SetCoordianteAction,&QAction::triggered,
+            CoordDialog,&QDialog::show);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -97,6 +102,7 @@ void Widget::initActionConnections()
 void Widget::CreateMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&Меню"));
+    fileMenu->addAction(SetCoordianteAction);
     fileMenu->addAction(OneMeasurementAction);
     fileMenu->addAction(StartTimerAction);
     fileMenu->addAction(StopTimerAction);
@@ -140,9 +146,12 @@ void Widget::CreateWidgets()
     QVBoxLayout *MainLayout = new QVBoxLayout;
     QRegExp regExp("[0-9][0-9]{0,4}");
     QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,5);
+    QDoubleValidator* regExpDouble=new QDoubleValidator();
+    regExpDouble->setLocale(QLocale::English);
+
 
     QGroupBox *leftgroupBox = new QGroupBox(tr("Измерения азимута"));
-    QGroupBox *rightgroupBox = new QGroupBox;
+    QGroupBox *rightgroupBox = new QGroupBox(tr("Углы поворота"));
 
     currValueLabel=new QLabel(tr("Значение азимута:"));
     meanValueLabel=new QLabel(tr("Среднее значение:"));
@@ -179,6 +188,14 @@ void Widget::CreateWidgets()
     countMeasureLineEdit=new QLineEdit;
     countMeasureLineEdit->setReadOnly(true);
 
+    RollLabel=new QLabel(tr("Значение крена:"));
+    RollLineEdit=new QLineEdit;
+    RollLineEdit->setReadOnly(true);
+    PitchLabel=new QLabel(tr("Значение тангажа:     "));
+    PitchLineEdit=new QLineEdit;
+    PitchLineEdit->setReadOnly(true);
+
+
     LeftLayout->addWidget(currValueLabel,0,0);
     LeftLayout->addWidget(currValueLineEdit,0,1);
 
@@ -195,15 +212,20 @@ void Widget::CreateWidgets()
     LeftLayout->addWidget(skoLabel,4,0);
     LeftLayout->addWidget(skoLineEdit,4,1);
 
-    RightLayout->addWidget(timeAccumulateLabel,0,0);
-    RightLayout->addWidget(timeAccumulateLineEdit,0,1);
+    LeftLayout->addWidget(countMeasureLabel,5,0);
+    LeftLayout->addWidget(countMeasureLineEdit,5,1);
 
-    RightLayout->addWidget(countMeasureLabel,2,0);
-    RightLayout->addWidget(countMeasureLineEdit,2,1);
+    LeftLayout->addWidget(timeAccumulateLabel,6,0);
+    LeftLayout->addWidget(timeAccumulateLineEdit,6,1);
+
+    RightLayout->addWidget(RollLabel,0,0);
+    RightLayout->addWidget(RollLineEdit,0,1);
+    RightLayout->addWidget(PitchLabel,1,0);
+    RightLayout->addWidget(PitchLineEdit,1,1);
 
     leftgroupBox->setLayout(LeftLayout);
     rightgroupBox->setLayout(RightLayout);
-    //MainLayout->addLayout(LeftLayout);
+    //MainLayout->addLayout(LeftLayout);    
     MainLayout->addWidget(leftgroupBox);
 //    MainLayout->addLayout(RightLayout);
     MainLayout->addWidget(rightgroupBox);
@@ -281,6 +303,11 @@ void Widget::CreateConnections()
     connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
 
     connect(this,&Widget::PutLog,Log,&loger::PutLog);
+
+    connect(CoordDialog,&corrdDialog::outCoordinate,
+            ConfigGyroDevice->Measure,&GyroData::GetCoordinate);
+    connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
+            this,&Widget::viewAngle);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -306,8 +333,6 @@ void Widget::InitVariable()
     this->denumerator=0.;
     this->isOneMeasure=false;
 }
-
-
 //-----------------------------------------------------------
 // Назначение: Запуск измерений
 //-----------------------------------------------------------
@@ -445,10 +470,15 @@ void Widget::Measure()
              this->StopMeasureSlot();
          }
     }
-
 }
 
 void Widget::OneMeasureSlot()
 {
     this->isOneMeasure=true;
+}
+
+void Widget::viewAngle(QString Roll, QString Pitch)
+{
+    RollLineEdit->setText(Roll);
+    PitchLineEdit->setText(Pitch);
 }

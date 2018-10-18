@@ -56,9 +56,7 @@ char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
         return  0;
 }
 
-/*!
- * \brief SlipProtocol::SlipDecode
- */
+
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt)
 {
        if(cnt>=l*2-1)  return 2;   // overflow error protection
