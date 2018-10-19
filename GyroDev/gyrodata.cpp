@@ -262,6 +262,7 @@ void GyroData::AccumulateData()
 void GyroData::NoAccumulateData()
 {
     this->isAccumulateData=false;
+    emit outAccumulateData(this->diff);
 }
 //-----------------------------------------------------------
 // Назначение: сброс данных(при остановке измерений)

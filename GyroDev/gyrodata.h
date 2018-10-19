@@ -46,6 +46,7 @@ signals:
                          const QString min,const QString max,const QString sko);
     void SendDecodeData(QByteArray data);
     void finished();
+    void outAccumulateData(float diff);
 public slots:
     void GetData(QByteArray inputArray);
 

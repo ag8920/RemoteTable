@@ -53,7 +53,8 @@ SOURCES += \
     ModelData/tablemodel.cpp \
     Timer/ptimer.cpp \
     loger/loger.cpp \
-    coordinatedialog/corrddialog.cpp
+    coordinatedialog/corrddialog.cpp \
+    disp.cpp
 
 
 HEADERS += \
@@ -68,7 +69,8 @@ HEADERS += \
     ModelData/tablemodel.h \
     Timer/ptimer.h \
     loger/loger.h \
-    coordinatedialog/corrddialog.h
+    coordinatedialog/corrddialog.h \
+    disp.h
 
 
 # Default rules for deployment.
