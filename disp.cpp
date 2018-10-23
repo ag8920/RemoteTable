@@ -6,7 +6,7 @@ Disp::Disp(QObject *parent) : QObject(parent)
 {
     tmr=new QTimer;
     tmr->setTimerType(Qt::TimerType::PreciseTimer);
-    timeSec=600;
+    timeSec=600 * 1000;
     log=new loger;
 
     initVariable();
@@ -74,28 +74,33 @@ void Disp::slotSignleMeasure()
     isSingleMeasure=true;
 }
 
+void Disp::slotInpDiff(float diff)
+{
+    this->curdif=static_cast<double>(diff);
+}
+
 //------------------------------------------------------------------------------
 void Disp::slotDispMeasure()
 {
     emit signalStopAccumulateData();
     switch (numPosition) {
     case DEG_180:
-        pos_0=0; //todo
+        pos_0=curdif; //todo
         numPosition++;
         emit signalGotoPosition(-200000);
         break;
     case DEG_270:
-        pos_180=0;//todo
+        pos_180=curdif;//todo
         numPosition++;
         emit signalGotoPosition(-300000);
         break;
     case DEG_90:
-        pos_90=0;//todo
+        pos_90=curdif;//todo
         numPosition++;
         emit signalGotoPosition(-100000);
         break;
     case DEG_0:
-        pos_270=0;//todo
+        pos_270=curdif;//todo
         numPosition=0;
         numCurMeasure++;
         emit signalGotoPosition(0);
@@ -107,7 +112,7 @@ void Disp::slotDispMeasure()
 
         //пересчет параметров
          Azimuth=qRadiansToDegrees((atan2((pos_270-pos_90),
-                                                            (pos_0-pos_180))));
+                                           (pos_0-pos_180))));
          Azimuth<0?Azimuth+=360.0:Azimuth;
          SummAzimuth+=Azimuth;
          if(numCurMeasure==1){

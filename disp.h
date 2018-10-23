@@ -33,7 +33,7 @@ void slotStartTimer();
 void slotSetTime(int time);//todo: можно объявить как функцию
 void slotDispMeasure();
 void slotSignleMeasure();
-void slotInpDiff();
+void slotInpDiff(float diff);
 private:
 //func
 void initVariable();
@@ -54,6 +54,7 @@ double pos_0;
 double pos_90;
 double pos_180;
 double pos_270;
+double curdif;
 //logical variable
 bool isSetTime;
 bool isSingleMeasure;

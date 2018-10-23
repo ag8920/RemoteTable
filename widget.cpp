@@ -288,7 +288,9 @@ void Widget::CreateConnections()
             this,&Widget::viewAngle);
     connect(this->timeAccumulateLineEdit,&QLineEdit::editingFinished,
             this,&Widget::setTime);
-
+    connect(ConfigGyroDevice->Measure,&GyroData::outAccumulateData,
+            disp,&Disp::slotInpDiff);
+    connect(disp,&Disp::signalOutAzParam,this,&Widget::viewAzParam);
 }
 //-----------------------------------------------------------
 // Назначение: Запуск измерений
