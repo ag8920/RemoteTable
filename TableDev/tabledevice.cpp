@@ -120,7 +120,7 @@ void TableDevice::ZeroPostion()
 // Назначение: получение текущей позиции и
 //             определение движения поворотного стола
 //-----------------------------------------------------------
-void TableDevice::GetPosition(QByteArray data)
+void TableDevice::GetPosition(const QByteArray &data)
 {
     static QString str=nullptr;
     static bool start=false;
@@ -281,7 +281,7 @@ void TableDevice::SetFormatConsole()
 // Назначение: установка состояния кнопок
 //             при подключении порта
 //-----------------------------------------------------------
-void TableDevice::isConnectedComPort(const QString msg)
+void TableDevice::isConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(false);
@@ -291,7 +291,7 @@ void TableDevice::isConnectedComPort(const QString msg)
 // Назначение: установка состояния кнопок
 //             при отключении порта
 //-----------------------------------------------------------
-void TableDevice::isNotConnectedComPort(const QString msg)
+void TableDevice::isNotConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);

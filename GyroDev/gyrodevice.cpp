@@ -76,10 +76,11 @@ void GyroDevice::UpdateSettingsComPort()
 //-----------------------------------------------------------
 // Назначение: обновление счетчика пакетов (число пакетов)
 //-----------------------------------------------------------
-void GyroDevice::UpdateCountPacketLineEdit(const QString packet,const QString error)
+void GyroDevice::UpdateCountPacketLineEdit(const QString &packet,const QString &error)
 {
     CountPacketLineEdit->setText(packet);
     CountErrorLineEdit->setText(error);
+
 }
 //-----------------------------------------------------------
 // Назначение: отображение принятых данных
@@ -118,7 +119,7 @@ void GyroDevice::SaveData()
 // Назначение: установка состояния кнопок
 //             при подключении порта
 //-----------------------------------------------------------
-void GyroDevice::isConnectedComPort(const QString msg)
+void GyroDevice::isConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(false);
@@ -129,7 +130,7 @@ void GyroDevice::isConnectedComPort(const QString msg)
 // Назначение: установка состояния кнопок
 //             при отключении порта
 //-----------------------------------------------------------
-void GyroDevice::isNotConnectedComPort(const QString msg)
+void GyroDevice::isNotConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);

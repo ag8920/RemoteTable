@@ -21,7 +21,7 @@
 #include "Timer/ptimer.h"
 #include "loger/loger.h"
 #include "coordinatedialog/corrddialog.h"
-
+#include "qcustomplot/plotwidget.h"
 class Widget : public QMainWindow
 {
     Q_OBJECT
@@ -46,6 +46,8 @@ signals:
     void ResetAbsCoord();
     ///логирование данных
     void PutLog(QString data);
+
+    void buildgraph(int index,double data);
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
@@ -59,6 +61,8 @@ public slots:
     void StopMeasureSlot();
     ///реализует четырех позиционный алгоритм
     void Measure();
+
+   void  slotbuildgraph();
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
@@ -90,6 +94,8 @@ private:
 
     ///
     QAction *SetCoordianteAction;
+    QAction *ViewPlotAction;
+    QAction *stopPlot;
     ///выполнить однократное измерение
     QAction *OneMeasurementAction;
     ///выполнить серию измерений
@@ -151,6 +157,8 @@ private:
     loger *Log;
     ///объект класса QTimer
     QTimer *ptmr;
+    QTimer *tmrsec;
+    PlotWidget *plotWidget;
     ///признак однократного измерения
     bool isOneMeasure;
     ///номер предыдущего измерения(вспом. переменная)

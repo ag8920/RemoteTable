@@ -39,15 +39,14 @@ public:
     ~GyroData();
     void process();
 signals:
-    void outCountPacket(const QString,const QString);
+    void outCountPacket(const QString&,const QString&);
     void outAngle(const QString,const QString);
     void SendDataToTable(QList<QString> *varVal,QList<QString>*varName );
-    void SendMeasureData(const QString Azimuth,const QString mean,
-                         const QString min,const QString max,const QString sko);
     void SendDecodeData(QByteArray data);
     void finished();
+
 public slots:
-    void GetData(QByteArray inputArray);
+    void GetData(const QByteArray &inputArray);
 
     void AccumulateData();
     void NoAccumulateData();
@@ -55,7 +54,7 @@ public slots:
 
     void Unpack();
     void Unpack2(QByteArray inpArray);
-    void ReadByte(char byte);
+    void ReadByte(const char &byte);
     void OutData();
 
     void GetCoordinate(double *Lat,double *Lon, double *H);
@@ -63,7 +62,7 @@ private:
     SlipProtocol *Slip;
     void FillOutList(FastPacket packet);
     void FillFirstList(FastPacket packet);
-    bool SortData(QByteArray data);
+    bool SortData(const QByteArray &data);
     void MeasureRollAndPitch();
 public:
     friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );

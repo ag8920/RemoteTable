@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport
+QT       += core gui widgets serialport printsupport
 
 TARGET = GyroCompas
 TEMPLATE = app
@@ -53,7 +53,9 @@ SOURCES += \
     ModelData/tablemodel.cpp \
     Timer/ptimer.cpp \
     loger/loger.cpp \
-    coordinatedialog/corrddialog.cpp
+    coordinatedialog/corrddialog.cpp \
+    qcustomplot/qcustomplot.cpp \
+    qcustomplot/plotwidget.cpp
 
 
 HEADERS += \
@@ -68,7 +70,9 @@ HEADERS += \
     ModelData/tablemodel.h \
     Timer/ptimer.h \
     loger/loger.h \
-    coordinatedialog/corrddialog.h
+    coordinatedialog/corrddialog.h \
+    qcustomplot/qcustomplot.h \
+    qcustomplot/plotwidget.h
 
 
 # Default rules for deployment.

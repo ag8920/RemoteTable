@@ -41,8 +41,8 @@ signals:
     void SendNumMeasure(int num);
 public slots:
     void OpenSerialPort();
-    void isConnectedComPort(const QString msg);
-    void isNotConnectedComPort(const QString msg);
+    void isConnectedComPort(const QString &msg);
+    void isNotConnectedComPort(const QString &msg);
     void UpdateSettingsComPort();
 
     void PositioningParamVisible();
@@ -67,7 +67,7 @@ public slots:
 
     void SetTimer();
 
-    void GetPosition(QByteArray data);
+    void GetPosition(const QByteArray &data);
 
     void StartMeasure();
     void StopMeasure();

@@ -28,6 +28,15 @@ Widget::Widget(QWidget *parent)
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
+    plotWidget=new PlotWidget;
+    plotWidget->graphAdd("Roll");
+    plotWidget->graphAdd("Pitch",Qt::green);
+    tmrsec=new QTimer;
+    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
+    tmrsec->setInterval(1000);
+    tmrsec->start();
+
+
     InitVariable();
     CreateActions();
     CreateMenus();
@@ -81,6 +90,8 @@ void Widget::CreateActions()
     SetCoordianteAction = new QAction(tr("Задать координаты"),this);
     SetCoordianteAction->setIcon(QIcon(":/icons/coordinate.png"));
 
+    ViewPlotAction = new QAction(tr("Графики"),this);
+    stopPlot=new QAction(tr("остановить"),this);
 }
 
 void Widget::initActionConnections()
@@ -95,6 +106,8 @@ void Widget::initActionConnections()
             ConfigGyroDevice,&GyroDevice::close);
     connect(SetCoordianteAction,&QAction::triggered,
             CoordDialog,&QDialog::show);
+    connect(ViewPlotAction,&QAction::triggered,
+            plotWidget,&PlotWidget::show);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -110,6 +123,8 @@ void Widget::CreateMenus()
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
+    configMenu->addAction(ViewPlotAction);
+    configMenu->addAction(stopPlot);
 }
 //-----------------------------------------------------------
 // Назначение: создание панели инструментов
@@ -308,6 +323,10 @@ void Widget::CreateConnections()
             ConfigGyroDevice->Measure,&GyroData::GetCoordinate);
     connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
             this,&Widget::viewAngle);
+
+    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -472,6 +491,12 @@ void Widget::Measure()
     }
 }
 
+void Widget::slotbuildgraph()
+{
+    emit buildgraph(0,RollLineEdit->text().toDouble());
+    emit buildgraph(1,PitchLineEdit->text().toDouble());
+}
+
 void Widget::OneMeasureSlot()
 {
     this->isOneMeasure=true;
@@ -482,3 +507,5 @@ void Widget::viewAngle(QString Roll, QString Pitch)
     RollLineEdit->setText(Roll);
     PitchLineEdit->setText(Pitch);
 }
+
+

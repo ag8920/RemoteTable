@@ -33,8 +33,8 @@ public:
     SettingsComPort SettingsPort;///<объект настроект COM-порта
 
 signals:
-    void isConnectedPort(const QString msg); ///<сигнал успешного подключения порта
-    void isNotConnectedPort(const QString msg); ///<сигнал неудачного открытия порта
+    void isConnectedPort(const QString &msg); ///<сигнал успешного подключения порта
+    void isNotConnectedPort(const QString &msg); ///<сигнал неудачного открытия порта
 
     void finishedPort(); ///<сигнал закрытия класса
     void error_(QString err); ///<сигнал ошибок порта
@@ -42,7 +42,7 @@ signals:
      * \brief сигнал вывода полученных данных
      * \param[Out] data байтовый массив данных, полученный из COM-порта
      */
-    void dataOutput(QByteArray data);///<
+    void dataOutput(const QByteArray &data);///<
 
 public slots:
     bool DisconnectPort(); ///<отключения COM-порта

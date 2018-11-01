@@ -105,8 +105,8 @@ void GyroData::process()
             tr("dat3[град/час]"),
             tr("dvt1[м/с2]"),
             tr("dvt2[м/с2]"),
-            tr("dvt3[м/с2]"),
-            tr("Время[сек]")};
+            tr("Готовность"),
+            tr("Импульсы")};
 
     this->isAccumulateData=false;
     this->summ=0.;
@@ -126,12 +126,14 @@ void GyroData::process()
 
     connect(tmr,&QTimer::timeout,this,&GyroData::Unpack);
     connect(tmr2,&QTimer::timeout,this,&GyroData::OutData);
+
+
 }
 
 //-----------------------------------------------------------
 // Назначение: прием данных
 //-----------------------------------------------------------
-void GyroData::GetData(QByteArray inputArray)
+void GyroData::GetData(const QByteArray &inputArray)
 {
     this->inputbuffer.append(inputArray);
 }
@@ -157,7 +159,7 @@ void GyroData::Unpack2(QByteArray inpArray)
 //-----------------------------------------------------------
 // Назначение: прием данных
 //-----------------------------------------------------------
-void GyroData::ReadByte(char byte)
+void GyroData::ReadByte(const char &byte)
 {
     static int cnt=0;
     buffer2.push_back(byte);
@@ -177,7 +179,7 @@ void GyroData::ReadByte(char byte)
 // Назначение: сортировка принятых данных(занесение в
 //             данных структуры)
 //-----------------------------------------------------------
-bool GyroData::SortData(QByteArray data)
+bool GyroData::SortData(const QByteArray &data)
 {
     static uint32_t prevcnt;
     int32_t diffcnt=0;
@@ -238,6 +240,7 @@ void GyroData::OutData()
 
     MeasureRollAndPitch();
     emit outAngle(QString::number(Roll),QString::number(Pitch));
+
 }
 
 void GyroData::GetCoordinate(double *Lat, double *Lon, double *H)
