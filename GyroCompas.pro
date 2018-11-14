@@ -55,7 +55,9 @@ SOURCES += \
     loger/loger.cpp \
     coordinatedialog/corrddialog.cpp \
     qcustomplot/qcustomplot.cpp \
-    qcustomplot/plotwidget.cpp
+    qcustomplot/plotwidget.cpp \
+    TableDev/tablers485.cpp \
+    TableDev/tablers232.cpp
 
 
 HEADERS += \
@@ -72,7 +74,9 @@ HEADERS += \
     loger/loger.h \
     coordinatedialog/corrddialog.h \
     qcustomplot/qcustomplot.h \
-    qcustomplot/plotwidget.h
+    qcustomplot/plotwidget.h \
+    TableDev/tablers485.h \
+    TableDev/tablers232.h
 
 
 # Default rules for deployment.

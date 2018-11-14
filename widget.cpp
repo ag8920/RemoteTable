@@ -28,14 +28,12 @@ Widget::Widget(QWidget *parent)
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
-    plotWidget=new PlotWidget;
-    plotWidget->graphAdd("Roll");
-    plotWidget->graphAdd("Pitch",Qt::green);
     tmrsec=new QTimer;
     tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
     tmrsec->setInterval(1000);
     tmrsec->start();
 
+    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
 
     InitVariable();
     CreateActions();
@@ -106,8 +104,8 @@ void Widget::initActionConnections()
             ConfigGyroDevice,&GyroDevice::close);
     connect(SetCoordianteAction,&QAction::triggered,
             CoordDialog,&QDialog::show);
-    connect(ViewPlotAction,&QAction::triggered,
-            plotWidget,&PlotWidget::show);
+//    connect(ViewPlotAction,&QAction::triggered,
+//            this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -204,10 +202,10 @@ void Widget::CreateWidgets()
     countMeasureLineEdit->setReadOnly(true);
 
     RollLabel=new QLabel(tr("Значение крена:"));
-    RollLineEdit=new QLineEdit;
+    RollLineEdit=new  CustomLineEdit("Roll")/*QLineEdit*/;
     RollLineEdit->setReadOnly(true);
     PitchLabel=new QLabel(tr("Значение тангажа:     "));
-    PitchLineEdit=new QLineEdit;
+    PitchLineEdit=new CustomLineEdit("Pitch");
     PitchLineEdit->setReadOnly(true);
 
 
@@ -324,9 +322,11 @@ void Widget::CreateConnections()
     connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
             this,&Widget::viewAngle);
 
-    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
-    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+//    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+//    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
     connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
+
+    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -494,7 +494,6 @@ void Widget::Measure()
 void Widget::slotbuildgraph()
 {
     emit buildgraph(0,RollLineEdit->text().toDouble());
-    emit buildgraph(1,PitchLineEdit->text().toDouble());
 }
 
 void Widget::OneMeasureSlot()
@@ -506,6 +505,15 @@ void Widget::viewAngle(QString Roll, QString Pitch)
 {
     RollLineEdit->setText(Roll);
     PitchLineEdit->setText(Pitch);
+}
+
+void Widget::createPlot(QString name)
+{
+    PlotWidget *plot=new PlotWidget;
+    plot->graphAdd(name);
+    plot->show();
+    connect(this,&Widget::buildgraph,plot,&PlotWidget::realtimeDataSlot);
+    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
 }
 
 

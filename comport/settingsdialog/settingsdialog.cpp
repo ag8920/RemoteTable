@@ -119,6 +119,8 @@ void SettingsDialog::fillPortsParameters()
     ui->baudRateBox->addItem(QStringLiteral("19200"), QSerialPort::Baud19200);
     ui->baudRateBox->addItem(QStringLiteral("38400"), QSerialPort::Baud38400);
     ui->baudRateBox->addItem(QStringLiteral("115200"), QSerialPort::Baud115200);
+    ui->baudRateBox->addItem(QStringLiteral("230400"),230400);
+    ui->baudRateBox->addItem(QStringLiteral("921600"),921600);
     ui->baudRateBox->addItem(QStringLiteral("Custom"));
 
     ui->dataBitsBox->addItem(QStringLiteral("5"), QSerialPort::Data5);
@@ -188,7 +190,7 @@ void SettingsDialog::updateSettings()
 {
     currentSettings.name = ui->serialPortInfoBox->currentText();
 
-    if (ui->baudRateBox->currentIndex() == 7) {
+    if (ui->baudRateBox->currentIndex() == 9) {
         currentSettings.baudRate = ui->baudRateBox->currentText().toInt();
     } else {
         currentSettings.baudRate =/* static_cast<QSerialPort::BaudRate>*/(

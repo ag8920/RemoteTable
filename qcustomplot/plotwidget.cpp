@@ -15,6 +15,7 @@ PlotWidget::PlotWidget(QWidget *parent) : QCustomPlot(parent)
     this->yAxis->setLabel(tr("Значение"));
     this->xAxis->setLabel(tr("Время"));
     this->legend->setVisible(true);
+    this->yAxis->setRange(-180,180);
 
 }
 
@@ -27,6 +28,7 @@ void PlotWidget::graphAdd(const QString Name, const QColor color, const int widt
     this->graph(indexPlot)->setName(Name);
     this->graph(indexPlot)->setPen(Pen);
     this->graph(indexPlot)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc));
+
     indexPlot++;
 }
 

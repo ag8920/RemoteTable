@@ -22,6 +22,8 @@
 #include "loger/loger.h"
 #include "coordinatedialog/corrddialog.h"
 #include "qcustomplot/plotwidget.h"
+
+class CustomLineEdit;
 class Widget : public QMainWindow
 {
     Q_OBJECT
@@ -63,11 +65,13 @@ public slots:
     void Measure();
 
    void  slotbuildgraph();
+    void createPlot(QString name);
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
     ///
     void viewAngle(QString Roll,QString Pitch);
+
 public:
     int timeSec;
 private:
@@ -140,11 +144,11 @@ private:
     ///
     QLabel *RollLabel;
     ///
-    QLineEdit *RollLineEdit;
+    /*QLineEdit*/CustomLineEdit *RollLineEdit;
     ///
     QLabel *PitchLabel;
     ///
-    QLineEdit *PitchLineEdit;
+    /*QLineEdit*/CustomLineEdit *PitchLineEdit;
     ///виджет главного окна
     QWidget *measureWidget;
     ///объект класса TableDevice
@@ -158,7 +162,6 @@ private:
     ///объект класса QTimer
     QTimer *ptmr;
     QTimer *tmrsec;
-    PlotWidget *plotWidget;
     ///признак однократного измерения
     bool isOneMeasure;
     ///номер предыдущего измерения(вспом. переменная)
@@ -191,6 +194,26 @@ private:
     float pos_90;
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     float pos_270;
+};
+
+class CustomLineEdit : public QLineEdit
+{
+    Q_OBJECT
+public:
+    explicit CustomLineEdit(QString name="default",QWidget *parent=nullptr): QLineEdit(parent)
+    {
+        this->name=name;
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent *event){
+        QLineEdit::mouseDoubleClickEvent(event);
+        emit doubleclick(name);
+    }
+private:
+    QString name;
+    double data;
+signals:
+    void doubleclick(QString name);
 };
 
 #endif // WIDGET_H

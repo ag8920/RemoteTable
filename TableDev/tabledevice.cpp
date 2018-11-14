@@ -61,7 +61,7 @@ void TableDevice::OpenSerialPort()
     emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
     ComPortButton->setText(tr("Отключить"));
     }else{
-         emit DisconnectComPort();
+        emit DisconnectComPort();
         ComPortButton->setText(tr("Подключить"));
     }
 }

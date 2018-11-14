@@ -65,11 +65,13 @@ public slots:
      * \brief отправка данных в COM-порт
      * \param[In] data байтовый массив
      */
-    void WriteToPort(const QByteArray &data);
+    bool WriteToPort(const QByteArray &data);
 
     void ReadInPort();///<чтение данных из COM-порта
 
     void Stop();///<завершение работы с COM-портом,остановка потока
+
+    QByteArray writeAndRead(const QByteArray &data);
 private slots:
     void handleError(QSerialPort::SerialPortError error);///<обработка ошибок
 };
