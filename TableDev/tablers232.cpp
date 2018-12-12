@@ -30,7 +30,7 @@ void tableRS232::GoToPosition(QVariant position)
     QString str;
     nextPosition=position.toInt();
     str="mo=0;um=5;mo=1;SP="+speed+";PA="
-                    +position.toString()+";bg;";
+            +position.toString()+";bg;";
     SendCMD(str);
 }
 
@@ -111,8 +111,8 @@ void tableRS232::AddThreads()
             DeviceComPort,&comPort::deleteLater);
     connect(DeviceComPort,&comPort::finishedPort,
             ComPortThread,&QThread::deleteLater);
-//    connect(this,&TableDevice::StopAll,
-//            DeviceComPort,&comPort::Stop);
+    //    connect(this,&TableDevice::StopAll,
+    //            DeviceComPort,&comPort::Stop);
 
     ComPortThread->start(QThread::TimeCriticalPriority);
 

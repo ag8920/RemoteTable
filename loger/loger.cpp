@@ -18,12 +18,12 @@ loger::loger(QObject *parent) : QObject(parent)
 //----------------------------------------------------------
 loger::~loger()
 {
-     qDebug("~loger");
-     if(file!=nullptr){
-         file->close();
-         delete file;
-     }
-     emit finished();
+    qDebug("~loger");
+    if(file!=nullptr){
+        file->close();
+        delete file;
+    }
+    emit finished();
 }
 //-----------------------------------------------------------
 // Назначение: создает новый .dat файл для записи

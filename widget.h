@@ -23,6 +23,9 @@
 #include "coordinatedialog/corrddialog.h"
 #include "qcustomplot/plotwidget.h"
 
+#include "TableDev/tablers485.h"
+
+
 class CustomLineEdit;
 class Widget : public QMainWindow
 {
@@ -66,6 +69,9 @@ public slots:
 
    void  slotbuildgraph();
     void createPlot(QString name);
+
+    void saveSetting();
+    void readSettings();
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
@@ -194,6 +200,8 @@ private:
     float pos_90;
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     float pos_270;
+
+    tableRS485 *tablers;
 };
 
 class CustomLineEdit : public QLineEdit

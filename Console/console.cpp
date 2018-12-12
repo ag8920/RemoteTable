@@ -37,13 +37,13 @@ void Console::putData(const QByteArray &data)
         break;
     case ASCII:
         insertPlainText(static_cast<QString>(data).toLocal8Bit());
-//        insertPlainText(data);
+        //        insertPlainText(data);
         break;
     default:
         break;
     }
-//    insertPlainText(data.toHex());
-//    insertPlainText("\n");
+    //    insertPlainText(data.toHex());
+    //    insertPlainText("\n");
     QScrollBar *bar=verticalScrollBar();
     bar->setValue(bar->maximum());
 

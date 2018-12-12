@@ -15,36 +15,46 @@
 #include <QLineEdit>
 #include <QString>
 
+#define ORGANIZATION_NAME "DEMO"
+#define ORGANIZATION_DOMAIN "www.demo.ru"
+#define APPLICATION_NAME "QSettings Program"
 
 static const QString isBusy = QObject::tr("Занят");
 static const QString noBusy = QObject::tr("Свободен");
 //-----------------------------------------------------------
 // Назначение: консруктор класса
 //-----------------------------------------------------------
-SettingsDialog::SettingsDialog(QWidget *parent) :
+SettingsDialog::SettingsDialog(QWidget *parent, int id) :
     QWidget(parent),
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
+    idNum=id;
 
     intValidator = new QIntValidator(0, 4000000, this);
 
-      ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
+    ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
 
-      connect(ui->applyButton, SIGNAL(clicked()),
-              this, SLOT(apply()));
-      connect(ui->serialPortInfoBox, SIGNAL(currentIndexChanged(int)),
-              this, SLOT(showPortInfo(int)));
-      connect(ui->baudRateBox, SIGNAL(currentIndexChanged(int)),
-              this, SLOT(checkCustomBaudRatePolicy(int)));
-      connect(ui->updateInfoButton,SIGNAL(clicked()),
-              this, SLOT( fillPortsInfo()));
+    connect(ui->applyButton, SIGNAL(clicked()),
+            this, SLOT(apply()));
+    connect(ui->serialPortInfoBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(showPortInfo(int)));
+    connect(ui->baudRateBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(checkCustomBaudRatePolicy(int)));
+    connect(ui->updateInfoButton,SIGNAL(clicked()),
+            this, SLOT( fillPortsInfo()));
 
-      fillPortsParameters();
-      fillPortsInfo();
+    fillPortsParameters();
+    fillPortsInfo();
 
-      updateSettings();
+    updateSettings();
+
 }
+void SettingsDialog::closeEvent(QCloseEvent *event)
+{
+    writeSettings();
+}
+
 //-----------------------------------------------------------
 // Назначение: деструктор класса
 //-----------------------------------------------------------
@@ -84,6 +94,7 @@ void SettingsDialog::showPortInfo(int idx)
 //-----------------------------------------------------------
 void SettingsDialog::apply()
 {
+    writeSettings();
     updateSettings();
     hide();
     emit isUpdateSettings();
@@ -104,7 +115,7 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
                             "border: 0px solid #76797C;"
                             "border-radius: 0px;"
                             "color: #eff0f1;");
-       edit->setValidator(intValidator);
+        edit->setValidator(intValidator);
     }
 }
 //-----------------------------------------------------------
@@ -169,8 +180,10 @@ void SettingsDialog::fillPortsInfo()
              << (!manufacturer.isEmpty() ? manufacturer : blankString)
              << (!serialNumber.isEmpty() ? serialNumber : blankString)
              << info.systemLocation()
-             << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
-             << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString)
+             << (info.vendorIdentifier() ?
+                     QString::number(info.vendorIdentifier(), 16) : blankString)
+             << (info.productIdentifier() ?
+                     QString::number(info.productIdentifier(), 16) : blankString)
              << (info.isBusy() ? isBusy : noBusy);
         ui->serialPortInfoBox->addItem(list.first(), list);
     }
@@ -178,8 +191,10 @@ void SettingsDialog::fillPortsInfo()
 
 void SettingsDialog::showWidget()
 {
+    qDebug()<<"showWidget";
     qApp->processEvents();
     fillPortsInfo();
+    readSettings();
     show();
 
 }
@@ -215,5 +230,28 @@ void SettingsDialog::updateSettings()
     currentSettings.stringFlowControl = ui->flowControlBox->currentText();
 
     currentSettings.localEchoEnabled = ui->localEchoCheckBox->isChecked();
+}
+
+void SettingsDialog::readSettings()
+{
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("ComPort_"+QString::number(idNum));
+    ui->serialPortInfoBox->setCurrentText(settings.value("name").toString());
+    ui->baudRateBox->setCurrentText(settings.value("baud").toString());
+
+}
+
+void SettingsDialog::writeSettings()
+{
+
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("ComPort_"+QString::number(idNum));
+    settings.setValue("name",ui->serialPortInfoBox->currentText());
+    settings.setValue("baud", ui->baudRateBox->itemData(ui->baudRateBox->currentIndex()).toInt());
+    settings.setValue("databits",currentSettings.stringDataBits);
+    settings.setValue("parity",currentSettings.stringParity);
+    settings.setValue("stopbits",currentSettings.stringStopBits);
+    settings.setValue("flowControl",currentSettings.stringFlowControl);
+    settings.setValue("localEcho",currentSettings.localEchoEnabled);
 }
 
