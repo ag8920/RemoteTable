@@ -58,6 +58,8 @@ public slots:
     void StopMeasureSlot();
     ///реализует четырех позиционный алгоритм
     void Measure();
+    void saveSettings();
+    void readSettings();
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();

@@ -35,6 +35,7 @@ Widget::Widget(QWidget *parent)
     CreateWidgets();
     initActionConnections();
     CreateConnections();
+    readSettings();
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -43,6 +44,7 @@ Widget::~Widget()
 {
     delete ConfigTableDevice;
     delete ConfigGyroDevice;
+    saveSettings();
 }
 //-----------------------------------------------------------
 // Назначение: закрытие окна
@@ -451,4 +453,25 @@ void Widget::Measure()
 void Widget::OneMeasureSlot()
 {
     this->isOneMeasure=true;
+}
+
+void Widget::saveSettings()
+{
+    //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("MainWindow");
+    settings.setValue("size",size());
+    settings.setValue("pos",pos());
+    settings.endGroup();
+
+}
+
+void Widget::readSettings()
+{
+    //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size",QSize(400,400)).toSize());
+    move(settings.value("pos",QPoint(200,200)).toPoint());
+    settings.endGroup();
 }
