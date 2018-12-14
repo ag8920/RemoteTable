@@ -335,6 +335,7 @@ void Widget::CreateConnections()
     connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
 
     connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных

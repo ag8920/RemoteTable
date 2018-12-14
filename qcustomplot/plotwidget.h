@@ -10,6 +10,8 @@ class PlotWidget : public QCustomPlot
 public:
     explicit PlotWidget(QWidget *parent = nullptr);
 
+protected:
+    void closeEvent(QCloseEvent *event);
 signals:
 
 public slots:
