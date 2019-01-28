@@ -35,6 +35,9 @@ Widget::Widget(QWidget *parent)
 
     setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
 
+    tablers=new tableRS485;
+    tablers->setAngle();
+
     InitVariable();
     CreateActions();
     CreateMenus();
@@ -43,22 +46,24 @@ Widget::Widget(QWidget *parent)
     CreateWidgets();
     initActionConnections();
     CreateConnections();
+
+
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
 //-----------------------------------------------------------
-Widget::~Widget()
-{
-    delete ConfigTableDevice;
-    delete ConfigGyroDevice;
-}
+//Widget::~Widget()
+//{
+//    //delete ConfigTableDevice;
+//    //delete ConfigGyroDevice;
+//}
 //-----------------------------------------------------------
 // Назначение: закрытие окна
 //-----------------------------------------------------------
 void Widget::closeEvent(QCloseEvent *event)
 {
-//    Q_UNUSED(event);
-    ptmr->stop();    
+    //    Q_UNUSED(event);
+    ptmr->stop();
     onWindowClosed();
     event->accept();
 }
@@ -104,8 +109,8 @@ void Widget::initActionConnections()
             ConfigGyroDevice,&GyroDevice::close);
     connect(SetCoordianteAction,&QAction::triggered,
             CoordDialog,&QDialog::show);
-//    connect(ViewPlotAction,&QAction::triggered,
-//            this,&Widget::createPlot);
+    //    connect(ViewPlotAction,&QAction::triggered,
+    //            tablers,&tableRS485::setAngle);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -153,7 +158,7 @@ void Widget::CreateStatusBar()
 //-----------------------------------------------------------
 void Widget::CreateWidgets()
 {
-    measureWidget = new QWidget;    
+    measureWidget = new QWidget;
     QGridLayout *LeftLayout = new  QGridLayout;
     QGridLayout *RightLayout = new QGridLayout;
     QVBoxLayout *MainLayout = new QVBoxLayout;
@@ -238,16 +243,16 @@ void Widget::CreateWidgets()
 
     leftgroupBox->setLayout(LeftLayout);
     rightgroupBox->setLayout(RightLayout);
-    //MainLayout->addLayout(LeftLayout);    
+    //MainLayout->addLayout(LeftLayout);
     MainLayout->addWidget(leftgroupBox);
-//    MainLayout->addLayout(RightLayout);
+    //    MainLayout->addLayout(RightLayout);
     MainLayout->addWidget(rightgroupBox);
 
     measureWidget->setLayout(MainLayout);
     setCentralWidget(measureWidget);
 
-   this->setWindowIcon(QIcon(":/icons/compas.png"));
-   measureWidget->show();
+    this->setWindowIcon(QIcon(":/icons/compas.png"));
+    measureWidget->show();
 }
 //-----------------------------------------------------------
 // Назначение: создание соединений СИГНАЛ-СЛОТ
@@ -322,8 +327,8 @@ void Widget::CreateConnections()
     connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
             this,&Widget::viewAngle);
 
-//    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
-//    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+    //connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+    //connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
     connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
 
     connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
@@ -449,45 +454,45 @@ void Widget::Measure()
         prevMeasure=numMeasure;
 
         //пересчет параметров
-         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos_270-pos_90),
-                                                            (pos_0-pos_180))));
-         Azimuth<0?Azimuth+=360.0:Azimuth;
-         SummAzimuth+=Azimuth;
-         if(numMeasure==1){
-             MeanAzimuth=Azimuth;
-             MaxAzimuth=Azimuth;
-             MinAzimuth=Azimuth;
-         }
-         else{
-             MeanAzimuth=SummAzimuth/numMeasure;
-             MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
-             MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
-         }
+        Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos_270-pos_90),
+                                                           (pos_0-pos_180))));
+        Azimuth<0?Azimuth+=360.0:Azimuth;
+        SummAzimuth+=Azimuth;
+        if(numMeasure==1){
+            MeanAzimuth=Azimuth;
+            MaxAzimuth=Azimuth;
+            MinAzimuth=Azimuth;
+        }
+        else{
+            MeanAzimuth=SummAzimuth/numMeasure;
+            MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
+            MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
+        }
 
-         numerator+=powf((Azimuth-MeanAzimuth),2);
-         numMeasure>1?denumerator=numMeasure-1:denumerator=1;
-         SKO=sqrt(numerator/denumerator);
+        numerator+=powf((Azimuth-MeanAzimuth),2);
+        numMeasure>1?denumerator=numMeasure-1:denumerator=1;
+        SKO=sqrt(numerator/denumerator);
 
-         currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
-         meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
-         minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
-         maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
-         skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
+        currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
+        meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
+        minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
+        maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
+        skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
 
-         if(numMeasure==1)
-             emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
-         emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
-                            .arg(static_cast<double>(Azimuth))
-                            .arg(static_cast<double>(MeanAzimuth))
-                            .arg(static_cast<double>(MinAzimuth))
-                            .arg(static_cast<double>(MaxAzimuth))
-                            .arg(static_cast<double>(SKO))
-                         );
+        if(numMeasure==1)
+            emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
+        emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
+                    .arg(static_cast<double>(Azimuth))
+                    .arg(static_cast<double>(MeanAzimuth))
+                    .arg(static_cast<double>(MinAzimuth))
+                    .arg(static_cast<double>(MaxAzimuth))
+                    .arg(static_cast<double>(SKO))
+                    );
         countMeasureLineEdit->setText(QString::number(numMeasure));
-         if(isOneMeasure){
-             isOneMeasure=false;
-             this->StopMeasureSlot();
-         }
+        if(isOneMeasure){
+            isOneMeasure=false;
+            this->StopMeasureSlot();
+        }
     }
 }
 

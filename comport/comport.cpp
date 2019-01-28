@@ -58,10 +58,10 @@ void comPort::ConnectPort(QString name, int baudrate, int DataBits,
     if(thisPort.open(QIODevice::ReadWrite))
     {
         if(thisPort.setBaudRate(SettingsPort.baudRate)
-           && thisPort.setDataBits(SettingsPort.dataBits)
-           && thisPort.setParity(SettingsPort.parity)
-           && thisPort.setStopBits(SettingsPort.stopBits)
-           && thisPort.setFlowControl(SettingsPort.flowControl))
+                && thisPort.setDataBits(SettingsPort.dataBits)
+                && thisPort.setParity(SettingsPort.parity)
+                && thisPort.setStopBits(SettingsPort.stopBits)
+                && thisPort.setFlowControl(SettingsPort.flowControl))
         {
             if(thisPort.isOpen())
             {
@@ -139,7 +139,7 @@ void comPort::ReadInPort()
 void comPort::Stop()
 {
     qDebug("comPort::stop()");
-//    this->DisconnectPort();
+    //    this->DisconnectPort();
     emit finishedPort();
 }
 //

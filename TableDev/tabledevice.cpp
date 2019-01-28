@@ -50,16 +50,16 @@ TableDevice::~TableDevice()
 void TableDevice::OpenSerialPort()
 {
     if(ComPortButton->isChecked()){
-    SettingsDialog::Settings p=SettingsComPort->settings();
-    QString name=static_cast<QString>(p.name);
-    int baudRate=static_cast<int>(p.baudRate);
-    int dataBits=static_cast<int>(p.dataBits);
-    int parity=static_cast<int>(p.parity);
-    int stopBits=static_cast<int>(p.stopBits);
-    int flowControl=static_cast<int>(p.flowControl);    
-    //emit ConnectComPort(p);
-    emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
-    ComPortButton->setText(tr("Отключить"));
+        SettingsDialog::Settings p=SettingsComPort->settings();
+        QString name=static_cast<QString>(p.name);
+        int baudRate=static_cast<int>(p.baudRate);
+        int dataBits=static_cast<int>(p.dataBits);
+        int parity=static_cast<int>(p.parity);
+        int stopBits=static_cast<int>(p.stopBits);
+        int flowControl=static_cast<int>(p.flowControl);
+        //emit ConnectComPort(p);
+        emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
+        ComPortButton->setText(tr("Отключить"));
     }else{
         emit DisconnectComPort();
         ComPortButton->setText(tr("Подключить"));
@@ -147,8 +147,8 @@ void TableDevice::GetPosition(const QByteArray &data)
     if(isMeasuring)
     {
         if((std::abs(currPosition-nextPosition)<=2) && isRotation){
-           emit StopRotation();
-           isRotation=false;
+            emit StopRotation();
+            isRotation=false;
         }
         else if((std::abs(currPosition-nextPosition)>=100) && !isRotation){
             emit StartRotation();
@@ -167,7 +167,7 @@ void TableDevice::GoToPosition(QVariant position)
     QString str;
     nextPosition=position.toInt();
     str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
-                    +position.toString()+";bg;";
+            +position.toString()+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
@@ -339,13 +339,9 @@ void TableDevice::CreateWidgets()
     AsciiFormatCheckBox=new QCheckBox(tr("Отображать в ASCII"));
     AsciiFormatCheckBox->hide();
 
-
-
-
     QGridLayout *MainLayout=new QGridLayout;
     QGridLayout *SettingsTableLayout=new QGridLayout;
     QGroupBox *TableSettingsBox=new QGroupBox(tr("Параметры поворотного устройства"));
-
 
     SettingsTableLayout->addWidget(TypeTableLabel,0,0);
     SettingsTableLayout->addWidget(TypeTableComboBox,0,1);
@@ -475,9 +471,9 @@ void TableDevice::CreateWidgets()
 
     MainWidget=new QWidget;
     MainWidget->setLayout(GeneralLayout);
-//    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
-//                              "border-width: 1px;"
-//                              "min-height: 1.2em; min-width:5em;max-width:10em}");
+    //    MainWidget->setStyleSheet("QLineEdit{border-style: outset;border-radius:3px;"
+    //                              "border-width: 1px;"
+    //                              "min-height: 1.2em; min-width:5em;max-width:10em}");
     this->setWindowIcon(QIcon(":/icons/table.png"));
     setCentralWidget(MainWidget);
     this->setWindowTitle(tr("Настройка поворотного устройства"));
@@ -565,8 +561,8 @@ void TableDevice::AddThreads()
             DeviceComPort,&comPort::deleteLater);
     connect(DeviceComPort,&comPort::finishedPort,
             ComPortThread,&QThread::deleteLater);
-//    connect(this,&TableDevice::StopAll,
-//            DeviceComPort,&comPort::Stop);
+    //    connect(this,&TableDevice::StopAll,
+    //            DeviceComPort,&comPort::Stop);
 
     ComPortThread->start(QThread::TimeCriticalPriority);
 
