@@ -48,10 +48,12 @@ public:
             bool localEchoEnabled;
         };
 
-    explicit SettingsDialog(QWidget *parent = nullptr);///<конструктор класса
+    explicit SettingsDialog(QWidget *parent = nullptr,int id=0);///<конструктор класса
     ~SettingsDialog();///<деструктор класса
 
     Settings settings()const;///<объект настроек порта
+protected:
+    void closeEvent(QCloseEvent *event);
 signals:
     void isUpdateSettings();///<сигнал для обновления данных
 private slots:
@@ -77,10 +79,15 @@ private:
     void fillPortsParameters();///<отображение основных настраиваемых параметров
     void updateSettings();///<обновление(запись) текущих настроек COM-порта
 
+
+    void readSettings();
+    void writeSettings();
 private:
     Ui::SettingsDialog *ui;
     Settings currentSettings;
     QIntValidator *intValidator;
+    int idNum;
+
 };
 
 #endif // SETTINGSDIALOG_H

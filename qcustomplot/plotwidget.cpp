@@ -17,6 +17,12 @@ PlotWidget::PlotWidget(QWidget *parent) : QCustomPlot(parent)
     this->legend->setVisible(true);
     this->yAxis->setRange(-180,180);
 
+
+}
+
+void PlotWidget::closeEvent(QCloseEvent *event)
+{
+
 }
 
 void PlotWidget::graphAdd(const QString Name, const QColor color, const int width)

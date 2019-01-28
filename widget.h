@@ -69,6 +69,9 @@ public slots:
 
    void  slotbuildgraph();
     void createPlot(QString name);
+
+    void saveSetting();
+    void readSettings();
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();

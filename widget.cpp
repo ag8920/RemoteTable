@@ -47,6 +47,7 @@ Widget::Widget(QWidget *parent)
     initActionConnections();
     CreateConnections();
 
+    readSettings();
 
 }
 //-----------------------------------------------------------
@@ -64,6 +65,7 @@ void Widget::closeEvent(QCloseEvent *event)
 {
     //    Q_UNUSED(event);
     ptmr->stop();
+    saveSetting();
     onWindowClosed();
     event->accept();
 }
@@ -332,6 +334,7 @@ void Widget::CreateConnections()
     connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
 
     connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -519,6 +522,25 @@ void Widget::createPlot(QString name)
     plot->show();
     connect(this,&Widget::buildgraph,plot,&PlotWidget::realtimeDataSlot);
     connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+}
+
+void Widget::saveSetting()
+{
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("MainWindow");
+    settings.setValue("size",size());
+    settings.setValue("pos",pos());
+    settings.endGroup();
+}
+
+void Widget::readSettings()
+{
+    //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size",QSize(400,400)).toSize());
+    move(settings.value("pos",QPoint(200,200)).toPoint());
+    settings.endGroup();
 }
 
 

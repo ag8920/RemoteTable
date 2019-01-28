@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 //     Данный модуль создает виджет окна
-//     с параметрами и настройков поворотного
+//     с параметрами и настройкой поворотного
 //     утройства.
 //     Автор: Щербаков Александр
 //     дата создания: 13.09.2018
@@ -17,7 +17,7 @@ enum { HEX=1,DEC,OCT,BIN,ASCII,};
 //-----------------------------------------------------------
 TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 {
-    SettingsComPort = new SettingsDialog;
+    SettingsComPort = new SettingsDialog(nullptr,2);
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
