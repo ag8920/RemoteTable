@@ -1,0 +1,667 @@
+/ *
+ * TODO: цвет кнопок поиска (заменить, заменить и продолжить поиск)
+ * /
+
+/ *
+ * Цвет фона для большинства виджетов
+ * /
+
+QWidget, QStackedWidget,
+QScrollArea, QAbstractScrollArea {
+    background-color : transparent ;
+}
+
+QApplication,
+QMainWindow, QFrame, QDockWidget, QDialog, QFileDialog, QMessageBox,
+QRadioButton,
+QGroupBox :: title, / * Необходимость установки фона должна очищать границу за ярлыком * /
+QMenuBar, QMenu, QMenu :: item,
+QComboBox QAbstractItemView,
+QTreeView, QListWidget, QListView, QTableWidget, QTableView,
+QTextEdit, QTextBrowser {
+    background-color : # 3c3f41 ; / * # 004100; * /
+    цвет : #bbbbbb ;
+}
+
+/ *
+ * Это значения по умолчанию
+ * Сначала отредактируйте, если вы хотите изменить внешний вид
+ * /
+
+QLabel, QTabBar :: tab, QMenuBar :: item,
+QCheckBox, QGroupBox {
+    background-color : transparent ;
+    цвет : #bbbbbb ;
+    selection-color : #bbbbbb ;
+}
+
+/ *
+ * GroupBox и CheckBox
+ *
+ * TODO: :: индикатор: неопределенные значки
+ * /
+
+QGroupBox {
+    border-top : 1 px  solid  # 2d2d2d ;
+    margin-top : 0.5 em ;
+}
+QGroupBox :: title {
+    subcontrol-origin : margin;
+    subcontrol-position : верхний  левый ;
+    заполнение : 0  3 px ;
+}
+QCheckBox :: индикатор,
+QGroupBox :: indicator {
+    ширина : 13 пикселей ;
+    высота : 13 px ;
+}
+QCheckBox :: Индикатор необузданный
+QGroupBox :: indicator: unchecked {
+    image : url ( : /qmldesigner/images/checkbox_unchecked.png );
+}
+QCheckBox :: индикатор: unchecked : hover ,
+QGroupBox :: индикатор: unchecked : hover {
+    image : url ( : /qmldesigner/images/checkbox_unchecked_hover.png );
+}
+QCheckBox :: Индикатор: бесконтрольно: нажата,
+QGroupBox :: индикатор: unchecked: нажата {
+    image : url ( : /qmldesigner/images/checkbox_unchecked_pressed.png );
+}
+QCheckBox :: индикатор : отмечен ,
+QGroupBox :: indicator : checked {
+    image : url ( : /qmldesigner/images/checkbox_checked.png );
+}
+QCheckBox :: indicator : checked: hover ,
+QGroupBox :: indicator : checked: hover {
+    image : url ( : /qmldesigner/images/checkbox_checked_hover.png );
+}
+QCheckBox :: индикатор : проверено : нажато,
+QGroupBox :: indicator : checked : нажато {
+    image : url ( : /qmldesigner/images/checkbox_checked_pressed.png );
+}
+QCheckBox :: индикатор : неопределенный: наведение ,
+QGroupBox :: индикатор : неопределенный: hover {
+    background-color : # 2222bb ;
+    image : url ( : /qmldesigner/images/checkbox_indeterminate_hover.png ); / * TODO: Нет изображения shuch * /
+}
+QCheckBox :: индикатор : неопределенный : нажат,
+QGroupBox :: индикатор : неопределенный : нажата {
+    background-color : # 22bb22 ;
+    image : url ( : /qmldesigner/images/checkbox_indeterminate_pressed.png ); / * TODO: Нет изображения shuch * /
+}
+
+
+QLineEdit, QAbstractSpinBox, QComboBox, QPushButton {
+    background-color : # 45494a ;
+    / * background-color: rgba (255, 255, 255, 0,05); * /
+
+    background-origin : border ;
+    border : 1 px  solid  # 646464 ;
+    цвет : #bbbbbb ;
+    min-width : 3 em ;
+    заполнение : 0 px  1 px  2 px  3 px ;
+    selection-background-color : # 4b6eaf ;
+} / * : фокус
+{
+    контур: 3px хребет # 4e78a2;
+    border-radius: 2px;
+}
+: Редактировать фокус
+{
+    граница: 1px сплошной красный;
+} * /
+: только для чтения {
+    background-color : transparent ;
+    border : 1 px  solid  # 535353 ;
+    цвет : # 999999 ;
+}
+: no-frame {
+    border-width : 0 ;
+}
+
+/ *
+ * Любой SpinBox (например, DoubleSpinbox)
+ *
+ * TODO: Иконки не вписываются в общий стиль
+ * /
+QAbstractSpinBox :: кнопка вверх {
+    image : url ( : /qmldesigner/images/spinup.png );
+}
+QAbstractSpinBox :: кнопка вверх : hover {
+    image : url ( : /qmldesigner/images/spinup_hover.png );
+}
+QAbstractSpinBox :: up-button : off {
+    image : url ( : /qmldesigner/images/spinup_off.png );
+}
+QAbstractSpinBox :: кнопка вверх : нажата {
+    image : url ( : /qmldesigner/images/spinup_pressed.png );
+}
+QAbstractSpinBox :: down-button {
+    image : url ( : /qmldesigner/images/spindown.png );
+}
+QAbstractSpinBox :: down-button : hover {
+    image : url ( : /qmldesigner/images/spindown_hover.png );
+}
+QAbstractSpinBox :: down-button : off {
+    image : url ( : /qmldesigner/images/spindown_off.png );
+}
+QAbstractSpinBox :: down-button : нажата {
+    image : url ( : /qmldesigner/images/spindown_pressed.png );
+}
+
+
+/ *
+ * PushButton и Utils :: QtColorButton
+ *
+ * TODO: настройка: нажата
+ * FIXME: контур расположен вокруг контента, но должен быть вокруг прокладки
+ * /
+
+QPushButton {
+    min-height : 1,33 em ;
+    мин-ширина : 5,25 em ;
+    схема : 0 ;
+}
+Utils - QtColorButton,
+QPushButton {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 515658 , stop: 1.0  # 44494b );
+    border : 1 px  solid  # 5f6161 ;
+    border-radius : 2 px ;
+}
+Utils - QtColorButton: нажата,
+QPushButton: нажата {
+    border-style : inset ;
+}
+QPushButton : default {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 344a64 , stop: 1.0  # 263549 );
+}
+Utils - QtColorButton : отключено ,
+QPushButton : отключено {
+    background-color : transparent ;
+    цвет : # 999999 ;
+}
+Utils - QtColorButton: открытый,
+QPushButton: открыть {
+    background-color : # 4b6eaf ;
+}
+QPushButton :: menu-indicator   {
+    subcontrol-origin : content ;
+    subcontrol-position : нижний  правый ;
+}
+
+/ *
+ * Поле со списком
+ * /
+QComboBox {
+    border-radius : 2 px ;
+    min-width : 3 em ;
+    заполнение : 0 px  1 px  2 px  3 px ;
+}
+QComboBox:! Editable {
+    / * background-color: rgba (63, 113, 73, 0,2); * /
+    / * background-color: # 45494a; * /
+    background-color : rgba ( 255 , 255 , 255 , 0,05 );
+}
+/ *
+QComboBox: редактируемые: на
+QComboBox :: выпадающий: редактируемые: на
+:: списка QComboBox'а выпадающий: редактируемые
+* /
+QComboBox: on {
+    padding-top : 3 px ;
+    padding-left : 4 px ;
+}
+QComboBox :: down-arrow {
+    image : url ( : /qmldesigner/images/triangle_vert.png );
+}
+QComboBox :: down-arrow : on {
+    top : 1 px ;
+    left : 1 px ;
+}
+QComboBox :: drop-down {
+    border-left : 1 px  solid  # 646464 ;
+}
+QComboBox QAbstractItemView {
+    граница : 1 px  сплошной  красный ; / * черный; * /
+    / * selection-background-color: # d2d2d2;
+    цвет выделения: # 404040;
+    show-decoration-selected: 1; / * сделать выделение по всей ширине представления * /
+}
+
+
+/ *
+ * Переключатель
+ *
+ * TODO: проверенный круг трудно определить
+ * /
+QRadioButton :: indicator {
+    ширина : 13 пикселей ;
+    высота : 13 px ;
+}
+QRadioButton :: индикатор: unchecked {
+    image : url ( : /qmldesigner/images/radiobutton_unchecked.png );
+}
+QRadioButton :: индикатор: unchecked : hover {
+    image : url ( : /qmldesigner/images/radiobutton_unchecked_hover.png );
+}
+QRadioButton :: индикатор: unchecked: нажата {
+    image : url ( : /qmldesigner/images/radiobutton_unchecked_pressed.png );
+}
+QRadioButton :: индикатор : отмечен {
+    image : url ( : /qmldesigner/images/radiobutton_checked.png );
+}
+QRadioButton :: индикатор : checked: hover {
+    image : url ( : /qmldesigner/images/radiobutton_checked_hover.png );
+}
+QRadioButton :: индикатор : отмечен : нажата {
+    image : url ( : /qmldesigner/images/radiobutton_checked_pressed.png );
+}
+
+
+/ *
+ * TabWidget и TabBar
+ *
+ * FIXME: проблема с нижней вкладкой конструктора
+ * TODO: настройка QTabBar :: tab: hover
+ * /
+QTabWidget :: tab-bar {
+    / * позиция: относительная;
+    bottom: -1px; * /
+}
+QTabWidget :: pane {
+    background-color : transparent ;
+    border : 1 px  solid  # 323232 ;
+}
+QTabWidget :: pane: top {
+    top : -1 px ;
+}
+QTabWidget :: pane : right {
+    right : -1 px ;
+}
+QTabWidget :: pane: bottom {
+    bottom : -1 px ;
+}
+QTabWidget :: pane : left {
+    left : -1 px ;
+}
+QTabBar :: tab {
+    border : 1 px  solid  # 292b2d ;
+    min-width : 8 ex ;
+    padding : 4 px ;
+}
+/ * QTabBar :: tab: hover {
+    background-color: # 4b6eaf;
+} * /
+QTabBar :: tab: top {
+    border-top-left-radius : 4 px ;
+    border-top-right-radius : 4 px ;
+}
+QTabBar :: tab : right {
+    border-top-right-radius : 4 px ;
+    border-bottom-right-radius : 4 px ;
+}
+QTabBar :: tab: bottom {
+    border-bottom-left-radius : 4 px ;
+    border-bottom-right-radius : 4 px ;
+}
+QTabBar :: tab : left {
+    border-top-left-radius : 4 px ;
+    border-bottom-left-radius : 4 px ;
+}
+QTabBar :: tab: selected {
+    background-color : # 41516d ;
+}
+QTabBar :: tab: top: selected {
+    border-bottom-color : # 41516d ;
+}
+QTabBar :: tab : right : selected {
+    border-left-color : # 41516d ;
+}
+QTabBar :: tab: bottom: selected {
+    border-top-color : # 41516d ;
+}
+QTabBar :: tab : left : selected {
+    border-right-color : # 41516d ;
+}
+QTabBar :: tab: top:! Selected {
+    margin-top : 2 px ;
+}
+QTabBar :: tab : right :! Selected {
+    margin-right : 2 px ;
+}
+QTabBar :: tab: bottom:! Selected {
+    margin-bottom : 2 px ;
+}
+QTabBar :: tab : left :! Selected {
+    margin-left : 2 px ;
+}
+
+/ *
+ * Таблица
+ *
+ * FIXME: проблема с позиционированием стрелок обходным способом
+ * FIXME: Неизвестная проблема Опции> FakeVim> Отображение команд пользователя
+ * QT-BUG: неправильное свойство поведения min-height QHeaderView :: section
+ * /
+
+QTableWidget,
+QTableView {
+    / * Это правило имеет больше приоритета, чем предыдущий ?!
+     * И переопределяет пустым, если не объявлено! * /
+    / * фон: красный; / * прозрачный; * /
+    / * цвет: #bbbbbb; * /
+
+    border : 1 px  solid  # 323232 ;
+    alternate-background-color : # 414547 ; / * Не работает без setAlternatingRowColors (true) * /
+}
+QTableView QTableCornerButton :: section {
+    фон-цвет : зеленый ; / * FIXME * /
+    граница : 2 px  outset  blue ; / * FIXME * /
+}
+QHeaderView :: section {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 54585b , stop: 1  # 393c3e );
+    цвет : #bbbbbb ;
+    padding : 1 px  2 px  1 px  4 px ;
+
+    border : 1 px  solid  # 323232 ;
+    border-top-width : 0 ;
+    border-left-color : # 5e6163 ;
+    border-right-color : # 2a2c2d ;
+
+    / * min-height: 15px; * /
+}
+QHeaderView :: section : hover {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 64686b , stop: 1  # 494c4e );
+    border-bottom-color : # 424242 ;
+}
+QHeaderView :: section : first {
+    border-left-width : 0 ;
+}
+QHeaderView :: section: last {
+    border-right-width : 0 ;
+}
+QHeaderView :: section : checked {
+    background-color : red ; / * FIXME * /
+}
+QHeaderView :: down-arrow {
+    image : url ( : /qmldesigner/images/down_arrow.png );
+    право : 7 пикселей ;
+}
+QHeaderView :: up-arrow {
+    image : url ( : /qmldesigner/images/up_arrow.png );
+    / * image-position: right; Не работает * /
+    / * справа: 7px; * /
+    высота : 7 пикселей ;
+    ширина : 7 пикселей ;
+}
+
+/ *
+ * Меню и меню
+ *
+ * TODO: Настроить toggleable items
+ * /
+QMenuBar {
+    / * background-color: # 3c3f41; / * прозрачный не работает * /
+    border-bottom : 2 px  solid qlineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 282828 , stop: 1  # 555555 );
+}
+QMenuBar :: item: нажата {
+    background-color : # 4b6eaf ;
+}
+QMenuBar :: item: selected:! Нажато {
+    background-color : # 585b5d ;
+}
+QMenu {
+    border : 1 px  solid  # 2d2d2d ;
+}
+/ * QMenu :: item {
+    margin-left: 3px;
+} * /
+QMenu :: item : disabled {
+    цвет : # 999999 ;
+}
+QMenu :: item: selected {
+    background-color : # 4b6eaf ;
+}
+QMenu :: icon {
+    граница : 0 px  сплошная  прозрачная ;
+    background-color : transparent ;
+}
+QMenu :: icon : checked {
+    background-color : blue ;
+    граница : 1 px  вставка  красного цвета ;
+    позиция : абсолютная ;
+    top : 1 px ;
+    right : 1 px ;
+    bottom : 1 px ;
+    left : 1 px ;
+}
+QMenu :: separator {
+    высота : 2 px ;
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 282a2b , stop: 1  # 45484b );
+    margin : 0  1 px ;
+}
+/ * QMenu :: indicator {
+    ширина: 13 пикселей;
+    высота: 13 пикселей;
+    background-color: blue;
+} * /
+
+
+/ *
+ * Изменение полосы прокрутки
+ * /
+QScrollBar {
+    background-color : transparent ;
+    margin : 0 ;
+    высота : 12 пикселей ; / * для горизонтальных * /
+    ширина : 12 пикселей ; / * для вертикальных * /
+}
+QScrollBar :: handle {
+    border : 1 px  solid  # 555555 ;
+    border-radius : 4 px ;
+    margin : 1 px ;
+}
+QScrollBar :: handle: vertical {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 1 , y2: 0 , stop: 0  # 5c5c5c , stop: 1  # 515151 );
+    мин-высота : 20 пикселей ;
+    min-width : 8 px ;
+}
+QScrollBar :: handle: vertical : hover {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 1 , y2: 0 , stop: 0  # 666666 , stop: 1  # 5b5b5b );
+}
+QScrollBar :: handle: horizontal {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 5c5c5c , stop: 1  # 515151 );
+    min-height : 8 px ;
+    мин-ширина : 20 пикселей ;
+}
+QScrollBar :: handle: horizontal : hover {
+    background-color : q lineargradient (x1: 0 , y1: 0 , x2: 0 , y2: 1 , stop: 0  # 666666 , stop: 1  # 5b5b5b );
+}
+QScrollBar :: add-page : vertical, QScrollBar :: подстраница : вертикальная,
+QScrollBar :: add-page : horizontal, QScrollBar :: подстраница : horizontal {
+    background-color : transparent ;
+}
+/ * QScrollBar :: подстраница: vertical {
+    max-height: 8px;
+    margin-top: auto;
+    margin-bottom: 0;
+    background-color: фиолетовый;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+QScrollBar :: add-page: vertical {
+    max-height: 8px;
+    margin-top: 0;
+    margin-bottom: auto;
+    background-color: darkblue;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+} * /
+QScrollBar :: add-line : вертикальный, QScrollBar :: sub-line : вертикальный,
+QScrollBar :: add-line : horizontal, QScrollBar :: sub-line : horizontal {
+    высота : 0 ;
+    ширина : 0 ;
+}
+
+/ *
+ * Статус бар
+ * /
+/ *
+QStatusBar {
+    цвет фона: коричневый;
+    граница: 1px сплошная коричневая;
+}
+QStatusBar :: item {
+    background-color: red;
+    граница: 1px сплошной красный;
+    border-radius: 3px;
+}
+QStatusBar QLabel {
+    фон-цвет: зеленый;
+    граница: 3px сплошной зеленый;
+}
+* /
+
+
+/ *
+ * Изменения QAbstractItemView
+ *
+ * TODO: :: индикатор
+ * TODO: отключить маску выбора значка
+ * FIXME: прозрачный фон выбора на некоторых элементах> BlackBerry> Уровни API и Runtimes
+ * QT-BUG: странное поведение свойств selection- * (всегда:! Focus)
+ * /
+QAbstractItemView {
+    border : 1 px  solid  # 323232 ;
+    selection-color : #bbbbbb ;
+    selection-background-color : # 4b6eaf ;
+    alternate-background-color : # 414547 ; / * Работает только в том случае, если setAlternatingRowColors (true) * /
+    show-decoration-selected : 1 ;
+    схема : 0 ;
+}
+/ *
+QAbstractItemView:! Focus {
+    selection-background-color: # 0d293e;
+}
+QTreeView :: филиал,
+QAbstractItemView :: item {
+    border-width: 0;
+}
+* /
+QAbstractItemView :: item: alternate {
+    background-color : # 414547 ;
+}
+QListWidgetItem,
+QTreeWidgetItem {
+    background-color : red ;
+    цвет : желтый ;
+    граница : 1 px  твердый  фиолетовый ;
+}
+QAbstractItemView :: text {
+    цвет : #bbbbbb ;
+}
+QTreeView :: branch : hover ,
+QAbstractItemView :: item : hover {
+    background-color : rgba ( 255 , 255 , 255 , 0,05 );
+}
+QTreeView :: branch: selected : active ,
+QAbstractItemView :: item: selected {
+    background-color : # 4b6eaf ;
+}
+/ * Ни в коем случае из-за другой ошибки :(
+QTreeView :: Отрасль: отмеченная: активная,
+QAbstractItemView :: item: selected: active {
+    background-color: # 4b6eaf;
+}
+QTreeView :: отделение: выбрано: активный,
+QAbstractItemView :: item: selected:! Active {
+    background-color: # 0d293e;
+}
+* /
+QTreeView :: branch: has-siblings : adjoins-item ,
+QTreeView :: branch: has-siblings :! adjoins-item ,
+QTreeView :: филиал :! имеет детей :! has-siblings : adjoins-item {
+    border-image : none ;
+    изображение : нет ;
+}
+QTreeView :: branch: has-children :! имеет-братьев и сестер : закрыто,
+QTreeView :: branch: closed: has-children : has-siblings {
+    border-image : none ;
+    image : url ( : /qmldesigner/images/triangle_horz.png );
+}
+QTreeView :: branch: open: has-children :! имеет-братьев и сестер ,
+QTreeView :: branch: open: has-children : has-siblings {
+    border-image : none ;
+    image : url ( : /qmldesigner/images/triangle_vert.png );
+}
+
+/ *
+ * Панель инструментов
+ * /
+
+QToolBar {
+    border-width : 0 ; / * Отменяет градиент * /
+}
+
+/ *
+ * Изменение размера виджета (внизу справа в Qt Creator, внутри строки состояния)
+ * /
+
+QSizeGrip {
+    image : url ( : /qmldesigner/images/sizegrip.png );
+    ширина : 16 пикселей ;
+    высота : 16 пикселей ;
+}
+
+/ *
+ * ToolTip
+ * /
+
+QToolTip, QTipLabel {
+    border : 1 px  solid  # 9a9a66 ;
+    border-radius : 3 px ;
+    фон : # 5c5c42 ;
+    цвет : #bbbbbb ;
+    margin : 0 ;
+    заполнение : 0 ;
+}
+
+/ *
+ * Диалоговое окно мастера
+ *
+ * TODO: Фон баров кнопок
+ * /
+
+QWizard > QWidget {
+    background-color : # 3c3f41 ;
+}
+
+/ * QT-BUG: Поскольку QFrame {border-color: # 323232; } не имеет эффекта * /
+Core - Internal - NewDialog > QFrame #frame {
+    border : 1 px  solid  # 323232 ;
+}
+
+/ * vvvvvvvvvvvvvvvvvvvvvvvvvv WORKAROUND vvvvvvvvvvvvvvvvvvvvvvvvvvv * /
+/ * Связано с:
+ * 1) https://bugreports.qt-project.org/browse/QTCREATORBUG-12078
+ * 2) https://codereview.qt-project.org/#/c/74538/
+ * Из-за ошибок в QtGui, apllying stylesheet для QPlainTextEdit вызывает это
+* потерять настройки шрифта и палитру на событии setParent. Таким образом, переход между
+ * режимы (редактор и отладка) или разделенный редактор сбрасывает шрифт и цвет редактирования
+ * и дополнительные области редактирования
+ * Чтобы обойти эту проблему, установите собственные цвета и шрифт ниже
+ * /
+QPlainTextEdit {
+    background-color : # 2b2b2b ;
+    selection-background-color : # 214283 ;
+    цвет : #bbbbbb ;
+    selection-color : #bbbbbb ; / * Нет лучшего обходного пути для этого * /
+    шрифт : 10 pt  Courier , Inconsolata, Monospace ;
+}
+/ * TextEditor - Внутренний - TextEditExtraArea * /
+TextEditor - TextEditorWidget > QWidget {
+    background-color : # 313335 ;
+    selection-background-color : # 4b6eaf ;
+    цвет : #bbbbbb ; / * QT-BUG: К сожалению, это не влияет * /
+}
+/ * ^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^ Временное решение ^^^^^ * /

@@ -1,3 +1,10 @@
+//------------------------------------------------------------------------------
+//     Данный модуль создает виджет окна
+//     с параметрами и настройкой COM порта.
+//     Автор: Щербаков Александр
+//     дата создания: 13.09.2018
+//
+//------------------------------------------------------------------------------
 #include "settingsdialog.h"
 
 #include "ui_settingsdialog.h"
@@ -8,69 +15,93 @@
 #include <QLineEdit>
 #include <QString>
 
+#define ORGANIZATION_NAME "DEMO"
+#define ORGANIZATION_DOMAIN "www.demo.ru"
+#define APPLICATION_NAME "QSettings Program"
 
-static const QString isBusy = QObject::tr("isBusy");
-static const QString noBusy = QObject::tr("noBusy");
-
-SettingsDialog::SettingsDialog(QWidget *parent) :
+static const QString isBusy = QObject::tr("Занят");
+static const QString noBusy = QObject::tr("Свободен");
+//-----------------------------------------------------------
+// Назначение: консруктор класса
+//-----------------------------------------------------------
+SettingsDialog::SettingsDialog(QWidget *parent, int id) :
     QWidget(parent),
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
+    idNum=id;
 
     intValidator = new QIntValidator(0, 4000000, this);
 
-      ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
+    ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
 
-      connect(ui->applyButton, SIGNAL(clicked()),
-              this, SLOT(apply()));
-      connect(ui->serialPortInfoBox, SIGNAL(currentIndexChanged(int)),
-              this, SLOT(showPortInfo(int)));
-      connect(ui->baudRateBox, SIGNAL(currentIndexChanged(int)),
-              this, SLOT(checkCustomBaudRatePolicy(int)));
-      connect(ui->updateInfoButton,SIGNAL(clicked()),
-              this, SLOT( fillPortsInfo()));
+    connect(ui->applyButton, SIGNAL(clicked()),
+            this, SLOT(apply()));
+    connect(ui->serialPortInfoBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(showPortInfo(int)));
+    connect(ui->baudRateBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(checkCustomBaudRatePolicy(int)));
+    connect(ui->updateInfoButton,SIGNAL(clicked()),
+            this, SLOT( fillPortsInfo()));
 
-      fillPortsParameters();
-      fillPortsInfo();
+    fillPortsParameters();
+    fillPortsInfo();
 
-      updateSettings();
+    updateSettings();
+
+}
+void SettingsDialog::closeEvent(QCloseEvent *event)
+{
+    writeSettings();
 }
 
+//-----------------------------------------------------------
+// Назначение: деструктор класса
+//-----------------------------------------------------------
 SettingsDialog::~SettingsDialog()
 {
     delete ui;
 }
-
+//-----------------------------------------------------------
+// Назначение: возвращает текущие настройки
+//-----------------------------------------------------------
 SettingsDialog::Settings SettingsDialog::settings() const
 {
     return currentSettings;
 }
-
+//-----------------------------------------------------------
+// Назначение: отображение информации о COM порте
+//-----------------------------------------------------------
 void SettingsDialog::showPortInfo(int idx)
 {
     if (idx != -1) {
         QStringList list = ui->serialPortInfoBox->itemData(idx).toStringList();
-        ui->descriptionLabel->setText(tr("Description: %1").arg(list.at(1)));
-        ui->manufacturerLabel->setText(tr("Manufacturer: %1").arg(list.at(2)));
-        ui->serialNumberLabel->setText(tr("Serial number: %1").arg(list.at(3)));
-        ui->locationLabel->setText(tr("Location: %1").arg(list.at(4)));
-        ui->vidLabel->setText(tr("Vendor Identifier: %1").arg(list.at(5)));
-        ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.at(6)));
+        ui->descriptionLabel->setText(tr("Описание: %1").arg(list.at(1)));
+        ui->manufacturerLabel->setText(tr("Производитель: %1").arg(list.at(2)));
+        ui->serialNumberLabel->setText(tr("Сер.номер: %1").arg(list.at(3)));
+        ui->locationLabel->setText(tr("Размещение: %1").arg(list.at(4)));
+        ui->vidLabel->setText(tr("ID произв.: %1").arg(list.at(5)));
+        ui->pidLabel->setText(tr("ID : %1").arg(list.at(6)));
         if(list.at(7)==isBusy)
-            ui->busyLabel->setText(tr("Busy: <font color=red>%1</font color>").arg(list.at(7)));
+            ui->busyLabel->setText(tr("Состояние: <font color=red>%1</font color>").arg(list.at(7)));
         else
-            ui->busyLabel->setText(tr("Busy: <font color=green>%1</font color>").arg(list.at(7)));
+            ui->busyLabel->setText(tr("Состояние: <font color=green>%1</font color>").arg(list.at(7)));
         //ui->busyLabel->setStyleSheet("QLabel{color:red}");
     }
 }
-
+//-----------------------------------------------------------
+// Назначение: действие по кнопке Apply
+//-----------------------------------------------------------
 void SettingsDialog::apply()
 {
+    writeSettings();
     updateSettings();
     hide();
+    emit isUpdateSettings();
 }
-
+//-----------------------------------------------------------
+// Назначение: установка нестандартных скоротей COM порта
+//-----------------------------------------------------------
 void SettingsDialog::checkCustomBaudRatePolicy(int idx)
 {
     bool isCustomBaudRate = !ui->baudRateBox->itemData(idx).isValid();
@@ -78,10 +109,18 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
     if (isCustomBaudRate) {
         ui->baudRateBox->clearEditText();
         QLineEdit *edit = ui->baudRateBox->lineEdit();
+        edit->setStyleSheet(" background-color: #232629;"
+                            " padding: 5px;"
+                            "border-style: solid;"
+                            "border: 0px solid #76797C;"
+                            "border-radius: 0px;"
+                            "color: #eff0f1;");
         edit->setValidator(intValidator);
     }
 }
-
+//-----------------------------------------------------------
+// Назначение: отображение настраиваемых параметров COM
+//-----------------------------------------------------------
 void SettingsDialog::fillPortsParameters()
 {
     ui->baudRateBox->addItem(QStringLiteral("1200"), QSerialPort::Baud1200);
@@ -91,6 +130,8 @@ void SettingsDialog::fillPortsParameters()
     ui->baudRateBox->addItem(QStringLiteral("19200"), QSerialPort::Baud19200);
     ui->baudRateBox->addItem(QStringLiteral("38400"), QSerialPort::Baud38400);
     ui->baudRateBox->addItem(QStringLiteral("115200"), QSerialPort::Baud115200);
+    ui->baudRateBox->addItem(QStringLiteral("230400"),230400);
+    ui->baudRateBox->addItem(QStringLiteral("921600"),921600);
     ui->baudRateBox->addItem(QStringLiteral("Custom"));
 
     ui->dataBitsBox->addItem(QStringLiteral("5"), QSerialPort::Data5);
@@ -115,7 +156,9 @@ void SettingsDialog::fillPortsParameters()
     ui->flowControlBox->addItem(QStringLiteral("RTS/CTS"), QSerialPort::HardwareControl);
     ui->flowControlBox->addItem(QStringLiteral("XON/XOFF"), QSerialPort::SoftwareControl);
 }
-
+//-----------------------------------------------------------
+// Назначение: отображение информации о COM порте
+//-----------------------------------------------------------
 void SettingsDialog::fillPortsInfo()
 {
     ui->serialPortInfoBox->clear();
@@ -137,21 +180,35 @@ void SettingsDialog::fillPortsInfo()
              << (!manufacturer.isEmpty() ? manufacturer : blankString)
              << (!serialNumber.isEmpty() ? serialNumber : blankString)
              << info.systemLocation()
-             << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
-             << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString)
+             << (info.vendorIdentifier() ?
+                     QString::number(info.vendorIdentifier(), 16) : blankString)
+             << (info.productIdentifier() ?
+                     QString::number(info.productIdentifier(), 16) : blankString)
              << (info.isBusy() ? isBusy : noBusy);
         ui->serialPortInfoBox->addItem(list.first(), list);
     }
 }
 
+void SettingsDialog::showWidget()
+{
+    qDebug()<<"showWidget";
+    qApp->processEvents();
+    fillPortsInfo();
+    readSettings();
+    show();
+
+}
+//-----------------------------------------------------------
+// Назначение: обновление(запись) текущих настроек
+//-----------------------------------------------------------
 void SettingsDialog::updateSettings()
 {
     currentSettings.name = ui->serialPortInfoBox->currentText();
 
-    if (ui->baudRateBox->currentIndex() == 4) {
+    if (ui->baudRateBox->currentIndex() == 9) {
         currentSettings.baudRate = ui->baudRateBox->currentText().toInt();
     } else {
-        currentSettings.baudRate = static_cast<QSerialPort::BaudRate>(
+        currentSettings.baudRate =/* static_cast<QSerialPort::BaudRate>*/(
                     ui->baudRateBox->itemData(ui->baudRateBox->currentIndex()).toInt());
     }
     currentSettings.stringBaudRate = QString::number(currentSettings.baudRate);
@@ -173,5 +230,28 @@ void SettingsDialog::updateSettings()
     currentSettings.stringFlowControl = ui->flowControlBox->currentText();
 
     currentSettings.localEchoEnabled = ui->localEchoCheckBox->isChecked();
+}
+
+void SettingsDialog::readSettings()
+{
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("ComPort_"+QString::number(idNum));
+    ui->serialPortInfoBox->setCurrentText(settings.value("name").toString());
+    ui->baudRateBox->setCurrentText(settings.value("baud").toString());
+
+}
+
+void SettingsDialog::writeSettings()
+{
+
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("ComPort_"+QString::number(idNum));
+    settings.setValue("name",ui->serialPortInfoBox->currentText());
+    settings.setValue("baud", ui->baudRateBox->itemData(ui->baudRateBox->currentIndex()).toInt());
+    settings.setValue("databits",currentSettings.stringDataBits);
+    settings.setValue("parity",currentSettings.stringParity);
+    settings.setValue("stopbits",currentSettings.stringStopBits);
+    settings.setValue("flowControl",currentSettings.stringFlowControl);
+    settings.setValue("localEcho",currentSettings.localEchoEnabled);
 }
 

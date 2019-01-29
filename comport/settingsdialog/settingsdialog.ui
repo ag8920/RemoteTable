@@ -6,31 +6,59 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>394</width>
-    <height>279</height>
+    <width>400</width>
+    <height>305</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>305</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>305</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>Configure to serial port</string>
+   <string>Настройка COM-порта</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../resource.qrc">
+    <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
   </property>
   <widget class="QGroupBox" name="selectBox">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>0</y>
+     <y>10</y>
      <width>191</width>
-     <height>181</height>
+     <height>191</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="title">
-    <string>Select Serial Port</string>
+    <string>Выбор COM-порта</string>
    </property>
    <widget class="QLabel" name="descriptionLabel">
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>44</y>
-      <width>171</width>
+      <y>54</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -41,15 +69,15 @@
      </size>
     </property>
     <property name="text">
-     <string>Description</string>
+     <string>Описание:</string>
     </property>
    </widget>
    <widget class="QLabel" name="manufacturerLabel">
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>63</y>
-      <width>181</width>
+      <y>73</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -60,15 +88,15 @@
      </size>
     </property>
     <property name="text">
-     <string>Manufacturer</string>
+     <string>Производитель:</string>
     </property>
    </widget>
    <widget class="QLabel" name="serialNumberLabel">
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>82</y>
-      <width>171</width>
+      <y>92</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -79,15 +107,15 @@
      </size>
     </property>
     <property name="text">
-     <string>Serial Number</string>
+     <string>Сер.номер:</string>
     </property>
    </widget>
    <widget class="QLabel" name="locationLabel">
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>101</y>
-      <width>171</width>
+      <y>111</y>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -98,14 +126,14 @@
      </size>
     </property>
     <property name="text">
-     <string>Location</string>
+     <string>Размещение:</string>
     </property>
    </widget>
    <widget class="QLabel" name="vidLabel">
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>120</y>
+      <y>130</y>
       <width>131</width>
       <height>16</height>
      </rect>
@@ -123,15 +151,15 @@
      </size>
     </property>
     <property name="text">
-     <string>Vendor ID</string>
+     <string>Идент.произв.:</string>
     </property>
    </widget>
    <widget class="QLabel" name="pidLabel">
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>139</y>
-      <width>171</width>
+      <y>149</y>
+      <width>151</width>
       <height>16</height>
      </rect>
     </property>
@@ -142,17 +170,23 @@
      </size>
     </property>
     <property name="text">
-     <string>Product ID</string>
+     <string>ID:</string>
     </property>
    </widget>
    <widget class="QComboBox" name="serialPortInfoBox">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>23</y>
+      <y>33</y>
       <width>81</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="minimumSize">
      <size>
@@ -160,39 +194,48 @@
       <height>0</height>
      </size>
     </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="busyLabel">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>160</y>
-      <width>181</width>
+      <y>170</y>
+      <width>151</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Busy</string>
+     <string>Занят</string>
     </property>
    </widget>
   </widget>
   <widget class="QGroupBox" name="parametersBox">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>0</y>
-     <width>171</width>
-     <height>161</height>
+     <x>210</x>
+     <y>10</y>
+     <width>181</width>
+     <height>191</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="title">
-    <string>Select Parameters</string>
+    <string>Выбор параметров</string>
    </property>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
-      <width>142</width>
+      <y>30</y>
+      <width>161</width>
       <height>146</height>
      </rect>
     </property>
@@ -201,13 +244,29 @@
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QLabel" name="baudRateLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>BaudRate</string>
+          <string>Скорость</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="baudRateBox"/>
+        <widget class="QComboBox" name="baudRateBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -216,12 +275,22 @@
        <item>
         <widget class="QLabel" name="dataBitsLabel">
          <property name="text">
-          <string>Data Bits</string>
+          <string>Бит данных</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="dataBitsBox"/>
+        <widget class="QComboBox" name="dataBitsBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -230,12 +299,22 @@
        <item>
         <widget class="QLabel" name="parityLabel">
          <property name="text">
-          <string>Parity</string>
+          <string>Четность</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="parityBox"/>
+        <widget class="QComboBox" name="parityBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -244,12 +323,22 @@
        <item>
         <widget class="QLabel" name="stopBitsLabel">
          <property name="text">
-          <string>Stop bits</string>
+          <string>Стоп биты</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="stopBitsBox"/>
+        <widget class="QComboBox" name="stopBitsBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -258,12 +347,22 @@
        <item>
         <widget class="QLabel" name="flowControlLabel">
          <property name="text">
-          <string>Flow Control</string>
+          <string>Контроль</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="flowControlBox"/>
+        <widget class="QComboBox" name="flowControlBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -274,20 +373,26 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>180</y>
-     <width>351</width>
-     <height>41</height>
+     <y>210</y>
+     <width>381</width>
+     <height>51</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="title">
-    <string>Additional options</string>
+    <string>Дополнительные опции</string>
    </property>
    <widget class="QCheckBox" name="localEchoCheckBox">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
-      <width>70</width>
+      <y>30</y>
+      <width>81</width>
       <height>17</height>
      </rect>
     </property>
@@ -300,8 +405,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>230</y>
-     <width>351</width>
+     <y>270</y>
+     <width>381</width>
      <height>31</height>
     </rect>
    </property>
@@ -321,21 +426,33 @@
     </item>
     <item>
      <widget class="QPushButton" name="updateInfoButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
-       <string>update</string>
+       <string>Обновить</string>
+      </property>
+      <property name="autoDefault">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QPushButton" name="applyButton">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="text">
-       <string>apply</string>
+       <string>Применить</string>
+      </property>
+      <property name="autoDefault">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -343,14 +460,18 @@
   </widget>
  </widget>
  <tabstops>
+  <tabstop>serialPortInfoBox</tabstop>
+  <tabstop>baudRateBox</tabstop>
   <tabstop>dataBitsBox</tabstop>
   <tabstop>parityBox</tabstop>
   <tabstop>stopBitsBox</tabstop>
   <tabstop>flowControlBox</tabstop>
-  <tabstop>localEchoCheckBox</tabstop>
-  <tabstop>baudRateBox</tabstop>
   <tabstop>applyButton</tabstop>
+  <tabstop>updateInfoButton</tabstop>
+  <tabstop>localEchoCheckBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

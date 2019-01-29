@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport
+QT       += core gui widgets serialport printsupport
 
 TARGET = GyroCompas
 TEMPLATE = app
@@ -46,7 +46,18 @@ SOURCES += \
     TableDev/tabledevice.cpp \
     GyroDev/gyrodevice.cpp \
     comport/settingsdialog/settingsdialog.cpp \
-    comport/comport.cpp
+    comport/comport.cpp \
+    Console/console.cpp \
+    GyroDev/gyrodata.cpp \
+    comport/slipprotocol.cpp \
+    ModelData/tablemodel.cpp \
+    Timer/ptimer.cpp \
+    loger/loger.cpp \
+    coordinatedialog/corrddialog.cpp \
+    qcustomplot/qcustomplot.cpp \
+    qcustomplot/plotwidget.cpp \
+    TableDev/tablers485.cpp \
+    TableDev/tablers232.cpp
 
 
 HEADERS += \
@@ -54,7 +65,18 @@ HEADERS += \
     TableDev/tabledevice.h \
     GyroDev/gyrodevice.h \
     comport/settingsdialog/settingsdialog.h \
-    comport/comport.h
+    comport/comport.h \
+    Console/console.h \
+    GyroDev/gyrodata.h \
+    comport/slipprotocol.h \
+    ModelData/tablemodel.h \
+    Timer/ptimer.h \
+    loger/loger.h \
+    coordinatedialog/corrddialog.h \
+    qcustomplot/qcustomplot.h \
+    qcustomplot/plotwidget.h \
+    TableDev/tablers485.h \
+    TableDev/tablers232.h
 
 
 # Default rules for deployment.
@@ -66,4 +88,14 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 #RC_FILE = resources.rc
 
 FORMS += \
-    comport/settingsdialog/settingsdialog.ui
+    comport/settingsdialog/settingsdialog.ui \
+    coordinatedialog/corrddialog.ui
+
+RESOURCES += \
+    resource.qrc
+
+RC_FILE = resources.rc
+
+DISTFILES +=
+
+

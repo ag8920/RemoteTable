@@ -13,27 +13,46 @@
 #include <QGroupBox>
 #include <QLayout>
 #include <QStatusBar>
+#include <QThread>
 
 #include "../comport/comport.h"
 #include "../comport/settingsdialog/settingsdialog.h"
+#include "../Console/console.h"
+#include "../GyroDev/gyrodata.h"
+#include "../ModelData/tablemodel.h"
+#include "../loger/loger.h"
 
 class GyroDevice : public QMainWindow
 {
     Q_OBJECT
 public:
     explicit GyroDevice(QWidget *parent = nullptr);
-
+    ~GyroDevice();
 signals:
-    void ConnectComPort(SettingsDialog::Settings *p);
+    void ConnectComPort(QString name,int baudrate,
+                        int DataBits,int Parity,
+                        int StopBits,int FlowControl);
+    //(SettingsDialog::Settings p);
     void DisconnectComPort();
+    void StopAll();
+    void BeginRecord();
+    void StopRecord();
 public slots:
     void OpenSerialPort();
-    void isConnectedComPort(const QString msg);
-    void isNotConnectedComPort(const QString msg);
-    void CloseSerialPort();
+    void isConnectedComPort(const QString &msg);
+    void isNotConnectedComPort(const QString &msg);
+    void UpdateSettingsComPort();
+    void UpdateCountPacketLineEdit(const QString &packet, const QString &error);
+    void AdditionalParamsVisible();
+    void ConsoleVisible();
+private slots:
+    void SaveData();
 private:
+    void CreateTable();
     void CreateWidgets();
     void CreateConnections();
+    void AddThread();
+    void StopThreads();
 
     QWidget *MainWidget;
     QLabel *TypeProtocolLabel;
@@ -44,17 +63,33 @@ private:
     QLabel *CountPacketLabel;
     QLineEdit *CountPacketLineEdit;
 
-    QLabel *ValueLabel;
-    QLineEdit *ValueLineEdit;
-
     QPushButton *SettingsPortButton;
-    QPushButton *OnComPortButton;
-    QPushButton *OffComPortButton;
+    QPushButton *ComPortButton;
+    QPushButton *ClearConsoleButton;
 
     QPushButton *AdditionalParamButton;
 
+    QCheckBox *ConsoleVisibleCheckBox;
 
     SettingsDialog *SettingsComPort;
     comPort *DeviceComPort;
+    QThread *ComPortThread;
+
+    Console *ConsoleWidget;
+
+    TableModel *m_model;
+    MyDelegate *m_delegate;
+    QTableView *m_tableView;
+    QWidget *tableWidget;
+
+    unsigned char updateSettingsPort;
+
+    loger *log;
+    QThread *logThread;
+    QPushButton *SaveButton;
+
+public:
+    GyroData *Measure;
+    QThread *MeasureThread;
 };
 #endif // GYRODEVICE_H
