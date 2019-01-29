@@ -14,7 +14,7 @@
 GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 {
     updateSettingsPort=0;
-    SettingsComPort = new SettingsDialog(nullptr,1);
+    SettingsComPort = new SettingsDialog(nullptr,3);
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
@@ -40,7 +40,7 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 //-----------------------------------------------------------
 GyroDevice::~GyroDevice()
 {
-//    this->StopThreads();
+    //    this->StopThreads();
     ComPortThread->quit();
     logThread->quit();
 }
@@ -50,18 +50,18 @@ GyroDevice::~GyroDevice()
 void GyroDevice::OpenSerialPort()
 {
     if(ComPortButton->isChecked()){
-    SettingsDialog::Settings p=SettingsComPort->settings();
-    QString name=static_cast<QString>(p.name);
-    int baudRate=static_cast<int>(p.baudRate);
-    int dataBits=static_cast<int>(p.dataBits);
-    int parity=static_cast<int>(p.parity);
-    int stopBits=static_cast<int>(p.stopBits);
-    int flowControl=static_cast<int>(p.flowControl);
-    //emit ConnectComPort(p);
-    emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
-    ComPortButton->setText(tr("Отключить"));
+        SettingsDialog::Settings p=SettingsComPort->settings();
+        QString name=static_cast<QString>(p.name);
+        int baudRate=static_cast<int>(p.baudRate);
+        int dataBits=static_cast<int>(p.dataBits);
+        int parity=static_cast<int>(p.parity);
+        int stopBits=static_cast<int>(p.stopBits);
+        int flowControl=static_cast<int>(p.flowControl);
+        //emit ConnectComPort(p);
+        emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
+        ComPortButton->setText(tr("Отключить"));
     } else{
-         emit DisconnectComPort();
+        emit DisconnectComPort();
         ComPortButton->setText(tr("Подключить"));
     }
 }
@@ -76,10 +76,11 @@ void GyroDevice::UpdateSettingsComPort()
 //-----------------------------------------------------------
 // Назначение: обновление счетчика пакетов (число пакетов)
 //-----------------------------------------------------------
-void GyroDevice::UpdateCountPacketLineEdit(const QString packet,const QString error)
+void GyroDevice::UpdateCountPacketLineEdit(const QString &packet,const QString &error)
 {
     CountPacketLineEdit->setText(packet);
     CountErrorLineEdit->setText(error);
+
 }
 //-----------------------------------------------------------
 // Назначение: отображение принятых данных
@@ -118,24 +119,24 @@ void GyroDevice::SaveData()
 // Назначение: установка состояния кнопок
 //             при подключении порта
 //-----------------------------------------------------------
-void GyroDevice::isConnectedComPort(const QString msg)
+void GyroDevice::isConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(false);
-//    ConsoleWidget->setEnabled(true);
+    //    ConsoleWidget->setEnabled(true);
 
 }
 //-----------------------------------------------------------
 // Назначение: установка состояния кнопок
 //             при отключении порта
 //-----------------------------------------------------------
-void GyroDevice::isNotConnectedComPort(const QString msg)
+void GyroDevice::isNotConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(true);
     if(updateSettingsPort)
         ComPortButton->setEnabled(true);
-//    ConsoleWidget->setEnabled(false);
+    //    ConsoleWidget->setEnabled(false);
 
 }
 //-----------------------------------------------------------
@@ -158,8 +159,8 @@ void GyroDevice::CreateWidgets()
     ConsoleWidget->setEnabled(true);
     ConsoleWidget->hide();
     TypeProtocolComboBox=new QComboBox;
-//    TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
-//    TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
+    //    TypeProtocolComboBox->addItem(QStringLiteral("Delta_PS"));
+    //    TypeProtocolComboBox->addItem(QStringLiteral("Rate_2"));
     TypeProtocolComboBox->addItem(QStringLiteral("Dadvtt"));
 
 
@@ -214,7 +215,7 @@ void GyroDevice::CreateWidgets()
     LeftLayout->addWidget(CountPacketLineEdit,1,1);
     LeftLayout->addWidget(CountErrorLabel,2,0);
     LeftLayout->addWidget(CountErrorLineEdit,2,1);
-//    LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
+    LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
     LeftLayout->addWidget(AdditionalParamButton,4,0);
 
     QVBoxLayout *LeftAll=new QVBoxLayout;
@@ -275,8 +276,8 @@ void GyroDevice::CreateConnections()
     connect(this,&GyroDevice::DisconnectComPort,
             DeviceComPort,&comPort::DisconnectPort);
 
-//    connect(DeviceComPort,&comPort::dataOutput,
-//            ConsoleWidget,&Console::putData);
+    //    connect(DeviceComPort,&comPort::dataOutput,
+    //            ConsoleWidget,&Console::putData);
 
     connect(ClearConsoleButton,&QPushButton::pressed,
             ConsoleWidget,&Console::clear);
@@ -328,16 +329,16 @@ void GyroDevice::AddThread()
     MeasureThread->start();
 
     log->moveToThread(logThread);
-//    connect(logThread,&QThread::started,
-//            log,&loger::start);
+    //    connect(logThread,&QThread::started,
+    //            log,&loger::start);
     connect(log,&loger::finished,
             logThread,&QThread::quit);
     connect(logThread,&QThread::finished,
-           log,&loger::deleteLater);
+            log,&loger::deleteLater);
     connect(log,&loger::finished,
             logThread,&QThread::deleteLater);
     logThread->start();
-qDebug()<< QThread::currentThread();
+    qDebug()<< QThread::currentThread();
 
 }
 //-----------------------------------------------------------

@@ -20,14 +20,20 @@
 #include "GyroDev/gyrodevice.h"
 #include "Timer/ptimer.h"
 #include "loger/loger.h"
+#include "coordinatedialog/corrddialog.h"
+#include "qcustomplot/plotwidget.h"
 
+#include "TableDev/tablers485.h"
+
+
+class CustomLineEdit;
 class Widget : public QMainWindow
 {
     Q_OBJECT
 
 public:
     Widget(QWidget *parent = nullptr);
-    ~Widget();
+//    ~Widget();
 signals:
     ///сигнал закрытия окна приложения
     void onWindowClosed();
@@ -45,6 +51,8 @@ signals:
     void ResetAbsCoord();
     ///логирование данных
     void PutLog(QString data);
+
+    void buildgraph(int index,double data);
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
@@ -58,11 +66,16 @@ public slots:
     void StopMeasureSlot();
     ///реализует четырех позиционный алгоритм
     void Measure();
+   void  slotbuildgraph();
+    void createPlot(QString name);
     void saveSettings();
     void readSettings();
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
+    ///
+    void viewAngle(QString Roll,QString Pitch);
+
 public:
     int timeSec;
 private:
@@ -87,6 +100,10 @@ private:
     ///вызов окна гироскопического устройства
     QAction *ConfigGyroDevAction;
 
+    ///
+    QAction *SetCoordianteAction;
+    QAction *ViewPlotAction;
+    QAction *stopPlot;
     ///выполнить однократное измерение
     QAction *OneMeasurementAction;
     ///выполнить серию измерений
@@ -109,7 +126,6 @@ private:
     QLabel *maxValueLabel;
     ///надпись "СКО"
     QLabel *skoLabel;
-
     ///надпись "Время накопления"
     QLabel *timeAccumulateLabel;
     ///поле с значением времени накопления данных
@@ -129,16 +145,27 @@ private:
     QLabel *countMeasureLabel;
     ///поле с значением кол-ва измерений
     QLineEdit *countMeasureLineEdit;
+    ///
+    QLabel *RollLabel;
+    ///
+    /*QLineEdit*/CustomLineEdit *RollLineEdit;
+    ///
+    QLabel *PitchLabel;
+    ///
+    /*QLineEdit*/CustomLineEdit *PitchLineEdit;
     ///виджет главного окна
     QWidget *measureWidget;
     ///объект класса TableDevice
     TableDevice *ConfigTableDevice;
     ///объект класса GyroDevice
     GyroDevice *ConfigGyroDevice;
+    ///
+    corrdDialog *CoordDialog;
     ///объект класса loger
     loger *Log;
     ///объект класса QTimer
     QTimer *ptmr;
+    QTimer *tmrsec;
     ///признак однократного измерения
     bool isOneMeasure;
     ///номер предыдущего измерения(вспом. переменная)
@@ -172,7 +199,27 @@ private:
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     float pos_270;
 
+    tableRS485 *tablers;
+};
 
+class CustomLineEdit : public QLineEdit
+{
+    Q_OBJECT
+public:
+    explicit CustomLineEdit(QString name="default",QWidget *parent=nullptr): QLineEdit(parent)
+    {
+        this->name=name;
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent *event){
+        QLineEdit::mouseDoubleClickEvent(event);
+        emit doubleclick(name);
+    }
+private:
+    QString name;
+    double data;
+signals:
+    void doubleclick(QString name);
 };
 
 #endif // WIDGET_H

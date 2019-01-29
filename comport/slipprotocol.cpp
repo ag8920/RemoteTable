@@ -37,42 +37,40 @@ char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2)
     if(b.contains(S_END)){
         int j=0;
         while (b.at(j)!=S_END) {
-           if(b.at(j)==S_ESC && b.at(j+1)!=S_ESC_END && b.at(j+1)!=S_ESC_ESC)
-               return 2;
-           if(b.at(j)==S_ESC && b.at(j+1)==S_ESC_END){
-              b2.append(S_END);
-               j++;
-           }
-           else if(b.at(j)==S_ESC && b.at(j+1)==S_ESC_ESC){
-               b2.append(S_ESC);
-               j++;
-           }
-           else
-               b2.append(b.at(j));
-           j++;
+            if(b.at(j)==S_ESC && b.at(j+1)!=S_ESC_END && b.at(j+1)!=S_ESC_ESC)
+                return 2;
+            if(b.at(j)==S_ESC && b.at(j+1)==S_ESC_END){
+                b2.append(S_END);
+                j++;
+            }
+            else if(b.at(j)==S_ESC && b.at(j+1)==S_ESC_ESC){
+                b2.append(S_ESC);
+                j++;
+            }
+            else
+                b2.append(b.at(j));
+            j++;
         } return 1;
     }
     else
         return  0;
 }
 
-/*!
- * \brief SlipProtocol::SlipDecode
- */
+
 char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt)
 {
-       if(cnt>=l*2-1)  return 2;   // overflow error protection
-//        if(b[cnt-1]==S_END && cnt)
-       if(b.contains(S_END))
-       {   int e=0, c=0; cnt=0;
-            while(b[c]!=S_END)
-            {   if(b[c]==S_ESC && (b[c+1]!=S_ESC_END && b[c+1]!=S_ESC_ESC)) return 2;
-                if      (b[c]==S_ESC && b[c+1]==S_ESC_END)  {b2[e]=S_END; c++;}
-                else if (b[c]==S_ESC && b[c+1]==S_ESC_ESC)  {b2[e]=S_ESC; c++;}
-                else                                         b2[e]=b[c];
-                e++; c++;
-            }   return 1;
-        }else   return 0;
+    if(cnt>=l*2-1)  return 2;   // overflow error protection
+    //        if(b[cnt-1]==S_END && cnt)
+    if(b.contains(S_END))
+    {   int e=0, c=0; cnt=0;
+        while(b[c]!=S_END)
+        {   if(b[c]==S_ESC && (b[c+1]!=S_ESC_END && b[c+1]!=S_ESC_ESC)) return 2;
+            if      (b[c]==S_ESC && b[c+1]==S_ESC_END)  {b2[e]=S_END; c++;}
+            else if (b[c]==S_ESC && b[c+1]==S_ESC_ESC)  {b2[e]=S_ESC; c++;}
+            else                                         b2[e]=b[c];
+            e++; c++;
+        }   return 1;
+    }else   return 0;
 }
 
 

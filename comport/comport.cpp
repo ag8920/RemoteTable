@@ -58,10 +58,10 @@ void comPort::ConnectPort(QString name, int baudrate, int DataBits,
     if(thisPort.open(QIODevice::ReadWrite))
     {
         if(thisPort.setBaudRate(SettingsPort.baudRate)
-           && thisPort.setDataBits(SettingsPort.dataBits)
-           && thisPort.setParity(SettingsPort.parity)
-           && thisPort.setStopBits(SettingsPort.stopBits)
-           && thisPort.setFlowControl(SettingsPort.flowControl))
+                && thisPort.setDataBits(SettingsPort.dataBits)
+                && thisPort.setParity(SettingsPort.parity)
+                && thisPort.setStopBits(SettingsPort.stopBits)
+                && thisPort.setFlowControl(SettingsPort.flowControl))
         {
             if(thisPort.isOpen())
             {
@@ -116,10 +116,13 @@ void comPort::handleError(QSerialPort::SerialPortError error)
 //-----------------------------------------------------------
 // Назначение: отправка данных в COM порт
 //-----------------------------------------------------------
-void comPort::WriteToPort(const QByteArray &data)
+bool comPort::WriteToPort(const QByteArray &data)
 {
-    if(thisPort.isOpen())
+    if(thisPort.isOpen()){
         thisPort.write(data);
+        return true;
+    }
+    return false;
 }
 //-----------------------------------------------------------
 // Назначение: чтение данных из COM порта
@@ -136,7 +139,19 @@ void comPort::ReadInPort()
 void comPort::Stop()
 {
     qDebug("comPort::stop()");
-//    this->DisconnectPort();
+    //    this->DisconnectPort();
     emit finishedPort();
 }
+//
+QByteArray comPort::writeAndRead(const QByteArray &data)
+{
+    //Записываем в последовательный порт и ждем 50 мс, пока запись не будем произведена
+    if(!this->WriteToPort(data))return nullptr;
+    thisPort.waitForBytesWritten(50);
+    //Засыпаем , ожидая, пока стол обработает данные и ответит
+    this->thread()->msleep(50);
+    return thisPort.readAll();
+}
+
+//
 

@@ -39,10 +39,10 @@ signals:
     void StopRecord();
 public slots:
     void OpenSerialPort();
-    void isConnectedComPort(const QString msg);
-    void isNotConnectedComPort(const QString msg);
+    void isConnectedComPort(const QString &msg);
+    void isNotConnectedComPort(const QString &msg);
     void UpdateSettingsComPort();
-    void UpdateCountPacketLineEdit(const QString packet, const QString error);
+    void UpdateCountPacketLineEdit(const QString &packet, const QString &error);
     void AdditionalParamsVisible();
     void ConsoleVisible();
 private slots:

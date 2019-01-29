@@ -69,5 +69,6 @@
         <file>icons/table.png</file>
         <file>icons/settings.png</file>
         <file>icons/compas.png</file>
+        <file>icons/coordinate.png</file>
     </qresource>
 </RCC>

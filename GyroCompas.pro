@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport
+QT       += core gui widgets serialport printsupport
 
 TARGET = GyroCompas
 TEMPLATE = app
@@ -52,7 +52,12 @@ SOURCES += \
     comport/slipprotocol.cpp \
     ModelData/tablemodel.cpp \
     Timer/ptimer.cpp \
-    loger/loger.cpp
+    loger/loger.cpp \
+    coordinatedialog/corrddialog.cpp \
+    qcustomplot/qcustomplot.cpp \
+    qcustomplot/plotwidget.cpp \
+    TableDev/tablers485.cpp \
+    TableDev/tablers232.cpp
 
 
 HEADERS += \
@@ -66,7 +71,12 @@ HEADERS += \
     comport/slipprotocol.h \
     ModelData/tablemodel.h \
     Timer/ptimer.h \
-    loger/loger.h
+    loger/loger.h \
+    coordinatedialog/corrddialog.h \
+    qcustomplot/qcustomplot.h \
+    qcustomplot/plotwidget.h \
+    TableDev/tablers485.h \
+    TableDev/tablers232.h
 
 
 # Default rules for deployment.
@@ -78,7 +88,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 #RC_FILE = resources.rc
 
 FORMS += \
-    comport/settingsdialog/settingsdialog.ui
+    comport/settingsdialog/settingsdialog.ui \
+    coordinatedialog/corrddialog.ui
 
 RESOURCES += \
     resource.qrc

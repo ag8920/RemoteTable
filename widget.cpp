@@ -22,10 +22,21 @@ Widget::Widget(QWidget *parent)
     Q_UNUSED(parent);
     ConfigTableDevice = new TableDevice;
     ConfigGyroDevice = new GyroDevice;
+    CoordDialog = new corrdDialog;
     Log = new loger;
 
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
+
+    tmrsec=new QTimer;
+    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
+    tmrsec->setInterval(1000);
+    tmrsec->start();
+
+    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
+
+    tablers=new tableRS485;
+    tablers->setAngle();
 
     InitVariable();
     CreateActions();
@@ -35,7 +46,6 @@ Widget::Widget(QWidget *parent)
     CreateWidgets();
     initActionConnections();
     CreateConnections();
-    readSettings();
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -51,8 +61,9 @@ Widget::~Widget()
 //-----------------------------------------------------------
 void Widget::closeEvent(QCloseEvent *event)
 {
-//    Q_UNUSED(event);
-    ptmr->stop();    
+    //    Q_UNUSED(event);
+    ptmr->stop();
+    saveSetting();
     onWindowClosed();
     event->accept();
 }
@@ -79,6 +90,11 @@ void Widget::CreateActions()
     StopTimerAction->setEnabled(false);
 
 
+    SetCoordianteAction = new QAction(tr("Задать координаты"),this);
+    SetCoordianteAction->setIcon(QIcon(":/icons/coordinate.png"));
+
+    ViewPlotAction = new QAction(tr("Графики"),this);
+    stopPlot=new QAction(tr("остановить"),this);
 }
 
 void Widget::initActionConnections()
@@ -91,7 +107,10 @@ void Widget::initActionConnections()
             ConfigTableDevice,&TableDevice::close);
     connect(this,&Widget::onWindowClosed,
             ConfigGyroDevice,&GyroDevice::close);
-
+    connect(SetCoordianteAction,&QAction::triggered,
+            CoordDialog,&QDialog::show);
+    //    connect(ViewPlotAction,&QAction::triggered,
+    //            tablers,&tableRS485::setAngle);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -99,6 +118,7 @@ void Widget::initActionConnections()
 void Widget::CreateMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&Меню"));
+    fileMenu->addAction(SetCoordianteAction);
     fileMenu->addAction(OneMeasurementAction);
     fileMenu->addAction(StartTimerAction);
     fileMenu->addAction(StopTimerAction);
@@ -106,6 +126,8 @@ void Widget::CreateMenus()
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
+    configMenu->addAction(ViewPlotAction);
+    configMenu->addAction(stopPlot);
 }
 //-----------------------------------------------------------
 // Назначение: создание панели инструментов
@@ -136,15 +158,18 @@ void Widget::CreateStatusBar()
 //-----------------------------------------------------------
 void Widget::CreateWidgets()
 {
-    measureWidget = new QWidget;    
+    measureWidget = new QWidget;
     QGridLayout *LeftLayout = new  QGridLayout;
     QGridLayout *RightLayout = new QGridLayout;
     QVBoxLayout *MainLayout = new QVBoxLayout;
     QRegExp regExp("[0-9][0-9]{0,4}");
     QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,5);
+    QDoubleValidator* regExpDouble=new QDoubleValidator();
+    regExpDouble->setLocale(QLocale::English);
+
 
     QGroupBox *leftgroupBox = new QGroupBox(tr("Измерения азимута"));
-    QGroupBox *rightgroupBox = new QGroupBox;
+    QGroupBox *rightgroupBox = new QGroupBox(tr("Углы поворота"));
 
     currValueLabel=new QLabel(tr("Значение азимута:"));
     meanValueLabel=new QLabel(tr("Среднее значение:"));
@@ -181,6 +206,14 @@ void Widget::CreateWidgets()
     countMeasureLineEdit=new QLineEdit;
     countMeasureLineEdit->setReadOnly(true);
 
+    RollLabel=new QLabel(tr("Значение крена:"));
+    RollLineEdit=new  CustomLineEdit("Roll")/*QLineEdit*/;
+    RollLineEdit->setReadOnly(true);
+    PitchLabel=new QLabel(tr("Значение тангажа:     "));
+    PitchLineEdit=new CustomLineEdit("Pitch");
+    PitchLineEdit->setReadOnly(true);
+
+
     LeftLayout->addWidget(currValueLabel,0,0);
     LeftLayout->addWidget(currValueLineEdit,0,1);
 
@@ -197,24 +230,29 @@ void Widget::CreateWidgets()
     LeftLayout->addWidget(skoLabel,4,0);
     LeftLayout->addWidget(skoLineEdit,4,1);
 
-    RightLayout->addWidget(timeAccumulateLabel,0,0);
-    RightLayout->addWidget(timeAccumulateLineEdit,0,1);
+    LeftLayout->addWidget(countMeasureLabel,5,0);
+    LeftLayout->addWidget(countMeasureLineEdit,5,1);
 
-    RightLayout->addWidget(countMeasureLabel,2,0);
-    RightLayout->addWidget(countMeasureLineEdit,2,1);
+    LeftLayout->addWidget(timeAccumulateLabel,6,0);
+    LeftLayout->addWidget(timeAccumulateLineEdit,6,1);
+
+    RightLayout->addWidget(RollLabel,0,0);
+    RightLayout->addWidget(RollLineEdit,0,1);
+    RightLayout->addWidget(PitchLabel,1,0);
+    RightLayout->addWidget(PitchLineEdit,1,1);
 
     leftgroupBox->setLayout(LeftLayout);
     rightgroupBox->setLayout(RightLayout);
     //MainLayout->addLayout(LeftLayout);
     MainLayout->addWidget(leftgroupBox);
-//    MainLayout->addLayout(RightLayout);
+    //    MainLayout->addLayout(RightLayout);
     MainLayout->addWidget(rightgroupBox);
 
     measureWidget->setLayout(MainLayout);
     setCentralWidget(measureWidget);
 
-   this->setWindowIcon(QIcon(":/icons/compas.png"));
-   measureWidget->show();
+    this->setWindowIcon(QIcon(":/icons/compas.png"));
+    measureWidget->show();
 }
 //-----------------------------------------------------------
 // Назначение: создание соединений СИГНАЛ-СЛОТ
@@ -283,6 +321,18 @@ void Widget::CreateConnections()
     connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
 
     connect(this,&Widget::PutLog,Log,&loger::PutLog);
+
+    connect(CoordDialog,&corrdDialog::outCoordinate,
+            ConfigGyroDevice->Measure,&GyroData::GetCoordinate);
+    connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
+            this,&Widget::viewAngle);
+
+    //connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+    //connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
+
+    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -308,8 +358,6 @@ void Widget::InitVariable()
     this->denumerator=0.;
     this->isOneMeasure=false;
 }
-
-
 //-----------------------------------------------------------
 // Назначение: Запуск измерений
 //-----------------------------------------------------------
@@ -407,47 +455,51 @@ void Widget::Measure()
         prevMeasure=numMeasure;
 
         //пересчет параметров
-         Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos_270-pos_90),
-                                                            (pos_0-pos_180))));
-         Azimuth<0?Azimuth+=360.0:Azimuth;
-         SummAzimuth+=Azimuth;
-         if(numMeasure==1){
-             MeanAzimuth=Azimuth;
-             MaxAzimuth=Azimuth;
-             MinAzimuth=Azimuth;
-         }
-         else{
-             MeanAzimuth=SummAzimuth/numMeasure;
-             MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
-             MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
-         }
+        Azimuth=qRadiansToDegrees(static_cast<float>(atan2((pos_270-pos_90),
+                                                           (pos_0-pos_180))));
+        Azimuth<0?Azimuth+=360.0:Azimuth;
+        SummAzimuth+=Azimuth;
+        if(numMeasure==1){
+            MeanAzimuth=Azimuth;
+            MaxAzimuth=Azimuth;
+            MinAzimuth=Azimuth;
+        }
+        else{
+            MeanAzimuth=SummAzimuth/numMeasure;
+            MaxAzimuth<Azimuth?MaxAzimuth=Azimuth:MaxAzimuth;
+            MinAzimuth>Azimuth?MinAzimuth=Azimuth:MinAzimuth;
+        }
 
-         numerator+=powf((Azimuth-MeanAzimuth),2);
-         numMeasure>1?denumerator=numMeasure-1:denumerator=1;
-         SKO=sqrt(numerator/denumerator);
+        numerator+=powf((Azimuth-MeanAzimuth),2);
+        numMeasure>1?denumerator=numMeasure-1:denumerator=1;
+        SKO=sqrt(numerator/denumerator);
 
-         currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
-         meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
-         minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
-         maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
-         skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
+        currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
+        meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
+        minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
+        maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
+        skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
 
-         if(numMeasure==1)
-             emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
-         emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
-                            .arg(static_cast<double>(Azimuth))
-                            .arg(static_cast<double>(MeanAzimuth))
-                            .arg(static_cast<double>(MinAzimuth))
-                            .arg(static_cast<double>(MaxAzimuth))
-                            .arg(static_cast<double>(SKO))
-                         );
+        if(numMeasure==1)
+            emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
+        emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
+                    .arg(static_cast<double>(Azimuth))
+                    .arg(static_cast<double>(MeanAzimuth))
+                    .arg(static_cast<double>(MinAzimuth))
+                    .arg(static_cast<double>(MaxAzimuth))
+                    .arg(static_cast<double>(SKO))
+                    );
         countMeasureLineEdit->setText(QString::number(numMeasure));
-         if(isOneMeasure){
-             isOneMeasure=false;
-             this->StopMeasureSlot();
-         }
+        if(isOneMeasure){
+            isOneMeasure=false;
+            this->StopMeasureSlot();
+        }
     }
+}
 
+void Widget::slotbuildgraph()
+{
+    emit buildgraph(0,RollLineEdit->text().toDouble());
 }
 
 void Widget::OneMeasureSlot()
@@ -459,13 +511,12 @@ void Widget::saveSettings()
 {
     //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
     QSettings settings("settings.ini",QSettings::IniFormat);
-    settings.beginGroup("MainWindow");
     settings.setValue("size",size());
+    settings.beginGroup("MainWindow");
     settings.setValue("pos",pos());
     settings.endGroup();
 
 }
-
 void Widget::readSettings()
 {
     //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
@@ -474,4 +525,17 @@ void Widget::readSettings()
     resize(settings.value("size",QSize(400,400)).toSize());
     move(settings.value("pos",QPoint(200,200)).toPoint());
     settings.endGroup();
+}
+void Widget::viewAngle(QString Roll, QString Pitch)
+{
+    RollLineEdit->setText(Roll);
+    PitchLineEdit->setText(Pitch);
+}
+void Widget::createPlot(QString name)
+{
+    PlotWidget *plot=new PlotWidget;
+    plot->graphAdd(name);
+    plot->show();
+    connect(this,&Widget::buildgraph,plot,&PlotWidget::realtimeDataSlot);
+    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
 }

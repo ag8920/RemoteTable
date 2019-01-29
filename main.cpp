@@ -20,6 +20,5 @@ int main(int argc, char *argv[])
     w.setWindowTitle(QObject::tr("ГироКомпас"));
     w.show();
 
-
     return a.exec();
 }

@@ -36,9 +36,9 @@ TableModel::~TableModel()
 int TableModel::rowCount(const QModelIndex &parent) const
 {
     if(parent.isValid() || varName->count()==0)
-          return 0;
-      else
-          return varName->count();
+        return 0;
+    else
+        return varName->count();
 }
 
 //------------------------------------------------------------------------------
@@ -47,9 +47,9 @@ int TableModel::rowCount(const QModelIndex &parent) const
 int TableModel::columnCount(const QModelIndex &/*parent*/) const
 {
     if(myHeader.count())
-           return myHeader.count();
-       else
-           return 0;
+        return myHeader.count();
+    else
+        return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -58,12 +58,12 @@ int TableModel::columnCount(const QModelIndex &/*parent*/) const
 QVariant TableModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid() || !varName->count())
-            return QVariant();
-//    if(role == Qt::TextColorRole)
-//        return QColor(Qt::white);
-    if(role == Qt::DisplayRole || role==Qt::EditRole)
-            return varValue->at(index.row());
         return QVariant();
+    //    if(role == Qt::TextColorRole)
+    //        return QColor(Qt::white);
+    if(role == Qt::DisplayRole || role==Qt::EditRole)
+        return varValue->at(index.row());
+    return QVariant();
 }
 
 //------------------------------------------------------------------------------
@@ -73,13 +73,13 @@ bool TableModel::setData(const QModelIndex &index, const QVariant &value,
                          int role)
 {
     if(index.isValid() && (role==Qt::EditRole || role==Qt::DisplayRole))
-        {
-            //varValue->replace(index.row(),value.toString());
-            (*varValue)[index.row()]=value.toString();
-            emit dataChanged(index,index);
-            return true;
-        }
-        return false;
+    {
+        //varValue->replace(index.row(),value.toString());
+        (*varValue)[index.row()]=value.toString();
+        emit dataChanged(index,index);
+        return true;
+    }
+    return false;
 }
 
 //------------------------------------------------------------------------------
@@ -89,11 +89,11 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation,
                                 int role) const
 {
     if(role !=Qt::DisplayRole) return QVariant();
-        if(orientation == Qt::Horizontal)
-                return myHeader.at(section);
-        if(orientation == Qt::Vertical)
-                return varName->at(section);
-        return QAbstractTableModel::headerData(section,orientation,role);
+    if(orientation == Qt::Horizontal)
+        return myHeader.at(section);
+    if(orientation == Qt::Vertical)
+        return varName->at(section);
+    return QAbstractTableModel::headerData(section,orientation,role);
 }
 
 //------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation,
 Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
 {
     if(!index.isValid() || !varName->count()) return nullptr;
-       return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+    return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
 
 //------------------------------------------------------------------------------
@@ -152,15 +152,15 @@ QWidget *MyDelegate::createEditor(QWidget *parent,
     QLineEdit *editor = new QLineEdit(parent);
     QDoubleValidator *m_doubleValidator = new QDoubleValidator;
     m_doubleValidator->setNotation(QDoubleValidator::StandardNotation); //0,1232...
-//     m_doubleValidator->setNotation(QDoubleValidator::ScientificNotation); // 1,232e-1...
+    //     m_doubleValidator->setNotation(QDoubleValidator::ScientificNotation); // 1,232e-1...
     m_doubleValidator->setLocale(QLocale::English);
     editor->installEventFilter(const_cast<MyDelegate*>(this));
     editor->setValidator(m_doubleValidator);
 
-//    QPalette palette;
-//    palette.setColor(QPalette::Base,Qt::green);
-//    palette.setColor(QPalette::Background,Qt::blue);
-//    editor->setPalette(palette);
+    //    QPalette palette;
+    //    palette.setColor(QPalette::Base,Qt::green);
+    //    palette.setColor(QPalette::Background,Qt::blue);
+    //    editor->setPalette(palette);
 
     return editor;
 }
