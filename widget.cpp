@@ -28,15 +28,15 @@ Widget::Widget(QWidget *parent)
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
-    tmrsec=new QTimer;
-    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
-    tmrsec->setInterval(1000);
-    tmrsec->start();
+//    tmrsec=new QTimer;
+//    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
+//    tmrsec->setInterval(1000);
+//    tmrsec->start();
 
-    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
+//    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
 
-    tablers=new tableRS485;
-    tablers->setAngle();
+//    tablers=new tableRS485;
+//    tablers->setAngle();
 
     InitVariable();
     CreateActions();
@@ -63,7 +63,7 @@ void Widget::closeEvent(QCloseEvent *event)
 {
     //    Q_UNUSED(event);
     ptmr->stop();
-    saveSetting();
+    saveSettings();
     onWindowClosed();
     event->accept();
 }
@@ -126,8 +126,8 @@ void Widget::CreateMenus()
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
-    configMenu->addAction(ViewPlotAction);
-    configMenu->addAction(stopPlot);
+//    configMenu->addAction(ViewPlotAction);
+//    configMenu->addAction(stopPlot);
 }
 //-----------------------------------------------------------
 // Назначение: создание панели инструментов
@@ -327,12 +327,12 @@ void Widget::CreateConnections()
     connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
             this,&Widget::viewAngle);
 
-    //connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
-    //connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
-    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
+//    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+//    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+//    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
 
-    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
-    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+//    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+//    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -537,5 +537,5 @@ void Widget::createPlot(QString name)
     plot->graphAdd(name);
     plot->show();
     connect(this,&Widget::buildgraph,plot,&PlotWidget::realtimeDataSlot);
-    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+//    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
 }

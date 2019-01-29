@@ -14,7 +14,7 @@
 GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
 {
     updateSettingsPort=0;
-    SettingsComPort = new SettingsDialog(nullptr,3);
+    SettingsComPort = new SettingsDialog(nullptr,2);
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
