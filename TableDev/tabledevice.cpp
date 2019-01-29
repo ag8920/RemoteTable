@@ -17,7 +17,7 @@ enum { HEX=1,DEC,OCT,BIN,ASCII,};
 //-----------------------------------------------------------
 TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
 {
-    SettingsComPort = new SettingsDialog(nullptr,2);
+    SettingsComPort = new SettingsDialog(nullptr,1);
     DeviceComPort = new comPort;
     ComPortThread = new QThread;
     ConsoleWidget = new Console;

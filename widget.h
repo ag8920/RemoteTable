@@ -33,7 +33,7 @@ class Widget : public QMainWindow
 
 public:
     Widget(QWidget *parent = nullptr);
-//    ~Widget();
+    ~Widget();
 signals:
     ///сигнал закрытия окна приложения
     void onWindowClosed();
@@ -165,7 +165,7 @@ private:
     loger *Log;
     ///объект класса QTimer
     QTimer *ptmr;
-    QTimer *tmrsec;
+//    QTimer *tmrsec;
     ///признак однократного измерения
     bool isOneMeasure;
     ///номер предыдущего измерения(вспом. переменная)
@@ -199,7 +199,7 @@ private:
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     float pos_270;
 
-    tableRS485 *tablers;
+//    tableRS485 *tablers;
 };
 
 class CustomLineEdit : public QLineEdit

@@ -5,7 +5,7 @@ PlotWidget::PlotWidget(QWidget *parent) : QCustomPlot(parent)
     indexPlot=0;
     this->axisRect()->setupFullAxesBox();
     this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
-//    this->axisRect()->setRangeDrag(Qt::Horizontal);
+    //    this->axisRect()->setRangeDrag(Qt::Horizontal);
     this->axisRect()->setupFullAxesBox();
     this->rescaleAxes();
     resize(365,220);
@@ -22,7 +22,7 @@ PlotWidget::PlotWidget(QWidget *parent) : QCustomPlot(parent)
 
 void PlotWidget::closeEvent(QCloseEvent *event)
 {
-
+    Q_UNUSED(event);
 }
 
 void PlotWidget::graphAdd(const QString Name, const QColor color, const int width)
@@ -48,12 +48,12 @@ void PlotWidget::realtimeDataSlot(const int index, const double data)
         static double lastPointKey = 0;
         if(1)// (key-lastPointKey > 0.002) // at most add point every 2 ms
         {
-          // add data to lines:
-         this->graph(index)->addData(key,data);
+            // add data to lines:
+            this->graph(index)->addData(key,data);
 
-          // rescale value (vertical) axis to fit the current data:
-          //this->graph(index)->rescaleValueAxis();
-          lastPointKey = key;
+            // rescale value (vertical) axis to fit the current data:
+            //this->graph(index)->rescaleValueAxis();
+            lastPointKey = key;
         }
         // make key axis range scroll with the data (at a constant range size of 8):
 

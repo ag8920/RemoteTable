@@ -17,6 +17,9 @@ corrdDialog::corrdDialog(QWidget *parent) :
     ui->LonlineEdit->setText(QString::number(static_cast<double>(Lon)));
     ui->HeightlineEdit->setValidator(validator);
     ui->HeightlineEdit->setText(QString::number(static_cast<double>(H)));
+
+    ui->buttonBox->addButton(tr("Ок"), QDialogButtonBox :: AcceptRole);
+    ui->buttonBox->addButton(tr("Отмена"),QDialogButtonBox::RejectRole);
 }
 
 corrdDialog::~corrdDialog()

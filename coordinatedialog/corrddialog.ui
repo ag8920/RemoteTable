@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>230</width>
-    <height>121</height>
+    <width>200</width>
+    <height>144</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -65,7 +65,7 @@
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+        <set>QDialogButtonBox::NoButton</set>
        </property>
       </widget>
      </item>

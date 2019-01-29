@@ -52,6 +52,7 @@ SettingsDialog::SettingsDialog(QWidget *parent, int id) :
 }
 void SettingsDialog::closeEvent(QCloseEvent *event)
 {
+    Q_UNUSED(event);
     writeSettings();
 }
 
