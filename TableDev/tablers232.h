@@ -15,7 +15,7 @@ signals:
 public slots:
     void ExecutePos();
     void ZeroPosition();
-    void GetPosition();
+    int GetPosition(const QByteArray &data);
     void GoToPosition(QVariant position);
     void RequestPosition();
     void OnMotion();
@@ -25,22 +25,22 @@ public slots:
     void FinishedMotion();
     void ResetAbsCoord();
 
-    void SendCMD(const QString &cmd);
+
 
     void SetSpeed(const QString &str);
     void SetAngle(const QString &str);
     void SetTypePositioning (bool pos);
 
-    void AddThreads();
+//    void AddThreads();
 private:
-    comPort *DeviceComPort;
-    QThread *ComPortThread;
 
     QString speed;
     QString angle;
     QString typePositioning;
 
     int nextPosition;
+
+    inline void SendCMD(const QString &cmd);
 };
 
 #endif // TABLERS232_H

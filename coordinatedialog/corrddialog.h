@@ -22,6 +22,8 @@ public:
     double H;
 private:
     Ui::corrdDialog *ui;
+    void readSettings();
+    void writeSettings();
 signals:
     void outCoordinate(double *Lat,double *Lon,double *H);
 public slots:

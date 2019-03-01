@@ -1,5 +1,149 @@
 #include "tablers485.h"
+//------------------------------------------------------------------------------
+// Релизация класса управления поворотным столом
+//------------------------------------------------------------------------------
+tableRS485::tableRS485(QObject *parent) : QObject(parent)
+{
+    encoder=new MarkerEncoder();
+}
 
+//
+void tableRS485::ReadMsg(const QByteArray &data)
+{
+
+}
+//------------------------------------------------------------------------------
+QByteArray tableRS485::GetMessage(Command CMD, QByteArray &DATA,
+                                  const quint8 AddByte)
+{
+    QByteArray sendData;//=new QByteArray;
+    QByteArray bodyData;//=new QByteArray;
+    quint16 crc;
+
+    sendData.append(STARTBYTE);
+    bodyData.append(DEVnum);
+    bodyData.append(static_cast<char>(AddByte));
+    bodyData.append(static_cast<char>(CMD));
+    if(!DATA.isNull()){
+        bodyData.append(DATA);
+    }
+    crc=calcCRC16((unsigned char*)bodyData.data(),bodyData.size());
+    bodyData.append(static_cast<char>(crc>>8));
+    bodyData.append(static_cast<char>(crc&0xFF));
+    encoder->Encode(bodyData);
+    return sendData.append(bodyData);
+}
+//------------------------------------------------------------------------------
+bool tableRS485::StatusCom()
+{
+    QByteArray data;
+    QByteArray sendData=GetMessage(Command::STATUS,data,254);
+    emit OutputToComPort(sendData);
+    return true;
+}
+//------------------------------------------------------------------------------
+bool tableRS485::ModeCom()
+{
+    QByteArray data;
+    data.append(15);//todo
+    QByteArray sendData=GetMessage(Command::MODE,data,DATA);
+    emit OutputToComPort(sendData);
+    return true;
+}
+//------------------------------------------------------------------------------
+bool tableRS485::setSpeed(float speed)
+{
+    QByteArray data;
+    FloatType val;
+    val.fVal=static_cast<float>(speed*54613.33);//град/сек  54613.33==1deg/sec
+    data.append(*val.buf); //todo
+    QByteArray sendData=GetMessage(Command::SPEED_MODE,data,DATA);
+    emit OutputToComPort(sendData);
+    return true;
+}
+//------------------------------------------------------------------------------
+bool tableRS485::setAngle(float angle)
+{
+    QByteArray data;
+    FloatType val;
+    val.fVal=angle*2500;//град  2500==1deg
+    data.append(val.buf,4);
+    QByteArray sendData=GetMessage(Command::ANGLE_MODE,data,DATA);
+    emit OutputToComPort(sendData);
+    return true;
+}
+//------------------------------------------------------------------------------
+bool tableRS485::getCurPos()
+{
+    QByteArray data;
+    QByteArray sendData=GetMessage(Command::CURR_POS,data,254);
+    emit OutputToComPort(sendData);
+    return true;
+}
+
+
+
+
+
+
+//------------------------------------------------------------------------------
+// Реализация класса безмаркерного кодирования/декодирования
+//------------------------------------------------------------------------------
+MarkerEncoder::MarkerEncoder(QObject *parent)
+{
+    Q_UNUSED(parent);
+}
+//------------------------------------------------------------------------------
+//реализация безмаркерного кодирования
+void MarkerEncoder::Encode(QByteArray &data)
+{
+    int prevIndex=-1;
+
+    for(int i=0;i<data.size();++i) //todo реализовать через итератор
+    {
+        char b=data.at(i);
+        if(b==0x65 || b==0x5a){
+            if(prevIndex == -1){
+                char resbyte=static_cast<char>(i);
+                data[0]=data[0] | (resbyte&0xF);
+                prevIndex=i;
+                continue;
+            }
+            int delta=i - prevIndex;
+            data[prevIndex]=EncodeByte(data[prevIndex],delta);
+            prevIndex=i;
+        }
+    }
+    if(prevIndex>0){
+        data[prevIndex]=EncodeByte(data[prevIndex],0);
+    }
+}
+//------------------------------------------------------------------------------
+//кодирование байта соответсвующего маркеру
+char MarkerEncoder::EncodeByte(char byte, int delta)
+{
+    if(byte==0x65)
+        return (0x80|static_cast<char>(delta));
+    return static_cast<char>(delta);
+}
+//------------------------------------------------------------------------------
+//декодирование пакета
+void MarkerEncoder::Decode(QByteArray &data)
+{
+    char addressByte = data[0];
+    char address= addressByte&0xF;
+    while(address>0){
+        char codeByte=data[address];
+        if(codeByte&0x80) data[address]=0x65;
+        else data[address]=0x5A;
+        address=codeByte&0x7F;
+    }
+    data[0]=addressByte & 0xF0;
+}
+
+//------------------------------------------------------------------------------
+// Расчет контрольной суммы
+//------------------------------------------------------------------------------
 const unsigned short CRC16Table[256] = {
     0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
     0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -43,118 +187,3 @@ unsigned short calcCRC16(unsigned char *pcBlock, unsigned short len)
     }
     return crc;
 }
-
-//------------------------------------------------------------------------------
-tableRS485::tableRS485(QObject *parent) : QObject(parent)
-{
-    ComPort=new comPort();
-    encoder=new MarkerEncoder();
-}
-
-//------------------------------------------------------------------------------
-QByteArray tableRS485::GetMessage(Command CMD, QByteArray &DATA,
-                                  const quint8 AddByte)
-{
-    QByteArray sendData;//=new QByteArray;
-    QByteArray bodyData;//=new QByteArray;
-    quint16 crc;
-
-    sendData.append(STARTBYTE);
-    bodyData.append(DEV);
-    bodyData.append(static_cast<char>(AddByte));
-    bodyData.append(static_cast<char>(CMD));
-    if(!DATA.isNull()){
-        bodyData.append(DATA);
-    }
-    crc=calcCRC16((unsigned char*)bodyData.data(),bodyData.size());
-    bodyData.append(static_cast<char>(crc>>8));
-    bodyData.append(static_cast<char>(crc&0xFF));
-    encoder->Encode(bodyData);
-    return sendData.append(bodyData);
-}
-//------------------------------------------------------------------------------
-bool tableRS485::StatusCom()
-{
-    QByteArray data;
-    QByteArray sendData=GetMessage(Command::STATUS,data,254);
-    return true;
-}
-
-bool tableRS485::ModeCom()
-{
-    QByteArray data;
-    data.append(15);//todo
-    QByteArray sendData=GetMessage(Command::MODE,data,DATA);
-    return true;
-}
-
-bool tableRS485::setSpeed()
-{
-    QByteArray data;
-    FloatType val;
-    val.fVal=static_cast<float>(30*54613.33);//град/сек  54613.33==1deg/sec
-    data.append(*val.buf); //todo
-    QByteArray sendData=GetMessage(Command::SPEED_MODE,data,DATA);
-    return true;
-}
-
-bool tableRS485::setAngle()
-{
-    QByteArray data;
-    FloatType val;
-    val.fVal=30*2500;//град  2500==1deg
-    data.append(val.buf,4);
-    QByteArray sendData=GetMessage(Command::ANGLE_MODE,data,DATA);
-    return true;
-}
-
-//--------------------------------------------
-MarkerEncoder::MarkerEncoder(QObject *parent)
-{
-    Q_UNUSED(parent);
-}
-
-void MarkerEncoder::Encode(QByteArray &data)
-{
-    int prevIndex=-1;
-
-    for(int i=0;i<data.size();++i) //todo реализовать через итератор
-    {
-        char b=data.at(i);
-        if(b==0x65 || b==0x5a){
-            if(prevIndex == -1){
-                char resbyte=static_cast<char>(i);
-                data[0]=data[0] | (resbyte&0xF);
-                prevIndex=i;
-                continue;
-            }
-            int delta=i - prevIndex;
-            data[prevIndex]=EncodeByte(data[prevIndex],delta);
-            prevIndex=i;
-        }
-    }
-    if(prevIndex>0){
-        data[prevIndex]=EncodeByte(data[prevIndex],0);
-    }
-}
-//--------------------------------------------
-char MarkerEncoder::EncodeByte(char byte, int delta)
-{
-    if(byte==0x65)
-        return (0x80|static_cast<char>(delta));
-    return static_cast<char>(delta);
-}
-//--------------------------------------------
-void MarkerEncoder::Decode(QByteArray &data)
-{
-    char addressByte = data[0];
-    char address= addressByte&0xF;
-    while(address>0){
-        char codeByte=data[address];
-        if(codeByte&0x80) data[address]=0x65;
-        else data[address]=0x5A;
-        address=codeByte&0x7F;
-    }
-    data[0]=addressByte & 0xF0;
-}
-

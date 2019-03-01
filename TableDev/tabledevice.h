@@ -18,6 +18,8 @@
 #include "../comport/comport.h"
 #include "../comport/settingsdialog/settingsdialog.h"
 #include "../Console/console.h"
+#include "tablers232.h"
+#include "tablers485.h"
 
 class TableDevice : public QMainWindow
 {
@@ -68,11 +70,14 @@ public slots:
     void SetTimer();
 
     void GetPosition(const QByteArray &data);
+    void GetMsg(const QByteArray &data);
 
     void StartMeasure();
     void StopMeasure();
 
     void ConsoleVisible();
+public slots:
+    void slotUpdateWidget(int idx);
 private:
 
     void CreateWidgets();
@@ -142,6 +147,8 @@ public:
     int numPosition;
     int numMeasure;
 
+    tableRS232 *Table1;
+    tableRS485 *Table2;
 
 };
 

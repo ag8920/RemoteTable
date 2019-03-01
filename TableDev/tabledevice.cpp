@@ -10,7 +10,9 @@
 #include <QtMath>
 #include "tabledevice.h"
 
+
 enum { HEX=1,DEC,OCT,BIN,ASCII,};
+enum {TABLE1,TABLE2};
 
 //-----------------------------------------------------------
 // Назначение: конструктор класса
@@ -22,6 +24,9 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
     ComPortThread = new QThread;
     ConsoleWidget = new Console;
     ConsoleWidget->hide();
+
+    Table1=new tableRS232;
+    Table2=new tableRS485;
 
     tmr = new QTimer;
     isPosition=false;
@@ -66,7 +71,7 @@ void TableDevice::OpenSerialPort()
     }
 }
 
-//-----------------------------------------------------------
+//-------------------------------------------------------
 // Назначение: проверка обновления состояний портов
 //-------------------------------------------------------
 void TableDevice::UpdateSettingsComPort()
@@ -115,6 +120,21 @@ void TableDevice::ZeroPostion()
     QString str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA=0;bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
+}
+
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
+void TableDevice::GetMsg(const QByteArray &data)
+{
+    if (TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        currPosition=Table1->GetPosition(data);
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->ReadMsg(data);
+    }
 }
 //-----------------------------------------------------------
 // Назначение: получение текущей позиции и
@@ -170,16 +190,33 @@ void TableDevice::GoToPosition(QVariant position)
             +position.toString()+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
+
+    if (TypeTableComboBox->currentIndex()==TABLE1)
+    {
+
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->setAngle(position.toFloat());
+    }
 }
 //-----------------------------------------------------------
 // Назначение: Запрос текущего полжения
 //-----------------------------------------------------------
 void TableDevice::RequestPosition()
 {
-    QByteArray data;
-    QString str="px;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="px;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->getCurPos();
+    }
 }
 //-----------------------------------------------------------
 // Назначение: Включить привод
@@ -224,7 +261,8 @@ void TableDevice::OffMotion()
     emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
-// Назначение: остановить вращение(команда стоп) и отключить привод
+// Назначение: остановить вращение(команда стоп)
+// и отключить привод
 //-----------------------------------------------------------
 void TableDevice::FinishedMotion()
 {
@@ -307,8 +345,14 @@ void TableDevice::CreateWidgets()
     ConsoleWidget->setEnabled(true);
     QRegExp regExp("[0-9][0-9]{0,6}");
     //-----------------------------------------------------------
-    TypeTableComboBox=new QComboBox;
-    TypeTableComboBox->addItem(QStringLiteral("Поворотный стол Б"));
+    TypeTableComboBox=new QComboBox();
+    TypeTableComboBox->addItem(QStringLiteral("Поворотный стол 1"));
+    TypeTableComboBox->addItem(QStringLiteral("Поворотный стол 2"));
+
+    connect(TypeTableComboBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(slotUpdateWidget(int)));
+
+
     TypeTableLabel = new QLabel(tr("Тип поворотного устройства:"));
     TypeTableLabel->setBuddy(TypeTableComboBox);
 
@@ -486,6 +530,9 @@ void TableDevice::CreateWidgets()
 //-----------------------------------------------------------
 void TableDevice::CreateConnections()
 {
+    connect(Table1,&tableRS232::OutputToComPort,this,&TableDevice::OutputToComPort);
+    connect(Table2,&tableRS485::OutputToComPort,DeviceComPort,&comPort::writeAndRead);
+
     connect(SettingsComPort,&SettingsDialog::isUpdateSettings,
             this,&TableDevice::UpdateSettingsComPort);
     connect(SettingsPortButton,&QPushButton::pressed,
@@ -541,8 +588,11 @@ void TableDevice::CreateConnections()
     connect(tmr,&QTimer::timeout,
             this,&TableDevice::RequestPosition);
 
-    connect(DeviceComPort,&comPort::dataOutput,
-            this,&TableDevice::GetPosition);
+//    connect(DeviceComPort,&comPort::dataOutput,
+//            this,&TableDevice::GetPosition);
+     connect(DeviceComPort,&comPort::dataOutput,
+             this,&TableDevice::GetMsg);
+
 }
 //-----------------------------------------------------------
 // Назначение: выделение нового потока
@@ -637,6 +687,18 @@ void TableDevice::ConsoleVisible()
         AsciiFormatCheckBox->hide();
         this->window()->adjustSize();
         this->window()->resize(minimumSizeHint());
+    }
+}
+
+void TableDevice::slotUpdateWidget(int idx)
+{
+    if(idx==TABLE1)
+    {
+
+    }
+    else if(idx==TABLE2)
+    {
+
     }
 }
 

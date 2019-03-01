@@ -5,9 +5,11 @@
 #include "../comport/comport.h"
 
 const quint8 STARTBYTE=0x5a; //начало посылки
-const quint8 DEV=0;//адрес стола
+const quint8 DEVnum=0;//адрес стола
 //const quint8 NO_DATA=254;
 const quint8 DATA=255;
+
+//--------------------------------------------------------
 //результат выполнения
 enum class Reports : quint8
 {
@@ -18,13 +20,14 @@ enum class Reports : quint8
     RES_COM=0xCB,//недопустимый код команды или номер параметра
     RES_PAR=0xCC //неверные значения данных
 };
+//--------------------------------------------------------
 //режимы работы
 enum class modeRotation : quint8
 {
     Angle=15,//режим отработки по заданному положению
     Speed=16 //режим отработки с заданной скоростью
 };
-
+//--------------------------------------------------------
 enum class Command : quint8
 {
     MODE=1, //установить режим
@@ -33,20 +36,22 @@ enum class Command : quint8
     CURR_POS=29,//текущее положение ротора
     STATUS=6 //состояние
 };
+//--------------------------------------------------------
 union FloatType
 {
     float fVal;
     char buf[4];
 };
+//--------------------------------------------------------
 union Uint16Type
 {
     quint16 iVal;
     char buf[2];
 };
-
+//--------------------------------------------------------
+//пересчет контрольной суммы
 unsigned short calcCRC16(unsigned char *pcBlock,unsigned short len);
-
-//------------------------------------------------------------------------------
+//--------------------------------------------------------
 class MarkerEncoder: public QObject
 {
     Q_OBJECT
@@ -55,25 +60,25 @@ public:
     void Encode(QByteArray &data);
     char EncodeByte(char byte,int delta);
     void Decode(QByteArray &data);
-
 };
-//------------------------------------------------------------------------------
+//--------------------------------------------------------
 class tableRS485 : public QObject
 {
     Q_OBJECT
 public:
     explicit tableRS485(QObject *parent = nullptr);
-    comPort *ComPort;
-    QThread *comPortThread;
     MarkerEncoder *encoder;
 signals:
     void OutputToComPort(const QByteArray &data);
 public slots:
-    QByteArray GetMessage(Command CMD, QByteArray &DATA, const quint8 AddByte);
+    QByteArray GetMessage(Command CMD, QByteArray &DATA,
+                          const quint8 AddByte);
+    void ReadMsg(const QByteArray &data);
     bool StatusCom();//состояние стола
     bool ModeCom();//выбор режима управления
-    bool setSpeed();
-    bool setAngle();
+    bool setSpeed(float speed);
+    bool setAngle(float angle);
+    bool getCurPos();
 };
 
 
