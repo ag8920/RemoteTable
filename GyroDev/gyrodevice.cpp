@@ -123,7 +123,7 @@ void GyroDevice::isConnectedComPort(const QString &msg)
 {
     this->statusBar()->showMessage(msg,0);
     SettingsPortButton->setEnabled(false);
-    //    ConsoleWidget->setEnabled(true);
+    //ConsoleWidget->setEnabled(true);
 
 }
 //-----------------------------------------------------------

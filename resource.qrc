@@ -70,5 +70,9 @@
         <file>icons/settings.png</file>
         <file>icons/compas.png</file>
         <file>icons/coordinate.png</file>
+        <file>icons/connect.png</file>
+        <file>icons/disconnect.png</file>
+        <file>icons/satellite.png</file>
+        <file>icons/serialport.png</file>
     </qresource>
 </RCC>

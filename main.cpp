@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
     qApp->setStyleSheet(strCSS);
 
     w.setWindowTitle(QObject::tr("ГироКомпас"));
+//    w.showFullScreen();
     w.show();
 
     return a.exec();

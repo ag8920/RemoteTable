@@ -21,17 +21,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 CONFIG += c++11
-
-CONFIG(debug, debug|release) {
-    DESTDIR = $$OUT_PWD/debug
-} else {
-    DESTDIR = $$OUT_PWD/release
-}
-CONFIG(debug, debug|release) {
-QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/debug
-} else{
-QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/release
-}
+QMAKE_LFLAGS_RELEASE+= -static -static-libgcc
+#CONFIG(debug, debug|release) {
+#    DESTDIR = $$OUT_PWD/debug
+#} else {
+#    DESTDIR = $$OUT_PWD/release
+#}
+#CONFIG(debug, debug|release) {
+#QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/debug
+#} else{
+#QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/release
+#}
 
 #CONFIG(debug, debug|release)
 MOC_DIR=moc
@@ -57,7 +57,11 @@ SOURCES += \
     qcustomplot/qcustomplot.cpp \
     qcustomplot/plotwidget.cpp \
     TableDev/tablers485.cpp \
-    TableDev/tablers232.cpp
+    TableDev/tablers232.cpp \
+    NmeaDev/nmeadevice.cpp \
+    NmeaDev/nmea/nmea.cpp \
+    NmeaDev/nmea/tok.c
+
 
 
 HEADERS += \
@@ -76,7 +80,12 @@ HEADERS += \
     qcustomplot/qcustomplot.h \
     qcustomplot/plotwidget.h \
     TableDev/tablers485.h \
-    TableDev/tablers232.h
+    TableDev/tablers232.h \
+    NmeaDev/nmeadevice.h \
+    NmeaDev/nmea/config.h \
+    NmeaDev/nmea/nmea.h \
+    NmeaDev/nmea/tok.h
+
 
 
 # Default rules for deployment.
@@ -89,7 +98,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 FORMS += \
     comport/settingsdialog/settingsdialog.ui \
-    coordinatedialog/corrddialog.ui
+    coordinatedialog/corrddialog.ui \
+    NmeaDev/nmeadevice.ui
 
 RESOURCES += \
     resource.qrc

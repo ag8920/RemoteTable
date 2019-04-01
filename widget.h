@@ -24,6 +24,8 @@
 #include "qcustomplot/plotwidget.h"
 
 #include "TableDev/tablers485.h"
+#include "NmeaDev/nmeadevice.h"
+
 
 
 class CustomLineEdit;
@@ -52,6 +54,8 @@ signals:
     ///логирование данных
     void PutLog(QString data);
 
+    void sendCoordinate(double *Lat,double *Lon,double *H);
+
     void buildgraph(int index,double data);
 protected:
     void closeEvent(QCloseEvent *event);
@@ -70,6 +74,7 @@ public slots:
     void createPlot(QString name);
     void saveSettings();
     void readSettings();
+    void recieveSnsBasicData(QByteArray data);
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
@@ -79,6 +84,12 @@ private slots:
 public:
     int timeSec;
 private:
+    double Latsns,Lonsns,Hsns,Speedsns;QString Statussns;
+
+    QDockWidget *pdock;
+    QLabel *LatLabel;
+    QLabel *LonLabel;
+    QLabel *HLabel;
     ///создает действия
     void CreateActions();
     ///устанавливает соединения СИГНАЛ/СЛОТ
@@ -100,6 +111,7 @@ private:
     ///вызов окна гироскопического устройства
     QAction *ConfigGyroDevAction;
 
+    QAction *ConfigNmeadeviceAction;
     ///
     QAction *SetCoordianteAction;
     QAction *ViewPlotAction;
@@ -113,21 +125,10 @@ private:
 
     QMenu *fileMenu;
     QToolBar *toolbar;
+    QToolBar *Coordtoolbar;
 
     QMenu *configMenu;
 
-    ///надпись "Занчение азимута"
-    QLabel *currValueLabel;
-    ///надпись "Среднее значение азимута"
-    QLabel *meanValueLabel;
-    ///надпись "Минимальное значение"
-    QLabel *minValueLabel;
-    ///надпись "Максимальное значение"
-    QLabel *maxValueLabel;
-    ///надпись "СКО"
-    QLabel *skoLabel;
-    ///надпись "Время накопления"
-    QLabel *timeAccumulateLabel;
     ///поле с значением времени накопления данных
     QLineEdit *timeAccumulateLineEdit;
 
@@ -146,13 +147,11 @@ private:
     ///поле с значением кол-ва измерений
     QLineEdit *countMeasureLineEdit;
     ///
-    QLabel *RollLabel;
-    ///
     /*QLineEdit*/CustomLineEdit *RollLineEdit;
     ///
-    QLabel *PitchLabel;
-    ///
     /*QLineEdit*/CustomLineEdit *PitchLineEdit;
+
+
     ///виджет главного окна
     QWidget *measureWidget;
     ///объект класса TableDevice
@@ -161,11 +160,14 @@ private:
     GyroDevice *ConfigGyroDevice;
     ///
     corrdDialog *CoordDialog;
+
+    NmeaDevice *ConfigNmeaDevice;
     ///объект класса loger
     loger *Log;
     ///объект класса QTimer
     QTimer *ptmr;
 //    QTimer *tmrsec;
+
     ///признак однократного измерения
     bool isOneMeasure;
     ///номер предыдущего измерения(вспом. переменная)

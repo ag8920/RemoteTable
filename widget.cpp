@@ -4,8 +4,12 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QGridLayout>
+#include <QFormLayout>
 #include <QGroupBox>
 #include <QtGlobal>
+#include <QSpacerItem>
+#include <QDataStream>
+#include <QIODevice>
 #include <chrono>
 
 #ifdef Q_OS_WIN
@@ -23,29 +27,34 @@ Widget::Widget(QWidget *parent)
     ConfigTableDevice = new TableDevice;
     ConfigGyroDevice = new GyroDevice;
     CoordDialog = new corrdDialog;
+    ConfigNmeaDevice=new NmeaDevice;
     Log = new loger;
 
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
-//    tmrsec=new QTimer;
-//    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
-//    tmrsec->setInterval(1000);
-//    tmrsec->start();
+    //    tmrsec=new QTimer;
+    //    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
+    //    tmrsec->setInterval(1000);
+    //    tmrsec->start();
 
-//    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
+    //    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
 
-//    tablers=new tableRS485;
-//    tablers->setAngle();
+    //    tablers=new tableRS485;
+    //    tablers->setAngle();
 
     InitVariable();
+    CreateWidgets();
     CreateActions();
     CreateMenus();
     CreateToolBars();
     CreateStatusBar();
-    CreateWidgets();
+
     initActionConnections();
     CreateConnections();
+
+
+
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -54,6 +63,7 @@ Widget::~Widget()
 {
     delete ConfigTableDevice;
     delete ConfigGyroDevice;
+    delete ConfigNmeaDevice;
     saveSettings();
 }
 //-----------------------------------------------------------
@@ -95,6 +105,9 @@ void Widget::CreateActions()
 
     ViewPlotAction = new QAction(tr("Графики"),this);
     stopPlot=new QAction(tr("остановить"),this);
+
+    ConfigNmeadeviceAction = new QAction(tr("СНС"),this);
+    ConfigNmeadeviceAction->setIcon(QIcon(":/icons/satellite.png"));
 }
 
 void Widget::initActionConnections()
@@ -107,8 +120,12 @@ void Widget::initActionConnections()
             ConfigTableDevice,&TableDevice::close);
     connect(this,&Widget::onWindowClosed,
             ConfigGyroDevice,&GyroDevice::close);
+    connect(this, &Widget::onWindowClosed,
+            ConfigNmeaDevice, &NmeaDevice::close);
     connect(SetCoordianteAction,&QAction::triggered,
             CoordDialog,&QDialog::show);
+    connect(ConfigNmeadeviceAction, &QAction::triggered,
+            ConfigNmeaDevice, &NmeaDevice::show);
     //    connect(ViewPlotAction,&QAction::triggered,
     //            tablers,&tableRS485::setAngle);
 }
@@ -126,8 +143,9 @@ void Widget::CreateMenus()
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
-//    configMenu->addAction(ViewPlotAction);
-//    configMenu->addAction(stopPlot);
+    configMenu->addAction(ConfigNmeadeviceAction);
+    //    configMenu->addAction(ViewPlotAction);
+    //    configMenu->addAction(stopPlot);
 }
 //-----------------------------------------------------------
 // Назначение: создание панели инструментов
@@ -141,9 +159,32 @@ void Widget::CreateToolBars()
     toolbar->addSeparator();
     toolbar->addAction(ConfigGyroDevAction);
     toolbar->addAction(ConfigTabelDevAction);
+    toolbar->addAction(ConfigNmeadeviceAction);
     toolbar->setIconSize(QSize(20,20));
-    toolbar->setFloatable(false);
-    toolbar->setMovable(false);
+    //toolbar->setFloatable(false);
+    //toolbar->setMovable(false);
+
+
+    Coordtoolbar=new QToolBar(tr("Координаты"));
+    Coordtoolbar->addWidget(LatLabel);
+    Coordtoolbar->addWidget(LonLabel);
+    Coordtoolbar->addWidget(HLabel);
+    addToolBar(Coordtoolbar);
+
+//    QWidget *pwgt=new QWidget;
+//    QVBoxLayout *layout=new QVBoxLayout();
+//    layout->addWidget(LatLabel);
+//    layout->addWidget(LonLabel);
+//    layout->addWidget(HLabel);
+//    layout->addStretch();
+//    pwgt->setLayout(layout);
+//    pdock=new QDockWidget;
+//    pdock->setWidget(pwgt);
+//    pdock->setAllowedAreas(Qt::AllDockWidgetAreas);
+//    pdock->setFloating(false);
+//    pdock->setWindowTitle(tr("СНС"));
+//    addDockWidget(Qt::TopDockWidgetArea,pdock);
+
 }
 //-----------------------------------------------------------
 // Назначение:
@@ -159,95 +200,60 @@ void Widget::CreateStatusBar()
 void Widget::CreateWidgets()
 {
     measureWidget = new QWidget;
-    QGridLayout *LeftLayout = new  QGridLayout;
-    QGridLayout *RightLayout = new QGridLayout;
-    QVBoxLayout *MainLayout = new QVBoxLayout;
+    QHBoxLayout *MainLayout= new QHBoxLayout;
     QRegExp regExp("[0-9][0-9]{0,4}");
     QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,5);
     QDoubleValidator* regExpDouble=new QDoubleValidator();
     regExpDouble->setLocale(QLocale::English);
 
+    QGroupBox *measuregroupBox = new QGroupBox(tr("Измерения"));
 
-    QGroupBox *leftgroupBox = new QGroupBox(tr("Измерения азимута"));
-    QGroupBox *rightgroupBox = new QGroupBox(tr("Углы поворота"));
 
-    currValueLabel=new QLabel(tr("Значение азимута:"));
-    meanValueLabel=new QLabel(tr("Среднее значение:"));
-    minValueLabel=new QLabel(tr("Минимальное значение:"));
-    maxValueLabel=new QLabel(tr("Максимальное значение:"));
-    skoLabel=new QLabel(tr("СКО:"));
+    LatLabel=new QLabel("Lat=0.0 ");
+    LonLabel=new QLabel("Lon=0.0 ");
+    HLabel=new QLabel("H=0.0 ");
 
-    timeAccumulateLabel=new QLabel(tr("Время накопления(сек.)"));
 
     currValueLineEdit=new QLineEdit;
     currValueLineEdit->setReadOnly(true);
     currValueLineEdit->setValidator(regExp2);
-    //currValueLabel->setBuddy(currValueLineEdit);
-
+    currValueLineEdit->setText("400");
     meanVelueLineEdit=new QLineEdit;
     meanVelueLineEdit->setReadOnly(true);
-
-
     minValueLineEdit=new QLineEdit;
     minValueLineEdit->setReadOnly(true);
-
     maxValueLineEdit=new QLineEdit;
-
     maxValueLineEdit->setReadOnly(true);
-
     skoLineEdit=new QLineEdit;
     skoLineEdit->setReadOnly(true);
-
     timeAccumulateLineEdit=new QLineEdit;
     timeAccumulateLineEdit->setValidator(new QRegExpValidator(regExp,this));
     timeAccumulateLineEdit->setText("600");
-
     countMeasureLabel=new QLabel(tr("Количество измерений"));
     countMeasureLineEdit=new QLineEdit;
     countMeasureLineEdit->setReadOnly(true);
-
-    RollLabel=new QLabel(tr("Значение крена:"));
     RollLineEdit=new  CustomLineEdit("Roll")/*QLineEdit*/;
     RollLineEdit->setReadOnly(true);
-    PitchLabel=new QLabel(tr("Значение тангажа:     "));
     PitchLineEdit=new CustomLineEdit("Pitch");
     PitchLineEdit->setReadOnly(true);
 
+    QFormLayout *measureformLayout=new QFormLayout();
+    measureformLayout->addRow(tr("Значение азимута:"),currValueLineEdit);
+    measureformLayout->addRow(tr("среднее значение:"),meanVelueLineEdit);
+    measureformLayout->addRow(tr("Максимальное значение:"),maxValueLineEdit);
+    measureformLayout->addRow(tr("Минимальное значение:"),minValueLineEdit);
+    measureformLayout->addRow(tr("СКО:"),skoLineEdit);
+    measureformLayout->addRow(tr("Количество измерений:"),countMeasureLineEdit);
+    measureformLayout->addRow(tr("Значение крена:"),RollLineEdit);
+    measureformLayout->addRow(tr("Значение тангажа:"),PitchLineEdit);
+    measureformLayout->addRow(tr("Время накопления(сек):"),timeAccumulateLineEdit);
 
-    LeftLayout->addWidget(currValueLabel,0,0);
-    LeftLayout->addWidget(currValueLineEdit,0,1);
-
-    LeftLayout->addWidget(meanValueLabel,1,0);
-    LeftLayout->addWidget(meanVelueLineEdit,1,1);
-
-    LeftLayout->addWidget(maxValueLabel,2,0);
-    LeftLayout->addWidget(maxValueLineEdit,2,1);
-
-    LeftLayout->addWidget(minValueLabel,3,0);
-    LeftLayout->addWidget(minValueLineEdit,3,1);
-
-
-    LeftLayout->addWidget(skoLabel,4,0);
-    LeftLayout->addWidget(skoLineEdit,4,1);
-
-    LeftLayout->addWidget(countMeasureLabel,5,0);
-    LeftLayout->addWidget(countMeasureLineEdit,5,1);
-
-    LeftLayout->addWidget(timeAccumulateLabel,6,0);
-    LeftLayout->addWidget(timeAccumulateLineEdit,6,1);
-
-    RightLayout->addWidget(RollLabel,0,0);
-    RightLayout->addWidget(RollLineEdit,0,1);
-    RightLayout->addWidget(PitchLabel,1,0);
-    RightLayout->addWidget(PitchLineEdit,1,1);
-
-    leftgroupBox->setLayout(LeftLayout);
-    rightgroupBox->setLayout(RightLayout);
-    //MainLayout->addLayout(LeftLayout);
-    MainLayout->addWidget(leftgroupBox);
-    //    MainLayout->addLayout(RightLayout);
-    MainLayout->addWidget(rightgroupBox);
-
+    measuregroupBox->setLayout(measureformLayout);
+    QVBoxLayout *grBoxLayout=new QVBoxLayout();
+    grBoxLayout->addWidget(measuregroupBox);
+    QVBoxLayout *vbox=new QVBoxLayout();
+    vbox->addLayout(grBoxLayout);
+    MainLayout->addLayout(vbox);
     measureWidget->setLayout(MainLayout);
     setCentralWidget(measureWidget);
 
@@ -327,12 +333,17 @@ void Widget::CreateConnections()
     connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
             this,&Widget::viewAngle);
 
-//    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
-//    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
-//    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
+    connect(ConfigNmeaDevice, &NmeaDevice::sendBasicData,
+            this, &Widget::recieveSnsBasicData);
 
-//    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
-//    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+    connect(this, &Widget::sendCoordinate,ConfigGyroDevice->Measure, &GyroData::GetCoordinate);
+
+    //    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+    //    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+    //    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
+
+    //    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+    //    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -526,6 +537,18 @@ void Widget::readSettings()
     move(settings.value("pos",QPoint(200,200)).toPoint());
     settings.endGroup();
 }
+
+void Widget::recieveSnsBasicData(QByteArray data)
+{
+    QDataStream in(&data,QIODevice::ReadOnly);
+    in.setVersion(QDataStream::Qt_4_3);
+    in>>this->Latsns>>this->Lonsns>>this->Hsns>>this->Speedsns>>this->Statussns;
+    LatLabel->setText("Lat="+QString::number(Latsns,'g',8)+" ");
+    LonLabel->setText("Lon="+QString::number(Lonsns,'g',8)+" ");
+    HLabel->setText("H="+QString::number(Hsns,'g',6)+" ");
+    if(this->Statussns=="A" || this->Statussns=="V")
+        emit sendCoordinate(&this->Latsns,&this->Lonsns,&this->Hsns);
+}
 void Widget::viewAngle(QString Roll, QString Pitch)
 {
     RollLineEdit->setText(Roll);
@@ -537,5 +560,5 @@ void Widget::createPlot(QString name)
     plot->graphAdd(name);
     plot->show();
     connect(this,&Widget::buildgraph,plot,&PlotWidget::realtimeDataSlot);
-//    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+    //    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
 }
