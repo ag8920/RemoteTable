@@ -75,12 +75,15 @@ public slots:
     void saveSettings();
     void readSettings();
     void recieveSnsBasicData(QByteArray data);
+    void recieveCoordinate(double *Lat, double *Lon,double *H);
 private slots:
     ///устанавливает признак однократного измерения
     void OneMeasureSlot();
     ///
     void viewAngle(QString Roll,QString Pitch);
 
+    void selectModeAlign(int idx);
+    void setProgress();
 public:
     int timeSec;
 private:
@@ -132,6 +135,7 @@ private:
     ///поле с значением времени накопления данных
     QLineEdit *timeAccumulateLineEdit;
 
+    QComboBox *typeAlignCBox;
     ///поле с измеренным значение азимута
     QLineEdit *currValueLineEdit;
     ///поле с средним значением азимута
@@ -151,7 +155,11 @@ private:
     ///
     /*QLineEdit*/CustomLineEdit *PitchLineEdit;
 
+    QLineEdit *azimuthXALineEdit;
+    QLineEdit *azimuthDiffLineEdit;
 
+    QProgressBar *progress;
+    QTimeLine *timeLine;
     ///виджет главного окна
     QWidget *measureWidget;
     ///объект класса TableDevice

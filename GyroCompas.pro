@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport printsupport
+QT       += core gui widgets serialport printsupport axcontainer
 
 TARGET = GyroCompas
 TEMPLATE = app

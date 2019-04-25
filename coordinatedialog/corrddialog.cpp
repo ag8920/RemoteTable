@@ -1,11 +1,13 @@
 #include "corrddialog.h"
 #include "ui_corrddialog.h"
 #include <QSettings>
+
 corrdDialog::corrdDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::corrdDialog)
 {
     ui->setupUi(this);
+    this->setWindowFlags(Qt::Tool);
     QDoubleValidator *validator=new QDoubleValidator;
 //    this->Lat=55.566111;
 //    this->Lon=38.245833;

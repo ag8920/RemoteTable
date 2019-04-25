@@ -13,6 +13,8 @@ NmeaDevice::NmeaDevice(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowTitle(APPLICATION_NAME);
     this->setWindowIcon(QIcon(":/icons/satellite.png"));
+    this->setWindowFlags(Qt::Tool);
+
     ui->actionConnect->setIcon(QIcon(":/icons/disconnect.png"));
 
     actionPz90=new QAction("ПЗ-90",this);

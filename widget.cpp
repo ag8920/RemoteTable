@@ -11,12 +11,14 @@
 #include <QDataStream>
 #include <QIODevice>
 #include <chrono>
-
+#include <QtGlobal>
 #ifdef Q_OS_WIN
 #include <winbase.h>
 #endif
 
 enum position{DEG_90=0,DEG_180,DEG_270,DEG_0};
+QStringList alignmode={"Короткий (ГК-1)","Точный (ГК-2)","Повторное ГК","Непрерывное ГК"};
+enum alignmode{GK_1,GK_2,REPEAT,CONTINUOUS};
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //-----------------------------------------------------------
@@ -33,15 +35,18 @@ Widget::Widget(QWidget *parent)
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
-    //    tmrsec=new QTimer;
-    //    tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
-    //    tmrsec->setInterval(1000);
-    //    tmrsec->start();
+    timeLine=new QTimeLine;
+    timeLine->setFrameRange(0,100);
+    timeLine->setCurveShape(QTimeLine::LinearCurve);
+    //tmrsec=new QTimer;
+    //tmrsec->setTimerType(Qt::TimerType::VeryCoarseTimer);
+    //tmrsec->setInterval(1000);
+    //tmrsec->start();
 
-    //    setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
+    //setAttribute(Qt::WA_DeleteOnClose);//указывает на необходимость удаления окна при его закрытии
 
-    //    tablers=new tableRS485;
-    //    tablers->setAngle();
+    //tablers=new tableRS485;
+    //tablers->setAngle();
 
     InitVariable();
     CreateWidgets();
@@ -202,7 +207,10 @@ void Widget::CreateWidgets()
     measureWidget = new QWidget;
     QHBoxLayout *MainLayout= new QHBoxLayout;
     QRegExp regExp("[0-9][0-9]{0,4}");
-    QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,5);
+   QRegExp exp("^(?:[1-2][0-9]{0,2}(?:\\.[0-9]{1,2})?|3(?:[0-5]?[0-9]?(?:\\.[0-9]{1,6})?|"
+               "60(?:\\.00?)?)|[4-9][0-9]?(?:\\.[0-9]{1,6})?|0(?:\\.[0-9]{1,6})?)° ?[LR]$");
+    QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,6);
+    regExp2->setRange(0,360,6);
     QDoubleValidator* regExpDouble=new QDoubleValidator();
     regExpDouble->setLocale(QLocale::English);
 
@@ -216,8 +224,18 @@ void Widget::CreateWidgets()
 
     currValueLineEdit=new QLineEdit;
     currValueLineEdit->setReadOnly(true);
-    currValueLineEdit->setValidator(regExp2);
-    currValueLineEdit->setText("400");
+    currValueLineEdit->setValidator(new QRegExpValidator(exp,this));
+
+    azimuthXALineEdit=new QLineEdit;
+    azimuthXALineEdit->setReadOnly(true);
+    azimuthXALineEdit->setValidator(new QRegExpValidator(exp,this));
+
+
+    azimuthDiffLineEdit=new QLineEdit;
+    azimuthDiffLineEdit->setValidator(new QRegExpValidator(exp,this));
+
+
+    //currValueLineEdit->setText("400");
     meanVelueLineEdit=new QLineEdit;
     meanVelueLineEdit->setReadOnly(true);
     minValueLineEdit=new QLineEdit;
@@ -226,9 +244,19 @@ void Widget::CreateWidgets()
     maxValueLineEdit->setReadOnly(true);
     skoLineEdit=new QLineEdit;
     skoLineEdit->setReadOnly(true);
+
+    typeAlignCBox=new QComboBox(this);
+    typeAlignCBox->insertItems(0,alignmode);
+
+    progress=new QProgressBar();
+    progress->setRange(0,100);
+
+
+
     timeAccumulateLineEdit=new QLineEdit;
     timeAccumulateLineEdit->setValidator(new QRegExpValidator(regExp,this));
-    timeAccumulateLineEdit->setText("600");
+    //timeAccumulateLineEdit->setText("600");
+    this->timeAccumulateLineEdit->setReadOnly(true);
     countMeasureLabel=new QLabel(tr("Количество измерений"));
     countMeasureLineEdit=new QLineEdit;
     countMeasureLineEdit->setReadOnly(true);
@@ -238,19 +266,24 @@ void Widget::CreateWidgets()
     PitchLineEdit->setReadOnly(true);
 
     QFormLayout *measureformLayout=new QFormLayout();
-    measureformLayout->addRow(tr("Значение азимута:"),currValueLineEdit);
-    measureformLayout->addRow(tr("среднее значение:"),meanVelueLineEdit);
-    measureformLayout->addRow(tr("Максимальное значение:"),maxValueLineEdit);
-    measureformLayout->addRow(tr("Минимальное значение:"),minValueLineEdit);
+    measureformLayout->addRow(tr("Азимут БИП:"),currValueLineEdit);
+    measureformLayout->addRow(tr("Ср.значение азимута БИП:"),meanVelueLineEdit);
+    measureformLayout->addRow(tr("Макс.значение азимута БИП:"),maxValueLineEdit);
+    measureformLayout->addRow(tr("Мин.значение азимута БИП:"),minValueLineEdit);
     measureformLayout->addRow(tr("СКО:"),skoLineEdit);
+    measureformLayout->addRow(tr("Значение крена БИП:"),RollLineEdit);
+    measureformLayout->addRow(tr("Значение тангажа БИП:"),PitchLineEdit);
     measureformLayout->addRow(tr("Количество измерений:"),countMeasureLineEdit);
-    measureformLayout->addRow(tr("Значение крена:"),RollLineEdit);
-    measureformLayout->addRow(tr("Значение тангажа:"),PitchLineEdit);
+    measureformLayout->addRow(tr("Азимут ХА:"),azimuthXALineEdit);
+    measureformLayout->addRow(tr("Разность азимутов:"),azimuthDiffLineEdit);
+    measureformLayout->addRow(tr("Режим выставки:"),typeAlignCBox);
     measureformLayout->addRow(tr("Время накопления(сек):"),timeAccumulateLineEdit);
+
 
     measuregroupBox->setLayout(measureformLayout);
     QVBoxLayout *grBoxLayout=new QVBoxLayout();
     grBoxLayout->addWidget(measuregroupBox);
+    grBoxLayout->addWidget(progress);
     QVBoxLayout *vbox=new QVBoxLayout();
     vbox->addLayout(grBoxLayout);
     MainLayout->addLayout(vbox);
@@ -259,6 +292,8 @@ void Widget::CreateWidgets()
 
     this->setWindowIcon(QIcon(":/icons/compas.png"));
     measureWidget->show();
+
+    this->selectModeAlign(typeAlignCBox->currentIndex());
 }
 //-----------------------------------------------------------
 // Назначение: создание соединений СИГНАЛ-СЛОТ
@@ -330,6 +365,8 @@ void Widget::CreateConnections()
 
     connect(CoordDialog,&corrdDialog::outCoordinate,
             ConfigGyroDevice->Measure,&GyroData::GetCoordinate);
+    connect(CoordDialog, &corrdDialog::outCoordinate,
+            this, &Widget::recieveCoordinate);
     connect(ConfigGyroDevice->Measure,&GyroData::outAngle,
             this,&Widget::viewAngle);
 
@@ -344,6 +381,20 @@ void Widget::CreateConnections()
 
     //    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
     //    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+
+    connect(typeAlignCBox, SIGNAL(activated(int)),
+             this, SLOT(selectModeAlign(int)));
+
+//    connect(timeLine, &QTimeLine::frameChanged,
+//            progress, &QProgressBar::setValue
+//            );
+    connect(timeLine, &QTimeLine::finished,
+            progress, &QProgressBar::reset);
+    connect(timeLine, &QTimeLine::finished,
+            timeLine, &QTimeLine::start);
+
+    connect(timeLine, &QTimeLine::valueChanged,
+            this, &Widget::setProgress);
 }
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -393,9 +444,13 @@ void Widget::StartMeasureSlot()
 void Widget::StopMeasureSlot()
 {
     ptmr->stop();
-    this->InitVariable();
+    //this->InitVariable();
     this->timeAccumulateLineEdit->setEnabled(true);
     emit StopMeasureSignal();
+
+    timeLine->stop();
+    progress->reset();
+    progress->setValue(100);
 
     StartTimerAction->setEnabled(true);
     OneMeasurementAction->setEnabled(true);
@@ -408,9 +463,12 @@ void Widget::StopMeasureSlot()
 void Widget::StartTimer()
 {
     ptmr->setInterval(timeSec);
-    ptmr->setSingleShot(true);
+    //ptmr->setSingleShot(true);
     ptmr->start();
     emit StartAccumulateDataSignal();
+    timeLine->setDuration(timeAccumulateLineEdit->text().toInt()*1000);
+    timeLine->start();
+
 }
 //-----------------------------------------------------------
 // Назначение: установка времени накопления данных
@@ -438,25 +496,25 @@ void Widget::Measure()
     case DEG_180:
         pos_0=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
-        numPosition++;
+        numPosition=DEG_270;
         emit GotoPosition(-200000);
         break;
     case DEG_270:
         pos_180=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
-        numPosition++;
+        numPosition=DEG_0;
         emit GotoPosition(-300000);
         break;
     case DEG_90:
         pos_90=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
-        numPosition++;
+        numPosition=DEG_180;
         emit GotoPosition(-100000);
         break;
     case DEG_0:
         pos_270=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
-        numPosition=0;
+        numPosition=DEG_90;
         numMeasure++;
         emit GotoPosition(0);
         break;
@@ -483,7 +541,7 @@ void Widget::Measure()
 
         numerator+=powf((Azimuth-MeanAzimuth),2);
         numMeasure>1?denumerator=numMeasure-1:denumerator=1;
-        SKO=sqrt(numerator/denumerator);
+        SKO=static_cast<float>(sqrt(static_cast<double>(numerator/denumerator)));
 
         currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
         meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
@@ -501,10 +559,11 @@ void Widget::Measure()
                     .arg(static_cast<double>(SKO))
                     );
         countMeasureLineEdit->setText(QString::number(numMeasure));
-        if(isOneMeasure){
-            isOneMeasure=false;
+        if(this->isOneMeasure){
+            this->isOneMeasure=false;
             this->StopMeasureSlot();
         }
+
     }
 }
 
@@ -516,6 +575,7 @@ void Widget::slotbuildgraph()
 void Widget::OneMeasureSlot()
 {
     this->isOneMeasure=true;
+
 }
 
 void Widget::saveSettings()
@@ -549,10 +609,65 @@ void Widget::recieveSnsBasicData(QByteArray data)
     if(this->Statussns=="A" || this->Statussns=="V")
         emit sendCoordinate(&this->Latsns,&this->Lonsns,&this->Hsns);
 }
+
+void Widget::recieveCoordinate(double *Lat, double *Lon, double *H)
+{
+    LatLabel->setText("Lat="+QString::number(*Lat,'g',8)+" ");
+    LonLabel->setText("Lon="+QString::number(*Lon,'g',8)+" ");
+    HLabel->setText("H="+QString::number(*H,'g',6)+" ");
+}
 void Widget::viewAngle(QString Roll, QString Pitch)
 {
     RollLineEdit->setText(Roll);
     PitchLineEdit->setText(Pitch);
+}
+
+void Widget::selectModeAlign(int idx)
+{
+    if(idx==GK_1)
+    {
+        qDebug()<<"GK1";
+        this->timeAccumulateLineEdit->setText("480");
+        this->timeAccumulateLineEdit->setReadOnly(true);
+    }
+    else if(idx==GK_2)
+    {
+        qDebug()<<"GK2";
+        this->timeAccumulateLineEdit->setText("1200");
+        this->timeAccumulateLineEdit->setReadOnly(true);
+    }
+    else if (idx==REPEAT)
+    {
+        qDebug()<<"REPEAT";
+        this->timeAccumulateLineEdit->setText("240");
+        this->timeAccumulateLineEdit->setReadOnly(true);
+    }
+    else if (idx==CONTINUOUS)
+    {
+        qDebug()<<"CONTINUOUS";
+        this->timeAccumulateLineEdit->setReadOnly(false);
+    }
+}
+
+void Widget::setProgress()
+{
+    QString text;
+    QTime time;
+    int hour,min,sec,msec;
+    msec=timeLine->currentTime()%1000;
+    sec=timeLine->currentTime()%60000 /1000;
+    min=timeLine->currentTime()%3600000/60000;
+    hour=timeLine->currentTime()/3600000;
+    time=QTime(hour,min,sec,msec);
+    qDebug()<<time.toString();
+    if(typeAlignCBox->currentIndex()==GK_1) text=QString(alignmode.at(GK_1)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
+    else if(typeAlignCBox->currentIndex()==GK_2) text=QString(alignmode.at(GK_2)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
+    else if(typeAlignCBox->currentIndex()==REPEAT) text=QString(alignmode.at(REPEAT)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
+    else if(typeAlignCBox->currentIndex()==CONTINUOUS) text=QString(alignmode.at(CONTINUOUS)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
+    progress->setFormat(text);
+    progress->setTextVisible(true);
+    progress->setValue(timeLine->currentFrame());
+
 }
 void Widget::createPlot(QString name)
 {
