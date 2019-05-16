@@ -48,7 +48,7 @@ signals:
     ///сигнал остановки накопления данных
     void StopAccumulateDataSignal();
     ///сигнал перехода к след. позиции стола
-    void GotoPosition(QVariant position);
+    void GotoPosition(double position);
     ///сигнал сброса абсолютных координат стола
     void ResetAbsCoord();
     ///логирование данных
@@ -84,6 +84,8 @@ private slots:
 
     void selectModeAlign(int idx);
     void setProgress();
+
+    void selectAlgorithm();
 public:
     int timeSec;
 private:
@@ -125,6 +127,11 @@ private:
     QAction *StartTimerAction;
     ///остановить измерения
     QAction *StopTimerAction;
+
+
+    QAction *FourAlgAction;
+    QAction *ThreeAlgAction;
+    QActionGroup *AlgGroupAction;
 
     QMenu *fileMenu;
     QToolBar *toolbar;
@@ -185,30 +192,38 @@ private:
     ///номер позиции( необходим для 4-х позиционного алгоритма)
     int numPosition;
     ///значение азимута
-    float Azimuth;
+    double Azimuth;
     ///сумма значений азимута(при каждом измерении значения суммируются)
-    float SummAzimuth;
+    double SummAzimuth;
     ///среднее значение азимута
-    float MeanAzimuth;
+    double MeanAzimuth;
     ///максимальное значение азимута
-    float MaxAzimuth;
+    double MaxAzimuth;
     ///минимальное значение азимута
-    float MinAzimuth;
+    double MinAzimuth;
     ///вспомогательная переменная
-    float numerator;
+    double numerator;
     ///вспомогательная переменная
-    float denumerator;
+    double denumerator;
     ///среднеквадратическая погрешность
-    float SKO;
+    double SKO;
     ///сумма значений da получаемых из гироскопа в положении 0 град.
-    float pos_0;
+    double da2_pos0;
     ///сумма значений da получаемых из гироскопа в положении 180 град.
-    float pos_180;
+    double da2_pos180;
     ///сумма значений da получаемых из гироскопа в положении 90 град.
-    float pos_90;
+    double da2_pos90;
     ///сумма значений da получаемых из гироскопа в положении 270 град.
-    float pos_270;
+    double da2_pos270;
 
+    double dv1_pos0,dv1_pos90,dv1_pos180;
+    double dv2_pos0,dv2_pos90,dv2_pos180;
+
+    double H, Lat, Lon,G;
+    double Roll, Pitch;
+
+    bool fourposition;
+    bool threeposition;
 //    tableRS485 *tablers;
 };
 

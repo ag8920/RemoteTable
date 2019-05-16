@@ -72,9 +72,14 @@ public:
     QList<QString> *lstVal;
     QList<QString> *lstName;
 
-    float summ;
+    double summ;
     int cntsumm;
-    float diff;
+    double diff;
+    double summDvX;
+    double summDvY;
+    double diffDvX;
+    double diffDvY;
+
     bool isAccumulateData;
 
     QTimer *tmr;

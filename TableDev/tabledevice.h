@@ -53,7 +53,7 @@ public slots:
     void RequestPosition();
 
 
-    void GoToPosition(QVariant position);
+    void GoToPosition(double position);
 
     void OnMotion();
     void BeginMotion();
@@ -76,8 +76,6 @@ public slots:
     void StopMeasure();
 
     void ConsoleVisible();
-public slots:
-    void slotUpdateWidget(int idx);
 private:
 
     void CreateWidgets();
@@ -85,6 +83,8 @@ private:
     void AddThreads();
     void StopThread();
 
+    int Deg2Label(double deg);
+    double Label2Deg(int label);
 
     QWidget *MainWidget;
     QComboBox *TypeTableComboBox;

@@ -197,14 +197,19 @@ bool GyroData::SortData(const QByteArray &data)
     if(diffcnt>1) this->errorPacket++;
     prevcnt=packet.cnt;
 
-    summDv1+=packet.dv1;
-    summDv2+=packet.dv2;
+    summDv1+=static_cast<double>(packet.dv1);
+    summDv2+=static_cast<double>(packet.dv2);
     count++;
 
     if(this->isAccumulateData){
-        this->summ+=packet.da2;
+        this->summ+=static_cast<double>(packet.da2);
         this->cntsumm++;
         this->diff=summ/cntsumm;
+
+        this->summDvX+=static_cast<double>(packet.dv1);
+        this->summDvY+=static_cast<double>(packet.dv2);
+        this->diffDvX=summDvX/cntsumm;
+        this->diffDvY=summDvY/cntsumm;
     }
     return true;
     //}else return false;
@@ -238,8 +243,8 @@ void GyroData::OutData()
                         QString::number(errorPacket));
     emit SendDataToTable(lstVal,lstName);
 
-    MeasureRollAndPitch();
-    emit outAngle(QString::number(Roll),QString::number(Pitch));
+    //MeasureRollAndPitch();
+    //emit outAngle(QString::number(Roll),QString::number(Pitch));
 
 }
 

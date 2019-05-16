@@ -181,42 +181,26 @@ void TableDevice::GetPosition(const QByteArray &data)
 //-----------------------------------------------------------
 // Назначение: абсолютное позиционирование
 //-----------------------------------------------------------
-void TableDevice::GoToPosition(QVariant position)
+void TableDevice::GoToPosition(double position)
 {
     QByteArray data;
     QString str;
-    nextPosition=position.toInt();
+
+    nextPosition=Deg2Label(position);
     str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
-            +position.toString()+";bg;";
+            +QString::number(nextPosition)+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
-
-    if (TypeTableComboBox->currentIndex()==TABLE1)
-    {
-
-    }
-    else if(TypeTableComboBox->currentIndex()==TABLE2)
-    {
-        Table2->setAngle(position.toFloat());
-    }
 }
 //-----------------------------------------------------------
 // Назначение: Запрос текущего полжения
 //-----------------------------------------------------------
 void TableDevice::RequestPosition()
 {
-//    QByteArray data;
-//    QString str="px;";
-//    data=str.toLocal8Bit();
-//    emit OutputToComPort(data);
-    if(TypeTableComboBox->currentIndex()==TABLE1)
-    {
-
-    }
-    else if(TypeTableComboBox->currentIndex()==TABLE2)
-    {
-        Table2->getCurPos();
-    }
+    QByteArray data;
+    QString str="px;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
 // Назначение: Включить привод
@@ -588,10 +572,10 @@ void TableDevice::CreateConnections()
     connect(tmr,&QTimer::timeout,
             this,&TableDevice::RequestPosition);
 
-//    connect(DeviceComPort,&comPort::dataOutput,
-//            this,&TableDevice::GetPosition);
-     connect(DeviceComPort,&comPort::dataOutput,
-             this,&TableDevice::GetMsg);
+    connect(DeviceComPort,&comPort::dataOutput,
+            this,&TableDevice::GetPosition);
+//     connect(DeviceComPort,&comPort::dataOutput,
+//             this,&TableDevice::GetMsg);
 
 }
 //-----------------------------------------------------------
@@ -623,6 +607,16 @@ void TableDevice::AddThreads()
 void TableDevice::StopThread()
 {
     emit StopAll();
+}
+
+int TableDevice::Deg2Label(double deg)
+{
+    return static_cast<int>(deg*400000./360.);
+}
+
+double TableDevice::Label2Deg(int label)
+{
+    return (label*360./400000.);
 }
 //-----------------------------------------------------------
 // Назначение: установка таймера для опроса текущих координат
@@ -690,17 +684,6 @@ void TableDevice::ConsoleVisible()
     }
 }
 
-void TableDevice::slotUpdateWidget(int idx)
-{
-    if(idx==TABLE1)
-    {
-
-    }
-    else if(idx==TABLE2)
-    {
-
-    }
-}
 
 
 
