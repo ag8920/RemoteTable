@@ -45,10 +45,12 @@ signals:
     void SendDecodeData(QByteArray data);
     void finished();
 
+    void signalStopAcumulateData();
+
 public slots:
     void GetData(const QByteArray &inputArray);
 
-    void AccumulateData();
+    void AccumulateData(double time);
     void NoAccumulateData();
     void Stop();
 
@@ -73,7 +75,7 @@ public:
     QList<QString> *lstName;
 
     double summ;
-    int cntsumm;
+    int tick;
     double diff;
     double summDvX;
     double summDvY;
@@ -98,6 +100,9 @@ public:
     double summDv1;
     double summDv2;
     int count;
+
+    int timeAccumulate;
+    int getTick() const;
 };
 
 #endif // GYRODATA_H

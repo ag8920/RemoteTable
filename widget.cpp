@@ -375,7 +375,9 @@ void Widget::CreateConnections()
             ConfigGyroDevice->Measure,
             &GyroData::NoAccumulateData);
 
-    connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
+    //connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
+    connect(ConfigGyroDevice->Measure, &GyroData::signalStopAcumulateData,
+            this, &Widget::Measure);
 
     connect(this,&Widget::PutLog,Log,&loger::PutLog);
 
@@ -469,6 +471,7 @@ void Widget::StopMeasureSlot()
     timeLine->stop();
     progress->reset();
     progress->setValue(100);
+    progress->setFormat(typeAlignCBox->currentText()+": Режим остановлен");
 
     StartTimerAction->setEnabled(true);
     OneMeasurementAction->setEnabled(true);
@@ -480,10 +483,10 @@ void Widget::StopMeasureSlot()
 //-----------------------------------------------------------
 void Widget::StartTimer()
 {
-    ptmr->setInterval(timeSec);
+    //ptmr->setInterval(timeSec);
     //ptmr->setSingleShot(true);
-    ptmr->start();
-    emit StartAccumulateDataSignal();
+    //ptmr->start();
+    emit StartAccumulateDataSignal(timeSec);
     timeLine->setDuration(timeAccumulateLineEdit->text().toInt()*1000);
     timeLine->start();
 
@@ -496,10 +499,10 @@ bool Widget::SetTime()
     if(!timeAccumulateLineEdit->text().isEmpty())
     {
         if(fourposition){
-            this->timeSec=(timeAccumulateLineEdit->text().toInt()*1000)/4;
+            this->timeSec=(timeAccumulateLineEdit->text().toDouble()/**1000*/)/4.;
         }
         else if (threeposition) {
-            this->timeSec=(timeAccumulateLineEdit->text().toInt()*1000)/3;
+            this->timeSec=(timeAccumulateLineEdit->text().toDouble()/**1000*/)/3.;
         }
         this->timeAccumulateLineEdit->setEnabled(false);
         return true;
@@ -508,13 +511,11 @@ bool Widget::SetTime()
 }
 
 //-----------------------------------------------------------
-// Назначение: четырех позиционный алгоритм
+// Назначение: расчет параметров
 //-----------------------------------------------------------
-
-
 void Widget::Measure()
 {
-    emit StopAccumulateDataSignal();
+    //emit StopAccumulateDataSignal();
 
     if(fourposition){
     switch (numPosition) {
@@ -718,10 +719,7 @@ void Widget::Measure()
     } // else if(threeposition)
 }
 
-void Widget::slotbuildgraph()
-{
-    emit buildgraph(0,RollLineEdit->text().toDouble());
-}
+
 
 void Widget::OneMeasureSlot()
 {
@@ -729,6 +727,7 @@ void Widget::OneMeasureSlot()
 
 }
 
+//сохранение настроек приложения
 void Widget::saveSettings()
 {
     //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
@@ -739,6 +738,7 @@ void Widget::saveSettings()
     settings.endGroup();
 
 }
+//чтение настроек приложения
 void Widget::readSettings()
 {
     //QSettings settings(ORGANIZATION_NAME,APPLICATION_NAME);
@@ -766,6 +766,7 @@ void Widget::recieveSnsBasicData(QByteArray data)
 
 }
 
+//прием и отображение координат спутника
 void Widget::recieveCoordinate(double *Lat, double *Lon, double *H)
 {
     LatLabel->setText("Lat="+QString::number(*Lat,'g',8)+" ");
@@ -776,12 +777,14 @@ void Widget::recieveCoordinate(double *Lat, double *Lon, double *H)
     this->Lon=*Lon;
     this->H=*H;
 }
+//отображение введнных координат
 void Widget::viewAngle(QString Roll, QString Pitch)
 {
     RollLineEdit->setText(Roll);
     PitchLineEdit->setText(Pitch);
 }
 
+//выбор типа выставки
 void Widget::selectModeAlign(int idx)
 {
     if(idx==GK_1)
@@ -810,6 +813,21 @@ void Widget::selectModeAlign(int idx)
     }
 }
 
+
+
+//выбор типа алгоритма
+void Widget::selectAlgorithm()
+{
+    if(FourAlgAction->isChecked()){
+        fourposition=true;
+        threeposition=false;
+    }
+    else if (ThreeAlgAction->isChecked()) {
+        threeposition=true;
+        fourposition=false;
+    }
+}
+//настройка прогресс-бара
 void Widget::setProgress()
 {
     QString text;
@@ -827,21 +845,17 @@ void Widget::setProgress()
     else if(typeAlignCBox->currentIndex()==CONTINUOUS) text=QString(alignmode.at(CONTINUOUS)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
     progress->setFormat(text);
     progress->setTextVisible(true);
-    progress->setValue(timeLine->currentFrame());
+    //progress->setValue(timeLine->currentFrame());
+
+    progress->setValue(this->ConfigGyroDevice->Measure->getTick()*100/(this->timeSec*400));
 
 }
 
-void Widget::selectAlgorithm()
+void Widget::slotbuildgraph()
 {
-    if(FourAlgAction->isChecked()){
-        fourposition=true;
-        threeposition=false;
-    }
-    else if (ThreeAlgAction->isChecked()) {
-        threeposition=true;
-        fourposition=false;
-    }
+    emit buildgraph(0,RollLineEdit->text().toDouble());
 }
+
 void Widget::createPlot(QString name)
 {
     PlotWidget *plot=new PlotWidget;

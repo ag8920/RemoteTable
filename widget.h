@@ -44,7 +44,7 @@ signals:
     ///сигнал остановки измерений
     void StopMeasureSignal();
     ///сигнал запуска накопления данных
-    void StartAccumulateDataSignal();
+    void StartAccumulateDataSignal(double time);
     ///сигнал остановки накопления данных
     void StopAccumulateDataSignal();
     ///сигнал перехода к след. позиции стола
@@ -87,7 +87,7 @@ private slots:
 
     void selectAlgorithm();
 public:
-    int timeSec;
+    double timeSec;
 private:
     double Latsns,Lonsns,Hsns,Speedsns;QString Statussns;
 

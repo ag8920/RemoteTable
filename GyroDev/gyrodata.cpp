@@ -111,7 +111,7 @@ void GyroData::process()
     this->isAccumulateData=false;
     this->summ=0.;
     this->countPacket=0;
-    this->cntsumm=0;
+    this->tick=0;
     this->errorPacket=0;
     this->diff=0.;
 
@@ -202,14 +202,19 @@ bool GyroData::SortData(const QByteArray &data)
     count++;
 
     if(this->isAccumulateData){
-        this->summ+=static_cast<double>(packet.da2);
-        this->cntsumm++;
-        this->diff=summ/cntsumm;
+        this->tick++;
 
+        this->summ+=static_cast<double>(packet.da2);
+        this->diff=summ/tick;
         this->summDvX+=static_cast<double>(packet.dv1);
         this->summDvY+=static_cast<double>(packet.dv2);
-        this->diffDvX=summDvX/cntsumm;
-        this->diffDvY=summDvY/cntsumm;
+        this->diffDvX=summDvX/tick;
+        this->diffDvY=summDvY/tick;
+        if(this->tick>=this->timeAccumulate){
+            this->isAccumulateData=false;
+            this->tick=0;
+            emit signalStopAcumulateData();
+        }
     }
     return true;
     //}else return false;
@@ -236,6 +241,11 @@ void GyroData::MeasureRollAndPitch()
     count=0;
 }
 
+int GyroData::getTick() const
+{
+    return tick;
+}
+
 void GyroData::OutData()
 {    
     FillOutList(packet);
@@ -255,13 +265,14 @@ void GyroData::GetCoordinate(double *Lat, double *Lon, double *H)
     this->H=*H;
 }
 //-----------------------------------------------------------
-// Назначение: управление признаком накопления данных 
+// Назначение: управление признаками накопления данных
 //-----------------------------------------------------------
-void GyroData::AccumulateData()
+void GyroData::AccumulateData(double time)
 {
     this->isAccumulateData=true;
+    this->timeAccumulate=static_cast<int>(time*400);
     this->summ=0; //TODO
-    this->cntsumm=0;
+    this->tick=0;
     this->diff=0;
 }
 //-----------------------------------------------------------
@@ -278,7 +289,7 @@ void GyroData::Stop()
 {
     this->isAccumulateData=false;
     this->summ=0;
-    this->cntsumm=0;
+    this->tick=0;
     this->diff=0;
 }
 
