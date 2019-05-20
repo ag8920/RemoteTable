@@ -292,6 +292,8 @@ void GyroDevice::CreateConnections()
 
     connect(Measure,&GyroData::SendDecodeData,
             log,&loger::write);
+    connect(Measure, &GyroData::PutLog,
+            log, &loger::PutLog2);
     connect(SaveButton,&QPushButton::toggled,
             this,&GyroDevice::SaveData);
     connect(this,&GyroDevice::BeginRecord,

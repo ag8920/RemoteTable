@@ -117,7 +117,7 @@ void GyroData::process()
 
     tmr=new QTimer();
     tmr->setTimerType(Qt::TimerType::PreciseTimer);
-    tmr->setInterval(10);
+    tmr->setInterval(1);
     tmr->start();
 
     tmr2=new QTimer;
@@ -175,6 +175,13 @@ void GyroData::ReadByte(const char &byte)
         decodebuffer.clear();
     }
 }
+
+void GyroData::resetBuffer()
+{
+    inputbuffer.clear();
+    decodebuffer.clear();
+    buffer2.clear();
+}
 //-----------------------------------------------------------
 // Назначение: сортировка принятых данных(занесение в
 //             данных структуры)
@@ -202,18 +209,30 @@ bool GyroData::SortData(const QByteArray &data)
     count++;
 
     if(this->isAccumulateData){
+        static int numMeaure=0;
+
         this->tick++;
 
         this->summ+=static_cast<double>(packet.da2);
-        this->diff=summ/tick;
+        this->diff=summ;///tick;
         this->summDvX+=static_cast<double>(packet.dv1);
         this->summDvY+=static_cast<double>(packet.dv2);
         this->diffDvX=summDvX/tick;
         this->diffDvY=summDvY/tick;
+
+        emit PutLog(
+                    QString::number(static_cast<double>(packet.da2),'g',8),
+                    "da_data_"+QString::number(numMeaure)
+                    );
+
+
         if(this->tick>=this->timeAccumulate){
+            numMeaure++;
+            qDebug()<<tr("tick=%1").arg(tick);
             this->isAccumulateData=false;
             this->tick=0;
             emit signalStopAcumulateData();
+
         }
     }
     return true;
@@ -274,6 +293,9 @@ void GyroData::AccumulateData(double time)
     this->summ=0; //TODO
     this->tick=0;
     this->diff=0;
+
+//    inputbuffer.clear(); //TODO : проверка
+    //resetBuffer();
 }
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 

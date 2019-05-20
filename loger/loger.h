@@ -38,6 +38,7 @@ public slots:
      * \param строка для записи
      */
     void PutLog(QString Data);
+    void PutLog2(QString Data, QString FileName);
 private:
     QFile *file;///>объект класса QFile
 

@@ -74,5 +74,6 @@
         <file>icons/disconnect.png</file>
         <file>icons/satellite.png</file>
         <file>icons/serialport.png</file>
+        <file>icons/clear.png</file>
     </qresource>
 </RCC>

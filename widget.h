@@ -49,28 +49,33 @@ signals:
     void StopAccumulateDataSignal();
     ///сигнал перехода к след. позиции стола
     void GotoPosition(double position);
+
     ///сигнал сброса абсолютных координат стола
     void ResetAbsCoord();
+    void ZeroPosition();
+
+    void signalTableMesInit();
+
+
+
     ///логирование данных
     void PutLog(QString data);
-
     void sendCoordinate(double *Lat,double *Lon,double *H);
-
     void buildgraph(int index,double data);
 protected:
     void closeEvent(QCloseEvent *event);
 public slots:
-    ///запускает измерения
-    void StartMeasureSlot();
+
+    void Dispatcher();
     ///запускает таймер и вызывает признак накопления данных
     void StartTimer();
     ///устанавливает время накопления данных
     bool SetTime();
     ///останавливает измерения
     void StopMeasureSlot();
-    ///реализует четырех позиционный алгоритм
+    ///выполнение расчетов
     void Measure();
-   void  slotbuildgraph();
+    void slotbuildgraph();
     void createPlot(QString name);
     void saveSettings();
     void readSettings();
@@ -78,7 +83,8 @@ public slots:
     void recieveCoordinate(double *Lat, double *Lon,double *H);
 private slots:
     ///устанавливает признак однократного измерения
-    void OneMeasureSlot();
+    void setOneMeasureSlot();
+    void unsetOneMeasureSlot();
     ///
     void viewAngle(QString Roll,QString Pitch);
 
@@ -86,11 +92,11 @@ private slots:
     void setProgress();
 
     void selectAlgorithm();
+
+    void dumpCalcData();
 public:
     double timeSec;
 private:
-    double Latsns,Lonsns,Hsns,Speedsns;QString Statussns;
-
     QDockWidget *pdock;
     QLabel *LatLabel;
     QLabel *LonLabel;
@@ -103,7 +109,6 @@ private:
     void CreateMenus();
     ///создание панели инструментов
     void CreateToolBars();
-    void CreateStatusBar();
     ///создание виджета окна
     void CreateWidgets();
     ///создание сигнально-слотовых соединений
@@ -115,34 +120,29 @@ private:
     QAction *ConfigTabelDevAction;
     ///вызов окна гироскопического устройства
     QAction *ConfigGyroDevAction;
-
+    ///вызов окна СНС устройства
     QAction *ConfigNmeadeviceAction;
-    ///
     QAction *SetCoordianteAction;
     QAction *ViewPlotAction;
     QAction *stopPlot;
-    ///выполнить однократное измерение
-    QAction *OneMeasurementAction;
     ///выполнить серию измерений
-    QAction *StartTimerAction;
+    QAction *StartMeasureAction;
     ///остановить измерения
-    QAction *StopTimerAction;
-
-
+    QAction *StopMeasureAction;
     QAction *FourAlgAction;
     QAction *ThreeAlgAction;
     QActionGroup *AlgGroupAction;
 
+    QAction *DumpCalcDataAction;
+
     QMenu *fileMenu;
+    QMenu *configMenu;
     QToolBar *toolbar;
     QToolBar *Coordtoolbar;
 
-    QMenu *configMenu;
-
+    QComboBox *typeAlignCBox;
     ///поле с значением времени накопления данных
     QLineEdit *timeAccumulateLineEdit;
-
-    QComboBox *typeAlignCBox;
     ///поле с измеренным значение азимута
     QLineEdit *currValueLineEdit;
     ///поле с средним значением азимута
@@ -153,15 +153,12 @@ private:
     QLineEdit *maxValueLineEdit;
     ///поле со значением СКО
     QLineEdit *skoLineEdit;
-    ///надпись "Количество измерений"
-    QLabel *countMeasureLabel;
     ///поле с значением кол-ва измерений
     QLineEdit *countMeasureLineEdit;
     ///
-    /*QLineEdit*/CustomLineEdit *RollLineEdit;
+    CustomLineEdit *RollLineEdit;
     ///
-    /*QLineEdit*/CustomLineEdit *PitchLineEdit;
-
+    CustomLineEdit *PitchLineEdit;
     QLineEdit *azimuthXALineEdit;
     QLineEdit *azimuthDiffLineEdit;
 
@@ -175,7 +172,6 @@ private:
     GyroDevice *ConfigGyroDevice;
     ///
     corrdDialog *CoordDialog;
-
     NmeaDevice *ConfigNmeaDevice;
     ///объект класса loger
     loger *Log;
@@ -215,15 +211,16 @@ private:
     double da2_pos90;
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     double da2_pos270;
-
     double dv1_pos0,dv1_pos90,dv1_pos180;
     double dv2_pos0,dv2_pos90,dv2_pos180;
-
     double H, Lat, Lon,G;
     double Roll, Pitch;
-
+    double Latsns,Lonsns,Hsns,Speedsns;
+    QString Statussns;
     bool fourposition;
     bool threeposition;
+
+    int step;
 //    tableRS485 *tablers;
 };
 

@@ -16,7 +16,7 @@
 #include <winbase.h>
 #endif
 
-enum position{DEG_90=0,DEG_180,DEG_270,DEG_0};
+enum position{DEG_0=0,DEG_90,DEG_180,DEG_270,END};
 QStringList alignmode={"Короткий (ГК-1)","Точный (ГК-2)","Повторное ГК","Непрерывное ГК"};
 enum alignmode{GK_1,GK_2,REPEAT,CONTINUOUS};
 //-----------------------------------------------------------
@@ -27,15 +27,14 @@ Widget::Widget(QWidget *parent)
 {
     Q_UNUSED(parent);
     ConfigTableDevice = new TableDevice;
-    ConfigGyroDevice = new GyroDevice;
-    CoordDialog = new corrdDialog;
-    ConfigNmeaDevice=new NmeaDevice;
-    Log = new loger;
-
+    ConfigGyroDevice  = new GyroDevice;
+    CoordDialog       = new corrdDialog;
+    ConfigNmeaDevice  = new NmeaDevice;
+    Log  = new loger;
     ptmr = new QTimer;
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
 
-    timeLine=new QTimeLine;
+    timeLine = new QTimeLine;
     timeLine->setFrameRange(0,100);
     timeLine->setCurveShape(QTimeLine::LinearCurve);
     //tmrsec=new QTimer;
@@ -53,8 +52,6 @@ Widget::Widget(QWidget *parent)
     CreateActions();
     CreateMenus();
     CreateToolBars();
-    CreateStatusBar();
-
     initActionConnections();
     CreateConnections();
 
@@ -77,268 +74,78 @@ Widget::~Widget()
 void Widget::closeEvent(QCloseEvent *event)
 {
     //    Q_UNUSED(event);
-    ptmr->stop();
+    //ptmr->stop();
     saveSettings();
     onWindowClosed();
     event->accept();
 }
-//-----------------------------------------------------------
-// Назначение: создание действий
-//-----------------------------------------------------------
-void Widget::CreateActions()
+
+void Widget::Dispatcher()
 {
+    static int debugcnt=0;
+        switch (step) {
+        case 0: //начало
+            if(SetTime()){
+//            emit signalTableMesInit();
+                ConfigTableDevice->StartMeasure();
+            //emit ResetAbsCoord();
+            //emit StartAccumulateDataSignal(timeSec);
+            progress->setMinimum(0);
+            progress->setMaximum(0);
+            progress->setFormat(typeAlignCBox->currentText());
+//            emit GotoPosition(0);
+            ConfigTableDevice->GoToPosition(0);
 
-    OneMeasurementAction = new QAction(tr("Выполнить однократное измерение"),this);
-    OneMeasurementAction->setIcon(QIcon(":/icons/onestart.png"));
+            step++;
 
-    ConfigTabelDevAction = new QAction(tr("Поворотное устройство"),this);
-    ConfigTabelDevAction->setIcon(QIcon(":/icons/table.png"));
-
-    ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"),this);
-    ConfigGyroDevAction->setIcon(QIcon(":/icons/gyroscope.png"));
-
-    StartTimerAction = new QAction(tr("Выполнить серию измерений"),this);
-    StartTimerAction->setIcon(QIcon(":/icons/start.png"));
-
-    StopTimerAction = new QAction(tr("Остановить измерения"),this);
-    StopTimerAction->setIcon(QIcon(":/icons/stop.png"));
-    StopTimerAction->setEnabled(false);
-
-
-    SetCoordianteAction = new QAction(tr("Задать координаты"),this);
-    SetCoordianteAction->setIcon(QIcon(":/icons/coordinate.png"));
-
-    ViewPlotAction = new QAction(tr("Графики"),this);
-    stopPlot=new QAction(tr("остановить"),this);
-
-    ConfigNmeadeviceAction = new QAction(tr("СНС"),this);
-    ConfigNmeadeviceAction->setIcon(QIcon(":/icons/satellite.png"));
-
-    FourAlgAction=new QAction(tr("4-x позиционный алгоритм"),this);
-    FourAlgAction->setCheckable(true);
-    ThreeAlgAction=new QAction(tr("3-х позиционный алгоритм"),this);
-    ThreeAlgAction->setCheckable(true);
-    AlgGroupAction=new QActionGroup(this);
-    AlgGroupAction->addAction(FourAlgAction);
-    AlgGroupAction->addAction(ThreeAlgAction);
-    FourAlgAction->setChecked(true);
-
-}
-
-void Widget::initActionConnections()
-{
-    connect(ConfigTabelDevAction,&QAction::triggered,
-            ConfigTableDevice,&TableDevice::show);
-    connect(ConfigGyroDevAction,&QAction::triggered,
-            ConfigGyroDevice,&GyroDevice::show);
-    connect(this,&Widget::onWindowClosed,
-            ConfigTableDevice,&TableDevice::close);
-    connect(this,&Widget::onWindowClosed,
-            ConfigGyroDevice,&GyroDevice::close);
-    connect(this, &Widget::onWindowClosed,
-            ConfigNmeaDevice, &NmeaDevice::close);
-    connect(SetCoordianteAction,&QAction::triggered,
-            CoordDialog,&QDialog::show);
-    connect(ConfigNmeadeviceAction, &QAction::triggered,
-            ConfigNmeaDevice, &NmeaDevice::show);
-    //    connect(ViewPlotAction,&QAction::triggered,
-    //            tablers,&tableRS485::setAngle);
-    connect(AlgGroupAction, &QActionGroup::triggered,
-            this, &Widget::selectAlgorithm);
-}
-//-----------------------------------------------------------
-// Назначение: создание меню
-//-----------------------------------------------------------
-void Widget::CreateMenus()
-{
-    fileMenu = menuBar()->addMenu(tr("&Меню"));
-    fileMenu->addAction(SetCoordianteAction);
-    fileMenu->addAction(OneMeasurementAction);
-    fileMenu->addAction(StartTimerAction);
-    fileMenu->addAction(StopTimerAction);
-    fileMenu->addAction(FourAlgAction);
-    fileMenu->addAction(ThreeAlgAction);
-
-
-
-    configMenu = menuBar()->addMenu(tr("&Окно"));
-    configMenu->addAction(ConfigTabelDevAction);
-    configMenu->addAction(ConfigGyroDevAction);
-    configMenu->addAction(ConfigNmeadeviceAction);
-    //    configMenu->addAction(ViewPlotAction);
-    //    configMenu->addAction(stopPlot);
-}
-//-----------------------------------------------------------
-// Назначение: создание панели инструментов
-//-----------------------------------------------------------
-void Widget::CreateToolBars()
-{
-    toolbar=addToolBar(tr("Меню"));
-    toolbar->addAction(OneMeasurementAction);
-    toolbar->addAction(StartTimerAction);
-    toolbar->addAction(StopTimerAction);
-    toolbar->addSeparator();
-    toolbar->addAction(ConfigGyroDevAction);
-    toolbar->addAction(ConfigTabelDevAction);
-    toolbar->addAction(ConfigNmeadeviceAction);
-    toolbar->setIconSize(QSize(20,20));
-    //toolbar->setFloatable(false);
-    //toolbar->setMovable(false);
-
-
-    Coordtoolbar=new QToolBar(tr("Координаты"));
-    Coordtoolbar->addWidget(LatLabel);
-    Coordtoolbar->addWidget(LonLabel);
-    Coordtoolbar->addWidget(HLabel);
-    addToolBar(Coordtoolbar);
-
-//    QWidget *pwgt=new QWidget;
-//    QVBoxLayout *layout=new QVBoxLayout();
-//    layout->addWidget(LatLabel);
-//    layout->addWidget(LonLabel);
-//    layout->addWidget(HLabel);
-//    layout->addStretch();
-//    pwgt->setLayout(layout);
-//    pdock=new QDockWidget;
-//    pdock->setWidget(pwgt);
-//    pdock->setAllowedAreas(Qt::AllDockWidgetAreas);
-//    pdock->setFloating(false);
-//    pdock->setWindowTitle(tr("СНС"));
-//    addDockWidget(Qt::TopDockWidgetArea,pdock);
-
-}
-//-----------------------------------------------------------
-// Назначение:
-//-----------------------------------------------------------
-void Widget::CreateStatusBar()
-{
-
-}
-
-//-----------------------------------------------------------
-// Назначение: создание виджета головного окна
-//-----------------------------------------------------------
-void Widget::CreateWidgets()
-{
-    measureWidget = new QWidget;
-    QHBoxLayout *MainLayout= new QHBoxLayout;
-    QRegExp regExp("[0-9][0-9]{0,4}");
-    QRegExp exp("^(?:[1-2][0-9]{0,2}(?:\\.[0-9]{1,2})?|3(?:[0-5]?[0-9]?(?:\\.[0-9]{1,6})?|"
-               "60(?:\\.00?)?)|[4-9][0-9]?(?:\\.[0-9]{1,6})?|0(?:\\.[0-9]{1,6})?)° ?[LR]$");
-    QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,6);
-    regExp2->setRange(0,360,6);
-    QDoubleValidator* regExpDouble=new QDoubleValidator();
-    regExpDouble->setLocale(QLocale::English);
-
-    QGroupBox *measuregroupBox = new QGroupBox(tr("Измерения"));
-
-
-    LatLabel=new QLabel("Lat=0.0 ");
-    LonLabel=new QLabel("Lon=0.0 ");
-    HLabel=new QLabel("H=0.0 ");
-
-
-    currValueLineEdit=new QLineEdit;
-    currValueLineEdit->setReadOnly(true);
-    currValueLineEdit->setValidator(new QRegExpValidator(exp,this));
-
-    azimuthXALineEdit=new QLineEdit;
-    azimuthXALineEdit->setReadOnly(true);
-    azimuthXALineEdit->setValidator(new QRegExpValidator(exp,this));
-
-
-    azimuthDiffLineEdit=new QLineEdit;
-    azimuthDiffLineEdit->setValidator(new QRegExpValidator(exp,this));
-
-
-    //currValueLineEdit->setText("400");
-    meanVelueLineEdit=new QLineEdit;
-    meanVelueLineEdit->setReadOnly(true);
-    minValueLineEdit=new QLineEdit;
-    minValueLineEdit->setReadOnly(true);
-    maxValueLineEdit=new QLineEdit;
-    maxValueLineEdit->setReadOnly(true);
-    skoLineEdit=new QLineEdit;
-    skoLineEdit->setReadOnly(true);
-
-    typeAlignCBox=new QComboBox(this);
-    typeAlignCBox->insertItems(0,alignmode);
-
-    progress=new QProgressBar();
-    progress->setRange(0,100);
-
-
-
-    timeAccumulateLineEdit=new QLineEdit;
-    timeAccumulateLineEdit->setValidator(new QRegExpValidator(regExp,this));
-    //timeAccumulateLineEdit->setText("600");
-    this->timeAccumulateLineEdit->setReadOnly(true);
-    countMeasureLabel=new QLabel(tr("Количество измерений"));
-    countMeasureLineEdit=new QLineEdit;
-    countMeasureLineEdit->setReadOnly(true);
-    RollLineEdit=new  CustomLineEdit("Roll")/*QLineEdit*/;
-    RollLineEdit->setReadOnly(true);
-    PitchLineEdit=new CustomLineEdit("Pitch");
-    PitchLineEdit->setReadOnly(true);
-
-    QFormLayout *measureformLayout=new QFormLayout();
-    measureformLayout->addRow(tr("Азимут БИП:"),currValueLineEdit);
-    measureformLayout->addRow(tr("Ср.значение азимута БИП:"),meanVelueLineEdit);
-    measureformLayout->addRow(tr("Макс.значение азимута БИП:"),maxValueLineEdit);
-    measureformLayout->addRow(tr("Мин.значение азимута БИП:"),minValueLineEdit);
-    measureformLayout->addRow(tr("СКО:"),skoLineEdit);
-    measureformLayout->addRow(tr("Значение крена БИП:"),RollLineEdit);
-    measureformLayout->addRow(tr("Значение тангажа БИП:"),PitchLineEdit);
-    measureformLayout->addRow(tr("Количество измерений:"),countMeasureLineEdit);
-    measureformLayout->addRow(tr("Азимут ХА:"),azimuthXALineEdit);
-    measureformLayout->addRow(tr("Разность азимутов:"),azimuthDiffLineEdit);
-    measureformLayout->addRow(tr("Режим выставки:"),typeAlignCBox);
-    measureformLayout->addRow(tr("Время накопления(сек):"),timeAccumulateLineEdit);
-
-
-    measuregroupBox->setLayout(measureformLayout);
-    QVBoxLayout *grBoxLayout=new QVBoxLayout();
-    grBoxLayout->addWidget(measuregroupBox);
-    grBoxLayout->addWidget(progress);
-    QVBoxLayout *vbox=new QVBoxLayout();
-    vbox->addLayout(grBoxLayout);
-    MainLayout->addLayout(vbox);
-    measureWidget->setLayout(MainLayout);
-    setCentralWidget(measureWidget);
-
-    this->setWindowIcon(QIcon(":/icons/compas.png"));
-    measureWidget->show();
-
-    this->selectModeAlign(typeAlignCBox->currentIndex());
+            StartMeasureAction->setEnabled(false);
+            StopMeasureAction->setEnabled(true);
+            }else {
+                StopMeasureSlot();
+                step=0;
+            }
+            qDebug()<<"step: "<<debugcnt++;
+            break;
+        case 1:
+            emit StartAccumulateDataSignal(timeSec);
+            qDebug()<<"step: "<<debugcnt++;
+            break;
+        default:
+            break;
+        }
 }
 //-----------------------------------------------------------
 // Назначение: создание соединений СИГНАЛ-СЛОТ
 //-----------------------------------------------------------
 void Widget::CreateConnections()
 {
+    //---------------------------------
+    //нажимаем кнопку старт->вызываем диспетчер
+    //---------------------------------
+    connect(StartMeasureAction, &QAction::triggered,
+            this, &Widget::Dispatcher);
 
-    //---------------------------------
-    //действия по нажатию кнопки СТАРТ
-    //---------------------------------
-    //установка вермени измерений и вызов сигнала StartMeasure
-    connect(StartTimerAction,&QAction::triggered,
-            this,&Widget::StartMeasureSlot);
-    //Сигнал старта измерений (ConfigTableDevice->isMeasuring=true)
-    connect(this,&Widget::StartMeasure,
+    //----------------------------------
+    //говорим столу, что начинается испытание
+    connect(this,&Widget::signalTableMesInit,
             ConfigTableDevice,&TableDevice::StartMeasure);
-
-    connect(OneMeasurementAction,&QAction::triggered,
-            this,&Widget::StartMeasureSlot);
-    connect(OneMeasurementAction,&QAction::triggered,
-            this,&Widget::OneMeasureSlot);
+    //говорим, что пора копить данные
+    connect(this, &Widget::StartAccumulateDataSignal,
+            ConfigGyroDevice->Measure, &GyroData::AccumulateData);
+    //данные накоплены-Выгружаем их->поворачиваем стол
+    connect(ConfigGyroDevice->Measure, &GyroData::signalStopAcumulateData,
+            this, &Widget::Measure);
+    //стол остановился -> вызываем диспетчер
+    connect(ConfigTableDevice,&TableDevice::StopRotation,
+            this,&Widget::Dispatcher);
     //---------------------------------
     //действия по нажатию кнопки СТОП
     //---------------------------------
     //остановка поворотного стола
-    connect(StopTimerAction,&QAction::triggered,
+    connect(StopMeasureAction,&QAction::triggered,
             ConfigTableDevice,&TableDevice::FinishedMotion);
     //вызов StopMeasureSignal
-    connect(StopTimerAction,&QAction::triggered,
+    connect(StopMeasureAction,&QAction::triggered,
             this,&Widget::StopMeasureSlot);
     //сброс признака (TableDevice->isMeasuring=false)
     connect(this,&Widget::StopMeasureSignal,
@@ -350,9 +157,7 @@ void Widget::CreateConnections()
     //---------------------------------
     //запуск таймера
     //---------------------------------
-    //запуск таймера обратного отсчета при остановке стола
-    connect(ConfigTableDevice,&TableDevice::StopRotation,
-            this,&Widget::StartTimer);
+
     //---------------------------------
     //Взаимодействие с поворотным столом
     //---------------------------------
@@ -361,23 +166,21 @@ void Widget::CreateConnections()
     //сброс абс.координат
     connect(this,&Widget::ResetAbsCoord,
             ConfigTableDevice,&TableDevice::ResetAbsCoord);
+    //переход в нулевое положение
+    connect(this, &Widget::ZeroPosition,
+            ConfigTableDevice, &TableDevice::ZeroPostion);
 
     //----------------------------------
     //взаимодействие с гироскопом
     //-----------------------------------
-    //включение накопления данных ( выполняется при остановке стола)
-    connect(this,&Widget::StartAccumulateDataSignal,
-            ConfigGyroDevice->Measure,
-            &GyroData::AccumulateData);
-    //окончание накопления данных при начале поворота стола
-    //вызывается в функции Measure()
-    connect(this,&Widget::StopAccumulateDataSignal,
+
+    //сброс накопления данных
+    connect(this,&Widget::StopMeasureSignal,
             ConfigGyroDevice->Measure,
             &GyroData::NoAccumulateData);
 
     //connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
-    connect(ConfigGyroDevice->Measure, &GyroData::signalStopAcumulateData,
-            this, &Widget::Measure);
+
 
     connect(this,&Widget::PutLog,Log,&loger::PutLog);
 
@@ -414,11 +217,229 @@ void Widget::CreateConnections()
     connect(timeLine, &QTimeLine::valueChanged,
             this, &Widget::setProgress);
 }
+
+
+
+//-----------------------------------------------------------
+// Назначение: создание действий
+//-----------------------------------------------------------
+void Widget::CreateActions()
+{
+
+    ConfigTabelDevAction = new QAction(tr("Поворотное устройство"),this);
+    ConfigTabelDevAction->setIcon(QIcon(":/icons/table.png"));
+
+    ConfigGyroDevAction = new QAction(tr("Гироскопическое устройство"),this);
+    ConfigGyroDevAction->setIcon(QIcon(":/icons/gyroscope.png"));
+
+    StartMeasureAction = new QAction(tr("Выполнить измерение"),this);
+    StartMeasureAction->setIcon(QIcon(":/icons/start.png"));
+
+    StopMeasureAction = new QAction(tr("Остановить измерения"),this);
+    StopMeasureAction->setIcon(QIcon(":/icons/stop.png"));
+    StopMeasureAction->setEnabled(false);
+
+
+    SetCoordianteAction = new QAction(tr("Задать координаты"),this);
+    SetCoordianteAction->setIcon(QIcon(":/icons/coordinate.png"));
+
+    ViewPlotAction = new QAction(tr("Графики"),this);
+    stopPlot=new QAction(tr("остановить"),this);
+
+    ConfigNmeadeviceAction = new QAction(tr("СНС"),this);
+    ConfigNmeadeviceAction->setIcon(QIcon(":/icons/satellite.png"));
+
+    FourAlgAction=new QAction(tr("4-x позиционный алгоритм"),this);
+    FourAlgAction->setCheckable(true);
+    ThreeAlgAction=new QAction(tr("3-х позиционный алгоритм"),this);
+    ThreeAlgAction->setCheckable(true);
+    AlgGroupAction=new QActionGroup(this);
+    AlgGroupAction->addAction(FourAlgAction);
+    AlgGroupAction->addAction(ThreeAlgAction);
+    FourAlgAction->setChecked(true);
+
+    DumpCalcDataAction=new QAction(tr("Удалить расчетные данные"),this);
+    DumpCalcDataAction->setIcon(QIcon(":/icons/clear.png"));
+}
+
+void Widget::initActionConnections()
+{
+    connect(ConfigTabelDevAction,&QAction::triggered,
+            ConfigTableDevice,&TableDevice::show);
+    connect(ConfigGyroDevAction,&QAction::triggered,
+            ConfigGyroDevice,&GyroDevice::show);
+    connect(SetCoordianteAction,&QAction::triggered,
+            CoordDialog,&QDialog::show);
+    connect(ConfigNmeadeviceAction, &QAction::triggered,
+            ConfigNmeaDevice, &NmeaDevice::show);
+
+    connect(this,&Widget::onWindowClosed,
+            ConfigTableDevice,&TableDevice::close);
+    connect(this,&Widget::onWindowClosed,
+            ConfigGyroDevice,&GyroDevice::close);
+    connect(this, &Widget::onWindowClosed,
+            ConfigNmeaDevice, &NmeaDevice::close);
+    connect(this,&Widget::onWindowClosed,
+            CoordDialog, &QDialog::close);
+
+    //    connect(ViewPlotAction,&QAction::triggered,
+    //            tablers,&tableRS485::setAngle);
+    connect(AlgGroupAction, &QActionGroup::triggered,
+            this, &Widget::selectAlgorithm);
+    connect(DumpCalcDataAction, &QAction::triggered,
+            this, &Widget::dumpCalcData);
+}
+//-----------------------------------------------------------
+// Назначение: создание меню
+//-----------------------------------------------------------
+void Widget::CreateMenus()
+{
+    fileMenu = menuBar()->addMenu(tr("&Меню"));
+    fileMenu->addAction(SetCoordianteAction);
+    fileMenu->addAction(StartMeasureAction);
+    fileMenu->addAction(StopMeasureAction);
+    fileMenu->addAction(FourAlgAction);
+    fileMenu->addAction(ThreeAlgAction);
+    fileMenu->addAction(DumpCalcDataAction);
+    configMenu = menuBar()->addMenu(tr("&Окно"));
+    configMenu->addAction(ConfigTabelDevAction);
+    configMenu->addAction(ConfigGyroDevAction);
+    configMenu->addAction(ConfigNmeadeviceAction);
+    //    configMenu->addAction(ViewPlotAction);
+    //    configMenu->addAction(stopPlot);
+}
+//-----------------------------------------------------------
+// Назначение: создание панели инструментов
+//-----------------------------------------------------------
+void Widget::CreateToolBars()
+{
+    toolbar=addToolBar(tr("Меню"));
+    toolbar->addAction(StartMeasureAction);
+    toolbar->addAction(StopMeasureAction);
+    toolbar->addSeparator();
+    toolbar->addAction(ConfigGyroDevAction);
+    toolbar->addAction(ConfigTabelDevAction);
+    toolbar->addAction(ConfigNmeadeviceAction);
+    toolbar->setIconSize(QSize(20,20));
+    //toolbar->setFloatable(false);
+    //toolbar->setMovable(false);
+
+
+    Coordtoolbar=new QToolBar(tr("Координаты"));
+    Coordtoolbar->addWidget(LatLabel);
+    Coordtoolbar->addWidget(LonLabel);
+    Coordtoolbar->addWidget(HLabel);
+    addToolBar(Coordtoolbar);
+
+//    QWidget *pwgt=new QWidget;
+//    QVBoxLayout *layout=new QVBoxLayout();
+//    layout->addWidget(LatLabel);
+//    layout->addWidget(LonLabel);
+//    layout->addWidget(HLabel);
+//    layout->addStretch();
+//    pwgt->setLayout(layout);
+//    pdock=new QDockWidget;
+//    pdock->setWidget(pwgt);
+//    pdock->setAllowedAreas(Qt::AllDockWidgetAreas);
+//    pdock->setFloating(false);
+//    pdock->setWindowTitle(tr("СНС"));
+//    addDockWidget(Qt::TopDockWidgetArea,pdock);
+
+}
+//-----------------------------------------------------------
+// Назначение: создание виджета головного окна
+//-----------------------------------------------------------
+void Widget::CreateWidgets()
+{
+    measureWidget = new QWidget;
+    QHBoxLayout *MainLayout= new QHBoxLayout;
+    QRegExp regExp("[0-9][0-9]{0,4}");
+    QRegExp exp("^(?:[1-2][0-9]{0,2}(?:\\.[0-9]{1,2})?|3(?:[0-5]?[0-9]?(?:\\.[0-9]{1,6})?|"
+               "60(?:\\.00?)?)|[4-9][0-9]?(?:\\.[0-9]{1,6})?|0(?:\\.[0-9]{1,6})?)° ?[LR]$");
+    QDoubleValidator* regExp2= new QDoubleValidator(0.0,360.0,6);
+    regExp2->setRange(0,360,6);
+    QDoubleValidator* regExpDouble=new QDoubleValidator();
+    regExpDouble->setLocale(QLocale::English);
+
+    QGroupBox *measuregroupBox = new QGroupBox(tr("Измерения"));
+
+    LatLabel=new QLabel("Lat=0.0 ");
+    LonLabel=new QLabel("Lon=0.0 ");
+    HLabel  =new QLabel("H=0.0 ");
+
+    currValueLineEdit=new QLineEdit;
+    currValueLineEdit->setReadOnly(true);
+    currValueLineEdit->setValidator(new QRegExpValidator(exp,this));
+
+    azimuthXALineEdit=new QLineEdit;
+    azimuthXALineEdit->setReadOnly(true);
+    azimuthXALineEdit->setValidator(new QRegExpValidator(exp,this));
+
+    azimuthDiffLineEdit=new QLineEdit;
+    azimuthDiffLineEdit->setValidator(new QRegExpValidator(exp,this));
+
+    //currValueLineEdit->setText("400");
+    meanVelueLineEdit=new QLineEdit;
+    meanVelueLineEdit->setReadOnly(true);
+    minValueLineEdit=new QLineEdit;
+    minValueLineEdit->setReadOnly(true);
+    maxValueLineEdit=new QLineEdit;
+    maxValueLineEdit->setReadOnly(true);
+    skoLineEdit=new QLineEdit;
+    skoLineEdit->setReadOnly(true);
+
+    typeAlignCBox=new QComboBox(this);
+    typeAlignCBox->insertItems(0,alignmode);
+
+    progress=new QProgressBar();
+    progress->setRange(0,100);
+
+    timeAccumulateLineEdit=new QLineEdit;
+    timeAccumulateLineEdit->setValidator(new QRegExpValidator(regExp,this));
+    this->timeAccumulateLineEdit->setReadOnly(true);
+    countMeasureLineEdit=new QLineEdit;
+    countMeasureLineEdit->setReadOnly(true);
+    RollLineEdit=new  CustomLineEdit("Roll");
+    RollLineEdit->setReadOnly(true);
+    PitchLineEdit=new CustomLineEdit("Pitch");
+    PitchLineEdit->setReadOnly(true);
+
+    QFormLayout *measureformLayout=new QFormLayout();
+    measureformLayout->addRow(tr("Азимут БИП:"),currValueLineEdit);
+    measureformLayout->addRow(tr("Ср.значение азимута БИП:"),meanVelueLineEdit);
+    measureformLayout->addRow(tr("Макс.значение азимута БИП:"),maxValueLineEdit);
+    measureformLayout->addRow(tr("Мин.значение азимута БИП:"),minValueLineEdit);
+    measureformLayout->addRow(tr("СКО:"),skoLineEdit);
+    measureformLayout->addRow(tr("Значение крена БИП:"),RollLineEdit);
+    measureformLayout->addRow(tr("Значение тангажа БИП:"),PitchLineEdit);
+    measureformLayout->addRow(tr("Количество измерений:"),countMeasureLineEdit);
+    measureformLayout->addRow(tr("Азимут ХА:"),azimuthXALineEdit);
+    measureformLayout->addRow(tr("Разность азимутов:"),azimuthDiffLineEdit);
+    measureformLayout->addRow(tr("Режим выставки:"),typeAlignCBox);
+    measureformLayout->addRow(tr("Время накопления(сек):"),timeAccumulateLineEdit);
+
+    measuregroupBox->setLayout(measureformLayout);
+    QVBoxLayout *grBoxLayout=new QVBoxLayout();
+    grBoxLayout->addWidget(measuregroupBox);
+    grBoxLayout->addWidget(progress);
+    QVBoxLayout *vbox=new QVBoxLayout();
+    vbox->addLayout(grBoxLayout);
+    MainLayout->addLayout(vbox);
+    measureWidget->setLayout(MainLayout);
+    setCentralWidget(measureWidget);
+
+    this->setWindowIcon(QIcon(":/icons/compas.png"));
+    measureWidget->show();
+
+    this->selectModeAlign(typeAlignCBox->currentIndex());
+}
+
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
 //-----------------------------------------------------------
 void Widget::InitVariable()
 {
+    this->step=0;
     this->timeSec=0.;
     this->prevMeasure=0;
     this->numMeasure=0;
@@ -440,53 +461,39 @@ void Widget::InitVariable()
     this->fourposition=true;
     this->threeposition=false;
 }
-//-----------------------------------------------------------
-// Назначение: Запуск измерений
-//-----------------------------------------------------------
-void Widget::StartMeasureSlot()
-{
 
-    if(this->SetTime()){
-        this->StartTimer();
-        emit StartMeasure();
-        emit ResetAbsCoord();
-
-        StartTimerAction->setEnabled(false);
-        OneMeasurementAction->setEnabled(false);
-        StopTimerAction->setEnabled(true);
-    }
-    else
-        emit StopMeasureSignal();
-}
 //-----------------------------------------------------------
 // Назначение: остановка измерений
 //-----------------------------------------------------------
 void Widget::StopMeasureSlot()
 {
-    ptmr->stop();
+    //ptmr->stop();
     //this->InitVariable();
-    this->timeAccumulateLineEdit->setEnabled(true);
+
     emit StopMeasureSignal();
 
+    step=0;
+
     timeLine->stop();
+    progress->setMaximum(100);
+    progress->setMinimum(0);
     progress->reset();
+
     progress->setValue(100);
     progress->setFormat(typeAlignCBox->currentText()+": Режим остановлен");
 
-    StartTimerAction->setEnabled(true);
-    OneMeasurementAction->setEnabled(true);
-    StopTimerAction->setEnabled(false);
+     this->timeAccumulateLineEdit->setEnabled(true);
+    StartMeasureAction->setEnabled(true);
+    StopMeasureAction->setEnabled(false);
 }
 //-----------------------------------------------------------
-// Назначение: запуск таймера и вызов  сигнала
-//             накопления данных
+// Назначение: запуск таймеров
 //-----------------------------------------------------------
 void Widget::StartTimer()
 {
     //ptmr->setInterval(timeSec);
     //ptmr->setSingleShot(true);
     //ptmr->start();
-    emit StartAccumulateDataSignal(timeSec);
     timeLine->setDuration(timeAccumulateLineEdit->text().toInt()*1000);
     timeLine->start();
 
@@ -511,7 +518,7 @@ bool Widget::SetTime()
 }
 
 //-----------------------------------------------------------
-// Назначение: расчет параметров
+// Назначение: выполнение расчетов
 //-----------------------------------------------------------
 void Widget::Measure()
 {
@@ -519,30 +526,34 @@ void Widget::Measure()
 
     if(fourposition){
     switch (numPosition) {
-    case DEG_180:
+    case DEG_0:
+        qDebug()<<"pos_0";
         da2_pos0=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
-        numPosition=DEG_270;
+        numPosition=DEG_180;
         emit GotoPosition(-180);
         break;
-    case DEG_270:
-        da2_pos180=this->ConfigGyroDevice->Measure->diff;
-        this->ConfigGyroDevice->Measure->diff=0;
-        numPosition=DEG_0;
-        emit GotoPosition(-270);
-        break;
     case DEG_90:
+        qDebug()<<"pos_90";
         da2_pos90=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
-        numPosition=DEG_180;
-        emit GotoPosition(-90);
+        numPosition=DEG_0;
+        numMeasure++; //END Measure
+        emit GotoPosition(0);
         break;
-    case DEG_0:
+    case DEG_180:
+        qDebug()<<"pos_180";
+        da2_pos180=this->ConfigGyroDevice->Measure->diff;
+        this->ConfigGyroDevice->Measure->diff=0;
+        numPosition=DEG_270;
+        emit GotoPosition(-270);
+        break;
+    case DEG_270:
+        qDebug()<<"pos_270";
         da2_pos270=this->ConfigGyroDevice->Measure->diff;
         this->ConfigGyroDevice->Measure->diff=0;
         numPosition=DEG_90;
-        numMeasure++;
-        emit GotoPosition(0);
+        emit GotoPosition(-90);
         break;
     default: break;
     }
@@ -568,31 +579,30 @@ void Widget::Measure()
         numMeasure>1?denumerator=numMeasure-1:denumerator=1;
         SKO=sqrt((numerator/denumerator));
 
-        currValueLineEdit->setText(QString::number(static_cast<double>(Azimuth)));
-        meanVelueLineEdit->setText(QString::number(static_cast<double>(MeanAzimuth)));
-        minValueLineEdit->setText(QString::number(static_cast<double>(MinAzimuth)));
-        maxValueLineEdit->setText(QString::number(static_cast<double>(MaxAzimuth)));
-        skoLineEdit->setText(QString::number(static_cast<double>(SKO)));
+        currValueLineEdit->setText(QString::number(Azimuth,'g',8));
+        meanVelueLineEdit->setText(QString::number(MeanAzimuth,'g',8));
+        minValueLineEdit->setText(QString::number(MinAzimuth,'g',8));
+        maxValueLineEdit->setText(QString::number(MaxAzimuth,'g',8));
+        skoLineEdit->setText(QString::number(SKO,'g',8));
 
         if(numMeasure==1)
             emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
-        emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
-                    .arg(static_cast<double>(Azimuth))
-                    .arg(static_cast<double>(MeanAzimuth))
-                    .arg(static_cast<double>(MinAzimuth))
-                    .arg(static_cast<double>(MaxAzimuth))
-                    .arg(static_cast<double>(SKO))
-                    );
+        emit PutLog(QString::number(Azimuth,'g',8)+'\t'+
+                    QString::number(MeanAzimuth,'g',8)+'\t'+
+                    QString::number(MinAzimuth,'g',8)+'\t'+
+                    QString::number(MaxAzimuth,'g',8)+'\t'+
+                    QString::number(SKO,'g',8)+'\n');
+
         countMeasureLineEdit->setText(QString::number(numMeasure));
         if(this->isOneMeasure){
-            this->isOneMeasure=false;
+            //this->isOneMeasure=false;
             this->StopMeasureSlot();
         }
     }
     }
     else if(threeposition){
         switch (numPosition) {
-        case DEG_90:
+        case DEG_0:
             da2_pos0=this->ConfigGyroDevice->Measure->diff;
             dv1_pos0=this->ConfigGyroDevice->Measure->diffDvX;
             dv2_pos0=this->ConfigGyroDevice->Measure->diffDvY;
@@ -600,11 +610,11 @@ void Widget::Measure()
             this->ConfigGyroDevice->Measure->diffDvX=0;
             this->ConfigGyroDevice->Measure->diffDvY=0;
 
-            numPosition=DEG_180;
+            numPosition=DEG_90;
             emit GotoPosition(-90);//todo передалать в правильный угол
             break;
 
-        case DEG_180:
+        case DEG_90:
             da2_pos90=this->ConfigGyroDevice->Measure->diff;
             dv1_pos90=this->ConfigGyroDevice->Measure->diffDvX;
             dv2_pos90=this->ConfigGyroDevice->Measure->diffDvY;
@@ -612,10 +622,10 @@ void Widget::Measure()
             this->ConfigGyroDevice->Measure->diffDvX=0;
             this->ConfigGyroDevice->Measure->diffDvY=0;
 
-            numPosition=DEG_0;
+            numPosition=DEG_180;
             emit GotoPosition(-180);//todo передалать в правильный угол
             break;
-        case DEG_0:
+        case DEG_180:
             da2_pos180=this->ConfigGyroDevice->Measure->diff;
             dv1_pos180=this->ConfigGyroDevice->Measure->diffDvX;
             dv2_pos180=this->ConfigGyroDevice->Measure->diffDvY;
@@ -623,7 +633,7 @@ void Widget::Measure()
             this->ConfigGyroDevice->Measure->diffDvX=0;
             this->ConfigGyroDevice->Measure->diffDvY=0;
 
-            numPosition=DEG_90;
+            numPosition=DEG_0;
             emit GotoPosition(0);//todo передалать в правильный угол
             numMeasure++;
             break;
@@ -721,10 +731,13 @@ void Widget::Measure()
 
 
 
-void Widget::OneMeasureSlot()
+void Widget::setOneMeasureSlot()
 {
     this->isOneMeasure=true;
-
+}
+void Widget::unsetOneMeasureSlot()
+{
+    this->isOneMeasure=false;
 }
 
 //сохранение настроек приложения
@@ -777,6 +790,8 @@ void Widget::recieveCoordinate(double *Lat, double *Lon, double *H)
     this->Lon=*Lon;
     this->H=*H;
 }
+
+
 //отображение введнных координат
 void Widget::viewAngle(QString Roll, QString Pitch)
 {
@@ -810,10 +825,11 @@ void Widget::selectModeAlign(int idx)
     {
         qDebug()<<"CONTINUOUS";
         this->timeAccumulateLineEdit->setReadOnly(false);
+        //unsetOneMeasureSlot();
+        //return;
     }
+    setOneMeasureSlot();
 }
-
-
 
 //выбор типа алгоритма
 void Widget::selectAlgorithm()
@@ -827,6 +843,33 @@ void Widget::selectAlgorithm()
         fourposition=false;
     }
 }
+
+void Widget::dumpCalcData()
+{
+    this->prevMeasure=0;
+    this->numMeasure=0;
+    this->numPosition=0;
+    this->Azimuth=0.;
+    this->da2_pos0=0.;
+    this->da2_pos180=0.;
+    this->da2_pos90=0.;
+    this->da2_pos270=0.;
+    this->Azimuth=0.;
+    this->SummAzimuth=0.;
+    this->MeanAzimuth=0.;
+    this->MinAzimuth=0.;
+    this->MaxAzimuth=0.;
+    this->SKO=0.;
+    this->numerator=0.;
+    this->denumerator=0.;
+
+    currValueLineEdit->setText(QString::number(Azimuth,'g',8));
+    meanVelueLineEdit->setText(QString::number(MeanAzimuth,'g',8));
+    minValueLineEdit->setText(QString::number(MinAzimuth,'g',8));
+    maxValueLineEdit->setText(QString::number(MaxAzimuth,'g',8));
+    skoLineEdit->setText(QString::number(SKO,'g',8));
+    countMeasureLineEdit->setText(QString::number(numMeasure));
+}
 //настройка прогресс-бара
 void Widget::setProgress()
 {
@@ -838,7 +881,7 @@ void Widget::setProgress()
     min=timeLine->currentTime()%3600000/60000;
     hour=timeLine->currentTime()/3600000;
     time=QTime(hour,min,sec,msec);
-    qDebug()<<time.toString();
+    //qDebug()<<time.toString();
     if(typeAlignCBox->currentIndex()==GK_1) text=QString(alignmode.at(GK_1)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
     else if(typeAlignCBox->currentIndex()==GK_2) text=QString(alignmode.at(GK_2)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));
     else if(typeAlignCBox->currentIndex()==REPEAT) text=QString(alignmode.at(REPEAT)+": %p% (%1)").arg(time.toString("hh:mm:ss.zz"));

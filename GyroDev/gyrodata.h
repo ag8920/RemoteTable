@@ -46,7 +46,7 @@ signals:
     void finished();
 
     void signalStopAcumulateData();
-
+    void PutLog(QString data, QString fileName);
 public slots:
     void GetData(const QByteArray &inputArray);
 
@@ -66,6 +66,7 @@ private:
     void FillFirstList(FastPacket packet);
     bool SortData(const QByteArray &data);
     void MeasureRollAndPitch();
+    void resetBuffer();
 public:
     friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
     uint32_t countPacket;

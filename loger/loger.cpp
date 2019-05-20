@@ -95,3 +95,28 @@ void loger::PutLog(QString Data)
         File.close();
     }
 }
+
+void loger::PutLog2(QString Data, QString FileName)
+{
+    QDateTime dateTime=QDateTime::currentDateTime();
+    QString writeData;
+    QDir dir;
+    QString fileName;
+
+    if(dir.mkpath(QDir::currentPath()+"/record/log")){
+        dir.cd(QDir::currentPath()+"/record/log");
+        fileName=dir.filePath(FileName+".log");
+    }
+    else
+        fileName=FileName+".log";
+
+    QFile File(fileName);
+    QTextStream out(&File);
+    if(File.open(QIODevice::Append|QIODevice::Text)){
+        writeData=QString("%1\n").arg(Data);
+        out<<writeData;
+        File.close();
+    }
+}
+
+

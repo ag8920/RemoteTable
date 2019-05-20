@@ -166,9 +166,12 @@ void TableDevice::GetPosition(const QByteArray &data)
     }
     if(isMeasuring)
     {
-        if((std::abs(currPosition-nextPosition)<=2) && isRotation){
+        static int count=0;
+        if((std::abs(currPosition-nextPosition)<=2))count++;
+        if((std::abs(currPosition-nextPosition)<=2) && isRotation && count>10){
             emit StopRotation();
             isRotation=false;
+            count=0;
         }
         else if((std::abs(currPosition-nextPosition)>=100) && !isRotation){
             emit StartRotation();
@@ -191,6 +194,7 @@ void TableDevice::GoToPosition(double position)
             +QString::number(nextPosition)+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
+    isRotation=true;
 }
 //-----------------------------------------------------------
 // Назначение: Запрос текущего полжения
@@ -636,6 +640,8 @@ void TableDevice::SetTimer()
 void TableDevice::StartMeasure()
 {
     this->isMeasuring=true;
+
+    //состояние кнопок
     OnMotionButton->setEnabled(false);
     OffMotionButton->setEnabled(false);
     startButton->setEnabled(false);
@@ -655,6 +661,7 @@ void TableDevice::StartMeasure()
 void TableDevice::StopMeasure()
 {
     this->isMeasuring=false;
+    this->ZeroPostion();
     OnMotionButton->setEnabled(true);
     OffMotionButton->setEnabled(true);
     startButton->setEnabled(true);
