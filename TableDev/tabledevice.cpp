@@ -98,15 +98,17 @@ void TableDevice::ExecutePosition()
     QString str;
     isPosition=true;
 
+    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+    int pos=Deg2Label(PositioningLineEdit->text().toDouble());
     if(AbsolutPositioningCheckBox->isChecked())
     {
-        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
-                +PositioningLineEdit->text()+";bg;";
+        str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA="
+                +QString::number(pos)+";bg;";
     }
     else
     {
-        str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PR="
-                +PositioningLineEdit->text()+";bg;";
+        str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PR="
+                +QString::number(pos)+";bg;";
     }
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
@@ -117,7 +119,8 @@ void TableDevice::ExecutePosition()
 void TableDevice::ZeroPostion()
 {
     QByteArray data;
-    QString str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA=0;bg;";
+    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+    QString str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA=0;bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
@@ -145,6 +148,7 @@ void TableDevice::GetPosition(const QByteArray &data)
     static QString str=nullptr;
     static bool start=false;
     static bool end=false;
+    double currpos=0.;
 
     if(data.startsWith("px;")){start=true;end=false;}
     if(start && !end)
@@ -161,7 +165,8 @@ void TableDevice::GetPosition(const QByteArray &data)
     if(data.endsWith(";")) {end=true;start=false;}
     if(!str.isEmpty() && end) {
         currPosition=str.toInt();
-        CurrPositionLineEdit->setText(str);
+        currpos=Label2Deg(currPosition);
+        CurrPositionLineEdit->setText(QString::number(currpos,'g',8));
         str=nullptr;
     }
     if(isMeasuring)
@@ -189,8 +194,9 @@ void TableDevice::GoToPosition(double position)
     QByteArray data;
     QString str;
 
+    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
     nextPosition=Deg2Label(position);
-    str="mo=0;um=5;mo=1;SP="+RateOfTurnLineEdit->text()+";PA="
+    str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA="
             +QString::number(nextPosition)+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
@@ -223,8 +229,7 @@ void TableDevice::BeginMotion()
 {
     QByteArray data;
     QString str="bg;";
-    if(!isPosition)
-        this->SettingsRotation();
+    this->SettingsRotation();
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
@@ -285,10 +290,11 @@ void TableDevice::SettingsRotation()
 {
     QByteArray data;
     QString str;
+    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
     if(PositveRotationCheckBox->isChecked())
-        str="jv=-"+RateOfTurnLineEdit->text()+";";
+        str="jv=-"+QString::number(speed)+";";
     else
-        str="jv="+RateOfTurnLineEdit->text()+";";
+        str="jv="+QString::number(speed)+";";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
 }
@@ -337,21 +343,17 @@ void TableDevice::CreateWidgets()
     TypeTableComboBox->addItem(QStringLiteral("Поворотный стол 1"));
     TypeTableComboBox->addItem(QStringLiteral("Поворотный стол 2"));
 
-    connect(TypeTableComboBox, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(slotUpdateWidget(int)));
-
-
     TypeTableLabel = new QLabel(tr("Тип поворотного устройства:"));
     TypeTableLabel->setBuddy(TypeTableComboBox);
 
     CurrPositionLineEdit=new QLineEdit;
     CurrPositionLineEdit->setReadOnly(true);
-    CurrPositionLabel=new QLabel("Текущая позиция(метки):");
+    CurrPositionLabel=new QLabel("Текущая позиция(град.):");
     CurrPositionLabel->setBuddy(CurrPositionLineEdit);
     RateOfTurnLineEdit=new QLineEdit;
     RateOfTurnLineEdit->setValidator(new QRegExpValidator(regExp,this));
-    RateOfTurnLineEdit->setText("30000");
-    RateOfTurnLabel = new QLabel(tr("Скорость вращения (меток/сек)"));
+    RateOfTurnLineEdit->setText("30");
+    RateOfTurnLabel = new QLabel(tr("Скорость вращения (град./сек)"));
     PositveRotationCheckBox=new QCheckBox(tr("Положительное направление"));
 
     //скрыта
@@ -452,8 +454,8 @@ void TableDevice::CreateWidgets()
     ZeroPositionButton->setAutoDefault(true);
 
     PositioningLineEdit=new QLineEdit;
-    PositioningLineEdit->setText("200000");
-    PositioningLabel=new QLabel(tr("угол поворота(метки)"));
+    PositioningLineEdit->setText("180");
+    PositioningLabel=new QLabel(tr("угол поворота(град.)"));
     PositioningLabel->setBuddy(PositioningLabel);
     PositioningLineEdit->setValidator(new QRegExpValidator(regExp,this));
     AbsolutPositioningCheckBox=new QCheckBox(tr("Абc.позиционирование"));

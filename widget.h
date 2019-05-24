@@ -15,6 +15,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QTimer>
+#include <QMdiArea>
 
 #include "TableDev/tabledevice.h"
 #include "GyroDev/gyrodevice.h"
@@ -26,7 +27,7 @@
 #include "TableDev/tablers485.h"
 #include "NmeaDev/nmeadevice.h"
 
-
+extern QStringList alignmode;
 
 class CustomLineEdit;
 class Widget : public QMainWindow
@@ -84,7 +85,6 @@ public slots:
 private slots:
     ///устанавливает признак однократного измерения
     void setOneMeasureSlot();
-    void unsetOneMeasureSlot();
     ///
     void viewAngle(QString Roll,QString Pitch);
 
@@ -94,6 +94,7 @@ private slots:
     void selectAlgorithm();
 
     void dumpCalcData();
+
 public:
     double timeSec;
 private:
@@ -132,7 +133,7 @@ private:
     QAction *FourAlgAction;
     QAction *ThreeAlgAction;
     QActionGroup *AlgGroupAction;
-
+    QAction *CycleMeasureAction;
     QAction *DumpCalcDataAction;
 
     QMenu *fileMenu;
@@ -178,6 +179,8 @@ private:
     ///объект класса QTimer
     QTimer *ptmr;
 //    QTimer *tmrsec;
+
+    QMdiArea *mdiArea;
 
     ///признак однократного измерения
     bool isOneMeasure;

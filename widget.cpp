@@ -17,7 +17,7 @@
 #endif
 
 enum position{DEG_0=0,DEG_90,DEG_180,DEG_270,END};
-QStringList alignmode={"Короткий (ГК-1)","Точный (ГК-2)","Повторное ГК","Непрерывное ГК"};
+QStringList alignmode={"Короткий (ГК-1)","Точный (ГК-2)","Повторное ГК","Произвольное время"};
 enum alignmode{GK_1,GK_2,REPEAT,CONTINUOUS};
 //-----------------------------------------------------------
 // Назначение: конструктор класса
@@ -86,16 +86,13 @@ void Widget::Dispatcher()
         switch (step) {
         case 0: //начало
             if(SetTime()){
-//            emit signalTableMesInit();
-                ConfigTableDevice->StartMeasure();
-            //emit ResetAbsCoord();
-            //emit StartAccumulateDataSignal(timeSec);
+            emit signalTableMesInit();
+//           ConfigTableDevice->StartMeasure();
             progress->setMinimum(0);
             progress->setMaximum(0);
             progress->setFormat(typeAlignCBox->currentText());
-//            emit GotoPosition(0);
-            ConfigTableDevice->GoToPosition(0);
-
+            emit GotoPosition(0);
+//            ConfigTableDevice->GoToPosition(0);
             step++;
 
             StartMeasureAction->setEnabled(false);
@@ -107,6 +104,16 @@ void Widget::Dispatcher()
             qDebug()<<"step: "<<debugcnt++;
             break;
         case 1:
+            //проделать круг для определения положения нуль метки
+            emit GotoPosition(-360.);
+            step++;
+            break;
+        case 2:
+            //после поворота стола на 360 град. обнулить текущее положение стола
+            emit ZeroPosition();
+            step++;
+        case 3:
+            //накопление данных от гироскопа, запускается всякий раз при переходе в заданное положение
             emit StartAccumulateDataSignal(timeSec);
             qDebug()<<"step: "<<debugcnt++;
             break;
@@ -119,6 +126,7 @@ void Widget::Dispatcher()
 //-----------------------------------------------------------
 void Widget::CreateConnections()
 {
+
     //---------------------------------
     //нажимаем кнопку старт->вызываем диспетчер
     //---------------------------------
@@ -216,6 +224,8 @@ void Widget::CreateConnections()
 
     connect(timeLine, &QTimeLine::valueChanged,
             this, &Widget::setProgress);
+
+
 }
 
 
@@ -258,7 +268,10 @@ void Widget::CreateActions()
     AlgGroupAction->addAction(ThreeAlgAction);
     FourAlgAction->setChecked(true);
 
-    DumpCalcDataAction=new QAction(tr("Удалить расчетные данные"),this);
+    CycleMeasureAction=new QAction(tr("Циклические измерения"),this);
+    CycleMeasureAction->setCheckable(true);
+
+    DumpCalcDataAction=new QAction(tr("Очистить данные"),this);
     DumpCalcDataAction->setIcon(QIcon(":/icons/clear.png"));
 }
 
@@ -286,6 +299,8 @@ void Widget::initActionConnections()
     //            tablers,&tableRS485::setAngle);
     connect(AlgGroupAction, &QActionGroup::triggered,
             this, &Widget::selectAlgorithm);
+    connect(CycleMeasureAction, &QAction::triggered,
+            this, &Widget::setOneMeasureSlot);
     connect(DumpCalcDataAction, &QAction::triggered,
             this, &Widget::dumpCalcData);
 }
@@ -294,14 +309,15 @@ void Widget::initActionConnections()
 //-----------------------------------------------------------
 void Widget::CreateMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("&Меню"));
-    fileMenu->addAction(SetCoordianteAction);
+    fileMenu = menuBar()->addMenu(tr("&Измерения"));
     fileMenu->addAction(StartMeasureAction);
     fileMenu->addAction(StopMeasureAction);
     fileMenu->addAction(FourAlgAction);
     fileMenu->addAction(ThreeAlgAction);
+    fileMenu->addAction(CycleMeasureAction);
     fileMenu->addAction(DumpCalcDataAction);
     configMenu = menuBar()->addMenu(tr("&Окно"));
+    configMenu->addAction(SetCoordianteAction);
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
     configMenu->addAction(ConfigNmeadeviceAction);
@@ -351,6 +367,10 @@ void Widget::CreateToolBars()
 //-----------------------------------------------------------
 void Widget::CreateWidgets()
 {
+
+
+
+
     measureWidget = new QWidget;
     QHBoxLayout *MainLayout= new QHBoxLayout;
     QRegExp regExp("[0-9][0-9]{0,4}");
@@ -428,11 +448,21 @@ void Widget::CreateWidgets()
     measureWidget->setLayout(MainLayout);
     setCentralWidget(measureWidget);
 
+//    mdiArea=new QMdiArea;
+//    mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+//    mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+//    setCentralWidget(mdiArea);
+//    mdiArea->addSubWindow(measureWidget);
+
+
     this->setWindowIcon(QIcon(":/icons/compas.png"));
-    measureWidget->show();
+    //measureWidget->show();
 
     this->selectModeAlign(typeAlignCBox->currentIndex());
+
+//    addTableWidget();
 }
+
 
 //-----------------------------------------------------------
 // Назначение: инициализация переменных
@@ -457,7 +487,7 @@ void Widget::InitVariable()
     this->SKO=0.;
     this->numerator=0.;
     this->denumerator=0.;
-    this->isOneMeasure=false;
+    this->isOneMeasure=true;
     this->fourposition=true;
     this->threeposition=false;
 }
@@ -467,22 +497,15 @@ void Widget::InitVariable()
 //-----------------------------------------------------------
 void Widget::StopMeasureSlot()
 {
-    //ptmr->stop();
-    //this->InitVariable();
-
     emit StopMeasureSignal();
-
     step=0;
-
     timeLine->stop();
     progress->setMaximum(100);
     progress->setMinimum(0);
     progress->reset();
-
     progress->setValue(100);
     progress->setFormat(typeAlignCBox->currentText()+": Режим остановлен");
-
-     this->timeAccumulateLineEdit->setEnabled(true);
+    this->timeAccumulateLineEdit->setEnabled(true);
     StartMeasureAction->setEnabled(true);
     StopMeasureAction->setEnabled(false);
 }
@@ -559,7 +582,6 @@ void Widget::Measure()
     }
     if(numMeasure>prevMeasure){
         prevMeasure=numMeasure;
-
         //пересчет параметров
         Azimuth=qRadiansToDegrees(atan2((da2_pos270-da2_pos90),(da2_pos0-da2_pos180)));
         Azimuth<0?Azimuth+=360.0:Azimuth;
@@ -595,7 +617,6 @@ void Widget::Measure()
 
         countMeasureLineEdit->setText(QString::number(numMeasure));
         if(this->isOneMeasure){
-            //this->isOneMeasure=false;
             this->StopMeasureSlot();
         }
     }
@@ -611,7 +632,7 @@ void Widget::Measure()
             this->ConfigGyroDevice->Measure->diffDvY=0;
 
             numPosition=DEG_90;
-            emit GotoPosition(-90);//todo передалать в правильный угол
+            emit GotoPosition(-90);
             break;
 
         case DEG_90:
@@ -623,7 +644,7 @@ void Widget::Measure()
             this->ConfigGyroDevice->Measure->diffDvY=0;
 
             numPosition=DEG_180;
-            emit GotoPosition(-180);//todo передалать в правильный угол
+            emit GotoPosition(-180);
             break;
         case DEG_180:
             da2_pos180=this->ConfigGyroDevice->Measure->diff;
@@ -634,7 +655,7 @@ void Widget::Measure()
             this->ConfigGyroDevice->Measure->diffDvY=0;
 
             numPosition=DEG_0;
-            emit GotoPosition(0);//todo передалать в правильный угол
+            emit GotoPosition(0);
             numMeasure++;
             break;
         } //switch (numPosition)
@@ -649,14 +670,14 @@ void Widget::Measure()
             G=(go*earth_a*earth_a)/(earth_a+H)/(earth_a+H)*
                     (1.+betta*sin(Lat)*sin(Lat)+alpha*sin(2*Lat)*sin(2*Lat));
             //пересчет крена и тангажа
-            Roll=asin(0.25/G*(-2*dv1_pos90+dv1_pos180+dv1_pos0-dv2_pos180+dv2_pos0));
-            Pitch=asin(0.25/G/cos(Roll)*(dv1_pos180-dv1_pos0-2*dv2_pos90+dv2_pos180+dv2_pos0));
-
+            Pitch=asin(0.25/G*(-2*dv1_pos90+dv1_pos180+dv1_pos0-dv2_pos180+dv2_pos0));
+            Roll=asin(0.25/G/cos(Pitch)*(dv1_pos180-dv1_pos0-2*dv2_pos90+dv2_pos180+dv2_pos0));
             //азимута
             double n=0.,c1=0.,s1=0., d1=0.,c2=0.,s2=0.,d2=0.;
             double a=0.,b=0.,e=0.;
             double delta=0.;
-            n=(da2_pos90-da2_pos0/da2_pos90-da2_pos180);
+            n=(da2_pos90-da2_pos0)/(da2_pos90-da2_pos180);
+
             c1=(sin(Roll)*sin(Pitch)-cos(Pitch))*cos(Lat);
             s1=-cos(Roll)*cos(Lat);
             d1=-(sin(Roll)*cos(Pitch)+sin(Pitch))*sin(Lat);
@@ -712,7 +733,7 @@ void Widget::Measure()
             PitchLineEdit->setText(QString::number(Pitch));
 
             if(numMeasure==1)
-                emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
+                emit PutLog(tr("азимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
             emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
                         .arg(static_cast<double>(Azimuth))
                         .arg(static_cast<double>(MeanAzimuth))
@@ -722,7 +743,6 @@ void Widget::Measure()
                         );
             countMeasureLineEdit->setText(QString::number(numMeasure));
             if(this->isOneMeasure){
-                this->isOneMeasure=false;
                 this->StopMeasureSlot();
             }
         }
@@ -733,11 +753,10 @@ void Widget::Measure()
 
 void Widget::setOneMeasureSlot()
 {
-    this->isOneMeasure=true;
-}
-void Widget::unsetOneMeasureSlot()
-{
-    this->isOneMeasure=false;
+    if(CycleMeasureAction->isChecked())
+        this->isOneMeasure=false;
+    else
+        this->isOneMeasure=true;
 }
 
 //сохранение настроек приложения
@@ -828,7 +847,8 @@ void Widget::selectModeAlign(int idx)
         //unsetOneMeasureSlot();
         //return;
     }
-    setOneMeasureSlot();
+    //setOneMeasureSlot();
+    //unsetOneMeasureSlot();
 }
 
 //выбор типа алгоритма
@@ -870,6 +890,7 @@ void Widget::dumpCalcData()
     skoLineEdit->setText(QString::number(SKO,'g',8));
     countMeasureLineEdit->setText(QString::number(numMeasure));
 }
+
 //настройка прогресс-бара
 void Widget::setProgress()
 {

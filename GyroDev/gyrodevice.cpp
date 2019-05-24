@@ -300,6 +300,9 @@ void GyroDevice::CreateConnections()
             log,&loger::start);
     connect(this,&GyroDevice::StopRecord,
             log,&loger::CloseFile);
+
+    connect(Measure, &GyroData::signalSendData,
+            DeviceComPort, &comPort::WriteToPort);
 }
 //-----------------------------------------------------------
 // Назначение: выделение нового потока

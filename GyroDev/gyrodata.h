@@ -47,8 +47,11 @@ signals:
 
     void signalStopAcumulateData();
     void PutLog(QString data, QString fileName);
+
+    void signalSendData(const QByteArray &data);
 public slots:
     void GetData(const QByteArray &inputArray);
+    void SendData(const QByteArray &outputArray);
 
     void AccumulateData(double time);
     void NoAccumulateData();

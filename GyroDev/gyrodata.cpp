@@ -137,6 +137,11 @@ void GyroData::GetData(const QByteArray &inputArray)
 {
     this->inputbuffer.append(inputArray);
 }
+
+void GyroData::SendData(const QByteArray &outputArray)
+{  //todo реализовать отправку пакета с признаком поиска нуль метки.
+    emit signalSendData(outputArray);
+}
 //-----------------------------------------------------------
 // Назначение: распаковка данных
 //-----------------------------------------------------------
@@ -220,10 +225,10 @@ bool GyroData::SortData(const QByteArray &data)
         this->diffDvX=summDvX/tick;
         this->diffDvY=summDvY/tick;
 
-        emit PutLog(
-                    QString::number(static_cast<double>(packet.da2),'g',8),
-                    "da_data_"+QString::number(numMeaure)
-                    );
+//        emit PutLog(
+//                    QString::number(static_cast<double>(packet.da2),'g',8),
+//                    "da_data_"+QString::number(numMeaure)
+//                    );
 
 
         if(this->tick>=this->timeAccumulate){
@@ -232,11 +237,10 @@ bool GyroData::SortData(const QByteArray &data)
             this->isAccumulateData=false;
             this->tick=0;
             emit signalStopAcumulateData();
-
         }
     }
     return true;
-    //}else return false;
+//    }else return false;
 }
 
 void GyroData::MeasureRollAndPitch()
