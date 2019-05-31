@@ -1,6 +1,7 @@
 #include "corrddialog.h"
 #include "ui_corrddialog.h"
 #include <QSettings>
+#include <QDoubleValidator>
 
 corrdDialog::corrdDialog(QWidget *parent) :
     QDialog(parent),

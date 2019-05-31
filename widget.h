@@ -56,15 +56,16 @@ signals:
     void ZeroPosition();
 
     void signalTableMesInit();
-
-
-
     ///логирование данных
     void PutLog(QString data);
     void sendCoordinate(double *Lat,double *Lon,double *H);
     void buildgraph(int index,double data);
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
+
+#ifndef QT_NO_CONTEXTMENU
+    void contextMenuEvent(QContextMenuEvent *event) override;
+#endif // QT_NO_CONTEXTMENU
 public slots:
 
     void Dispatcher();

@@ -52,8 +52,10 @@ Widget::Widget(QWidget *parent)
     CreateActions();
     CreateMenus();
     CreateToolBars();
+    //CreateContextMenu();
     initActionConnections();
     CreateConnections();
+
 
 
 
@@ -79,6 +81,24 @@ void Widget::closeEvent(QCloseEvent *event)
     onWindowClosed();
     event->accept();
 }
+#ifndef QT_NO_CONTEXTMENU
+void Widget::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu menu(this);
+    menu.addAction(SetCoordianteAction);
+    menu.addAction(ConfigTabelDevAction);
+    menu.addAction(ConfigGyroDevAction);
+    menu.addAction(ConfigNmeadeviceAction);
+    menu.addSeparator();
+    menu.addAction(StartMeasureAction);
+    menu.addAction(StopMeasureAction);
+    menu.addAction(FourAlgAction);
+    menu.addAction(ThreeAlgAction);
+    menu.addAction(CycleMeasureAction);
+    menu.addAction(DumpCalcDataAction);
+    menu.exec(event->globalPos());
+}
+#endif // QT_NO_CONTEXTMENU
 
 void Widget::Dispatcher()
 {
@@ -204,13 +224,6 @@ void Widget::CreateConnections()
 
     connect(this, &Widget::sendCoordinate,ConfigGyroDevice->Measure, &GyroData::GetCoordinate);
 
-    //    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
-    //    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
-    //    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
-
-    //    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
-    //    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
-
     connect(typeAlignCBox, SIGNAL(activated(int)),
              this, SLOT(selectModeAlign(int)));
 
@@ -225,7 +238,11 @@ void Widget::CreateConnections()
     connect(timeLine, &QTimeLine::valueChanged,
             this, &Widget::setProgress);
 
-
+    //    connect(tmrsec,&QTimer::timeout,this,&Widget::slotbuildgraph);
+    //    connect(this,&Widget::buildgraph,plotWidget,&PlotWidget::realtimeDataSlot);
+    //    connect(stopPlot,&QAction::triggered,tmrsec,&QTimer::stop);
+    //    connect(RollLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
+    //    connect(PitchLineEdit,&CustomLineEdit::doubleclick,this,&Widget::createPlot);
 }
 
 
@@ -316,6 +333,7 @@ void Widget::CreateMenus()
     fileMenu->addAction(ThreeAlgAction);
     fileMenu->addAction(CycleMeasureAction);
     fileMenu->addAction(DumpCalcDataAction);
+
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(SetCoordianteAction);
     configMenu->addAction(ConfigTabelDevAction);
@@ -323,6 +341,8 @@ void Widget::CreateMenus()
     configMenu->addAction(ConfigNmeadeviceAction);
     //    configMenu->addAction(ViewPlotAction);
     //    configMenu->addAction(stopPlot);
+
+
 }
 //-----------------------------------------------------------
 // Назначение: создание панели инструментов
@@ -551,30 +571,26 @@ void Widget::Measure()
     switch (numPosition) {
     case DEG_0:
         qDebug()<<"pos_0";
-        da2_pos0=this->ConfigGyroDevice->Measure->diff;
-        this->ConfigGyroDevice->Measure->diff=0;
+        da2_pos0=this->ConfigGyroDevice->getSummDa();
         numPosition=DEG_180;
         emit GotoPosition(-180);
         break;
     case DEG_90:
         qDebug()<<"pos_90";
-        da2_pos90=this->ConfigGyroDevice->Measure->diff;
-        this->ConfigGyroDevice->Measure->diff=0;
+        da2_pos90=this->ConfigGyroDevice->getSummDa();
         numPosition=DEG_0;
         numMeasure++; //END Measure
         emit GotoPosition(0);
         break;
     case DEG_180:
         qDebug()<<"pos_180";
-        da2_pos180=this->ConfigGyroDevice->Measure->diff;
-        this->ConfigGyroDevice->Measure->diff=0;
+        da2_pos180=this->ConfigGyroDevice->getSummDa();
         numPosition=DEG_270;
         emit GotoPosition(-270);
         break;
     case DEG_270:
         qDebug()<<"pos_270";
-        da2_pos270=this->ConfigGyroDevice->Measure->diff;
-        this->ConfigGyroDevice->Measure->diff=0;
+        da2_pos270=this->ConfigGyroDevice->getSummDa();
         numPosition=DEG_90;
         emit GotoPosition(-90);
         break;
@@ -608,7 +624,7 @@ void Widget::Measure()
         skoLineEdit->setText(QString::number(SKO,'g',8));
 
         if(numMeasure==1)
-            emit PutLog(tr("время\tазимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
+            emit PutLog(tr("азимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
         emit PutLog(QString::number(Azimuth,'g',8)+'\t'+
                     QString::number(MeanAzimuth,'g',8)+'\t'+
                     QString::number(MinAzimuth,'g',8)+'\t'+
@@ -624,36 +640,23 @@ void Widget::Measure()
     else if(threeposition){
         switch (numPosition) {
         case DEG_0:
-            da2_pos0=this->ConfigGyroDevice->Measure->diff;
-            dv1_pos0=this->ConfigGyroDevice->Measure->diffDvX;
-            dv2_pos0=this->ConfigGyroDevice->Measure->diffDvY;
-            this->ConfigGyroDevice->Measure->diff=0;
-            this->ConfigGyroDevice->Measure->diffDvX=0;
-            this->ConfigGyroDevice->Measure->diffDvY=0;
-
+            da2_pos0=this->ConfigGyroDevice->getSummDa();
+            dv1_pos0=this->ConfigGyroDevice->getMeanDvX();
+            dv2_pos0=this->ConfigGyroDevice->getMeanDvY();
             numPosition=DEG_90;
             emit GotoPosition(-90);
             break;
-
         case DEG_90:
-            da2_pos90=this->ConfigGyroDevice->Measure->diff;
-            dv1_pos90=this->ConfigGyroDevice->Measure->diffDvX;
-            dv2_pos90=this->ConfigGyroDevice->Measure->diffDvY;
-            this->ConfigGyroDevice->Measure->diff=0;
-            this->ConfigGyroDevice->Measure->diffDvX=0;
-            this->ConfigGyroDevice->Measure->diffDvY=0;
-
+            da2_pos90=this->ConfigGyroDevice->getSummDa();
+            dv1_pos90=this->ConfigGyroDevice->getMeanDvX();
+            dv2_pos90=this->ConfigGyroDevice->getMeanDvY();
             numPosition=DEG_180;
             emit GotoPosition(-180);
             break;
         case DEG_180:
-            da2_pos180=this->ConfigGyroDevice->Measure->diff;
-            dv1_pos180=this->ConfigGyroDevice->Measure->diffDvX;
-            dv2_pos180=this->ConfigGyroDevice->Measure->diffDvY;
-            this->ConfigGyroDevice->Measure->diff=0;
-            this->ConfigGyroDevice->Measure->diffDvX=0;
-            this->ConfigGyroDevice->Measure->diffDvY=0;
-
+            da2_pos180=this->ConfigGyroDevice->getSummDa();
+            dv1_pos180=this->ConfigGyroDevice->getMeanDvX();
+            dv2_pos180=this->ConfigGyroDevice->getMeanDvY();
             numPosition=DEG_0;
             emit GotoPosition(0);
             numMeasure++;
@@ -663,12 +666,12 @@ void Widget::Measure()
             prevMeasure=numMeasure;
             //пересчет G
             static double
-                    go=9.78049,
-                    earth_a=6378136.,
-                    betta=0.005317,
-                    alpha=0.000007;
-            G=(go*earth_a*earth_a)/(earth_a+H)/(earth_a+H)*
-                    (1.+betta*sin(Lat)*sin(Lat)+alpha*sin(2*Lat)*sin(2*Lat));
+             go=9.78049,
+             earth_a=6378136.,
+             betta=0.005317,
+             alpha=0.000007;
+             G=(go*earth_a*earth_a)/(earth_a+H)/(earth_a+H)*
+                (1.+betta*sin(Lat)*sin(Lat)+alpha*sin(2*Lat)*sin(2*Lat));
             //пересчет крена и тангажа
             Pitch=asin(0.25/G*(-2*dv1_pos90+dv1_pos180+dv1_pos0-dv2_pos180+dv2_pos0));
             Roll=asin(0.25/G/cos(Pitch)*(dv1_pos180-dv1_pos0-2*dv2_pos90+dv2_pos180+dv2_pos0));

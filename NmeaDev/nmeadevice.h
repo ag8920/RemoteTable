@@ -47,9 +47,6 @@ class NmeaDevice : public QMainWindow
 public:
     explicit NmeaDevice(QWidget *parent = nullptr);
     ~NmeaDevice();
-
-protected:
-    void closeEvent(QCloseEvent *event);
 private:
     Ui::NmeaDevice *ui;
     SettingsDialog *SettingsComPort;

@@ -10,7 +10,7 @@ tableRS485::tableRS485(QObject *parent) : QObject(parent)
 //
 void tableRS485::ReadMsg(const QByteArray &data)
 {
-
+    Q_UNUSED(data);
 }
 //------------------------------------------------------------------------------
 QByteArray tableRS485::GetMessage(Command CMD, QByteArray &DATA,

@@ -89,6 +89,9 @@ private:
     QPushButton *SaveButton;
 
 public:
+    double getSummDa();
+    double getMeanDvX();
+    double getMeanDvY();
     GyroData *Measure;
     QThread *MeasureThread;
 };

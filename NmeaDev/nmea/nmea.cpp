@@ -5,7 +5,7 @@
 #include <QDataStream>
 nmea::nmea(QObject *parent)
 {
-
+    Q_UNUSED(parent);
     RmcMsg={};
     GsvMsg={};
     GgaMsg={};

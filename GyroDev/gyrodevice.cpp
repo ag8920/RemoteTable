@@ -353,3 +353,18 @@ void GyroDevice::StopThreads()
 {
     emit StopAll();
 }
+
+double GyroDevice::getSummDa()
+{
+    return Measure->getSummDa();
+}
+
+double GyroDevice::getMeanDvX()
+{
+    return Measure->getMeanDvX();
+}
+
+double GyroDevice::getMeanDvY()
+{
+    return Measure->getMeanDvY();
+}

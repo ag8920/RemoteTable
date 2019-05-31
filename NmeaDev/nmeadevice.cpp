@@ -101,11 +101,6 @@ NmeaDevice::~NmeaDevice()
     ComPortThread->quit();
     delete ui;
 }
-void NmeaDevice::closeEvent(QCloseEvent *event)
-{
-
-}
-
 void NmeaDevice::AddThread()
 {
     ComPort->moveToThread(ComPortThread);

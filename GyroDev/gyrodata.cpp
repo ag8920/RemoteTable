@@ -109,11 +109,11 @@ void GyroData::process()
             tr("Импульсы")};
 
     this->isAccumulateData=false;
-    this->summ=0.;
+    this->summDa=0.;
     this->countPacket=0;
     this->tick=0;
     this->errorPacket=0;
-    this->diff=0.;
+
 
     tmr=new QTimer();
     tmr->setTimerType(Qt::TimerType::PreciseTimer);
@@ -187,6 +187,21 @@ void GyroData::resetBuffer()
     decodebuffer.clear();
     buffer2.clear();
 }
+
+double GyroData::getMeanDvY() const
+{
+    return meanDvY;
+}
+
+double GyroData::getMeanDvX() const
+{
+    return meanDvX;
+}
+
+double GyroData::getSummDa() const
+{
+    return summDa;
+}
 //-----------------------------------------------------------
 // Назначение: сортировка принятых данных(занесение в
 //             данных структуры)
@@ -198,37 +213,28 @@ bool GyroData::SortData(const QByteArray &data)
     QDataStream stream(data);
     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     stream.setByteOrder(QDataStream::LittleEndian);
-
     countPacket++;
     stream>>packet;
-
-
     //    if(packet.crc==CSUM_CRC8(data,33)){
-
     diffcnt=abs(static_cast<int32_t>(packet.cnt)-static_cast<int32_t>(prevcnt));
     if(diffcnt>1) this->errorPacket++;
     prevcnt=packet.cnt;
-
     summDv1+=static_cast<double>(packet.dv1);
     summDv2+=static_cast<double>(packet.dv2);
     count++;
-
     if(this->isAccumulateData){
         static int numMeaure=0;
-
         this->tick++;
-
-        this->summ+=static_cast<double>(packet.da2);
-        this->diff=summ;///tick;
+        this->summDa+=static_cast<double>(packet.da2);
         this->summDvX+=static_cast<double>(packet.dv1);
         this->summDvY+=static_cast<double>(packet.dv2);
-        this->diffDvX=summDvX/tick;
-        this->diffDvY=summDvY/tick;
+        this->meanDvX=summDvX/tick;
+        this->meanDvY=summDvY/tick;
 
-//        emit PutLog(
-//                    QString::number(static_cast<double>(packet.da2),'g',8),
-//                    "da_data_"+QString::number(numMeaure)
-//                    );
+        //        emit PutLog(
+        //                    QString::number(static_cast<double>(packet.da2),'g',8),
+        //                    "da_data_"+QString::number(numMeaure)
+        //                    );
 
 
         if(this->tick>=this->timeAccumulate){
@@ -240,7 +246,7 @@ bool GyroData::SortData(const QByteArray &data)
         }
     }
     return true;
-//    }else return false;
+    //    }else return false;
 }
 
 void GyroData::MeasureRollAndPitch()
@@ -255,9 +261,8 @@ void GyroData::MeasureRollAndPitch()
     count!=0?summDv1=summDv1/count:summDv1=0;
     count!=0?summDv2=summDv2/count:summDv2=0;
     G=(go*earth_a*earth_a)/(earth_a+H)/(earth_a+H)*
-            (1.+betta*sin(Lat)*sin(Lat)+alpha*sin(2*Lat)*sin(2*Lat));
+        (1.+betta*sin(Lat)*sin(Lat)+alpha*sin(2*Lat)*sin(2*Lat));
     Pitch=qRadiansToDegrees(qAsin(summDv2/G));
-    //if(std::isnan(Pitch))Pitch=90.;
     Roll=qRadiansToDegrees(qAsin(-summDv1/sqrt(pow(G,2)-pow(summDv2,2))));
     if(std::isnan(Roll))Roll=90.;
     summDv2=0.;summDv1=0.;
@@ -294,11 +299,15 @@ void GyroData::AccumulateData(double time)
 {
     this->isAccumulateData=true;
     this->timeAccumulate=static_cast<int>(time*400);
-    this->summ=0; //TODO
+    this->summDa=0; //TODO
+    this->summDvX=0.;
+    this->summDvY=0.;
+    this->meanDvX=0.;
+    this->meanDvY=0.;
     this->tick=0;
-    this->diff=0;
 
-//    inputbuffer.clear(); //TODO : проверка
+
+    //    inputbuffer.clear(); //TODO : проверка
     //resetBuffer();
 }
 //-----------------------------------------------------------
@@ -314,9 +323,13 @@ void GyroData::NoAccumulateData()
 void GyroData::Stop()
 {
     this->isAccumulateData=false;
-    this->summ=0;
+    this->summDa=0.;
+    this->summDvX=0.;
+    this->summDvY=0.;
+    this->meanDvX=0.;
+    this->meanDvY=0.;
     this->tick=0;
-    this->diff=0;
+
 }
 
 //-----------------------------------------------------------

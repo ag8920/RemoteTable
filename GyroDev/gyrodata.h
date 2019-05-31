@@ -70,31 +70,16 @@ private:
     bool SortData(const QByteArray &data);
     void MeasureRollAndPitch();
     void resetBuffer();
-public:
-    friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
-    uint32_t countPacket;
-    int32_t errorPacket;
-    FastPacket packet;
-    QList<QString> *lstVal;
-    QList<QString> *lstName;
 
-    double summ;
     int tick;
-    double diff;
+    int count;
+    double summDa;
     double summDvX;
     double summDvY;
-    double diffDvX;
-    double diffDvY;
-
+    double meanDvX;
+    double meanDvY;
     bool isAccumulateData;
-
-    QTimer *tmr;
-    QTimer *tmr2;
-
-    QByteArray inputbuffer;
-    QByteArray buffer2;
-    QByteArray decodebuffer;
-
+    int timeAccumulate;
     double Roll;
     double Pitch;
     double Lat;
@@ -103,10 +88,23 @@ public:
     double G;
     double summDv1;
     double summDv2;
-    int count;
 
-    int timeAccumulate;
+public:
+    friend QDataStream &operator>>(QDataStream &in,FastPacket &packet );
+    uint32_t countPacket;
+    int32_t errorPacket;
+    FastPacket packet;
+    QList<QString> *lstVal;
+    QList<QString> *lstName;
+    QTimer *tmr;
+    QTimer *tmr2;
+    QByteArray inputbuffer;
+    QByteArray buffer2;
+    QByteArray decodebuffer;
     int getTick() const;
+    double getSummDa() const;
+    double getMeanDvX() const;
+    double getMeanDvY() const;
 };
 
 #endif // GYRODATA_H
