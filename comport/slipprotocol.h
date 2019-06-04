@@ -45,6 +45,15 @@ public:
      * \return при успешном выполнении возвращает 1
      */
     char SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt);
+
+    /*!
+     * \brief SlipEncode
+     * \param buffer
+     * \param encodebuffer
+     * \param lenght
+     * \return
+     */
+    uint16_t SlipEncode(QByteArray buffer, QByteArray &encodebuffer, uint16_t lenght);
 };
 
 #endif // SLIPPROTOCOL_H

@@ -215,6 +215,9 @@ private:
     double da2_pos90;
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     double da2_pos270;
+
+    double zeroAzimuth;
+
     double dv1_pos0,dv1_pos90,dv1_pos180;
     double dv2_pos0,dv2_pos90,dv2_pos180;
     double H, Lat, Lon,G;

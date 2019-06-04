@@ -21,6 +21,7 @@
 #include "../GyroDev/gyrodata.h"
 #include "../ModelData/tablemodel.h"
 #include "../loger/loger.h"
+#include "../ledlamp/rgbled.h"
 
 class GyroDevice : public QMainWindow
 {
@@ -47,12 +48,14 @@ public slots:
     void ConsoleVisible();
 private slots:
     void SaveData();
+    void StatusUpdate();
 private:
     void CreateTable();
     void CreateWidgets();
     void CreateConnections();
     void AddThread();
     void StopThreads();
+
 
     QWidget *MainWidget;
     QLabel *TypeProtocolLabel;
@@ -81,6 +84,11 @@ private:
     MyDelegate *m_delegate;
     QTableView *m_tableView;
     QWidget *tableWidget;
+
+    QTimer *tmr;
+    RgbLed *validDataLamp;
+    RgbLed *searchZeroLamp;
+    RgbLed *validZeroLamp;
 
     unsigned char updateSettingsPort;
 

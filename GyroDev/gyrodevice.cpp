@@ -30,6 +30,10 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     log=new loger;
     logThread=new QThread;
 
+    tmr=new QTimer;
+    tmr->setInterval(500);
+    tmr->start();
+
     AddThread();
     CreateWidgets();
     CreateTable();
@@ -115,6 +119,22 @@ void GyroDevice::SaveData()
     }
 
 }
+
+void GyroDevice::StatusUpdate()
+{
+    Measure->getValidData()?validDataLamp->setColor(Qt::green):validDataLamp->setColor(Qt::red);
+    Measure->getValidZero()?validZeroLamp->setColor(Qt::green):validZeroLamp->setColor(Qt::red);
+
+    if(Measure->getModeSearchZero()){
+        static int i=0;
+        if(i%2==0)searchZeroLamp->setColor(Qt::green);
+        else searchZeroLamp->setColor(Qt::gray);
+        i++;
+    }
+    else searchZeroLamp->setColor(Qt::gray);
+
+    Measure->SearchZeroIndicator();
+}
 //-----------------------------------------------------------
 // Назначение: установка состояния кнопок
 //             при подключении порта
@@ -137,6 +157,7 @@ void GyroDevice::isNotConnectedComPort(const QString &msg)
     if(updateSettingsPort)
         ComPortButton->setEnabled(true);
     //    ConsoleWidget->setEnabled(false);
+    Measure->resetStatus();
 
 }
 //-----------------------------------------------------------
@@ -156,6 +177,11 @@ void GyroDevice::CreateTable()
 //-----------------------------------------------------------
 void GyroDevice::CreateWidgets()
 {
+    validDataLamp=new RgbLed(nullptr,Qt::red);
+    searchZeroLamp=new RgbLed(nullptr,Qt::gray);
+    validZeroLamp=new RgbLed(nullptr,Qt::red);
+
+
     ConsoleWidget->setEnabled(true);
     ConsoleWidget->hide();
     TypeProtocolComboBox=new QComboBox;
@@ -209,12 +235,14 @@ void GyroDevice::CreateWidgets()
     QGroupBox *GyroSettingsBox=new QGroupBox(tr("Параметры гироскопического устройства"));
 
     QGridLayout *LeftLayout=new QGridLayout;
-    LeftLayout->addWidget(TypeProtocolLabel,0,0);
-    LeftLayout->addWidget(TypeProtocolComboBox,0,1);
+//    LeftLayout->addWidget(TypeProtocolLabel,0,0);
+//    LeftLayout->addWidget(TypeProtocolComboBox,0,1);
     LeftLayout->addWidget(CountPacketLabel,1,0);
     LeftLayout->addWidget(CountPacketLineEdit,1,1);
     LeftLayout->addWidget(CountErrorLabel,2,0);
     LeftLayout->addWidget(CountErrorLineEdit,2,1);
+//    LeftLayout->addWidget(validDataLamp,3,0);
+//    LeftLayout->addWidget(validLabel,3,1);
     LeftLayout->addWidget(ConsoleVisibleCheckBox,5,0);
     LeftLayout->addWidget(AdditionalParamButton,4,0);
 
@@ -228,17 +256,28 @@ void GyroDevice::CreateWidgets()
     RightLayout->addWidget(SettingsPortButton);
     RightLayout->addWidget(ComPortButton);
     RightLayout->addWidget(SaveButton);
+
     RightLayout->addStretch();
     RightLayout->addWidget(ClearConsoleButton);
 
+    QGroupBox *StatusBox=new QGroupBox(tr("Состояние гироскопичекого устройства"));
+    QFormLayout *StatusLayout=new QFormLayout;
+
+    StatusLayout->addRow(tr("Достоверность измеренных данных"),validDataLamp);
+    StatusLayout->addRow(tr("Положение нуль-индикатора достоверно"),validZeroLamp);
+    StatusLayout->addRow(tr("Определяение положения нуль-индикатора"),searchZeroLamp);
+    StatusLayout->setHorizontalSpacing(0);
+    StatusBox->setLayout(StatusLayout);
 
     QGridLayout *MainLayout=new QGridLayout;
-    MainLayout->addWidget(GyroSettingsBox,0,0);
-    MainLayout->addLayout(RightLayout,0,1);
+    MainLayout->addWidget(StatusBox,1,0);
+    MainLayout->addWidget(GyroSettingsBox,2,0);
+    MainLayout->addLayout(RightLayout,1,1);
 
     QVBoxLayout *GeneralLayout=new QVBoxLayout;
     GeneralLayout->addLayout(MainLayout);
     GeneralLayout->addWidget(ConsoleWidget);
+
 
     MainWidget=new QWidget;
     MainWidget->setLayout(GeneralLayout);
@@ -246,6 +285,7 @@ void GyroDevice::CreateWidgets()
     this->setWindowIcon(QIcon(":/icons/gyroscope.png"));
     this->setWindowTitle(tr("Параметры гироскопического устройства"));
     this->statusBar()->showMessage(tr("Выполните настройку COM порта"));
+
 
 }
 //-----------------------------------------------------------
@@ -303,6 +343,8 @@ void GyroDevice::CreateConnections()
 
     connect(Measure, &GyroData::signalSendData,
             DeviceComPort, &comPort::WriteToPort);
+
+    connect(tmr, &QTimer::timeout, this, &GyroDevice::StatusUpdate);
 }
 //-----------------------------------------------------------
 // Назначение: выделение нового потока

@@ -73,5 +73,33 @@ char SlipProtocol::SlipDecode(QByteArray b, QByteArray &b2, int l, int cnt)
     }else   return 0;
 }
 
+uint16_t SlipProtocol::SlipEncode(QByteArray buffer, QByteArray &encodebuffer, uint16_t lenght)
+{
+    uint16_t c=0;
+    for(int i=0;i<lenght;i++){
+        switch (buffer[i]) {
+        case S_END:
+            encodebuffer[c]=S_ESC;
+            c++;
+            encodebuffer[c]=S_ESC_END;
+            c++;
+            break;
+        case S_ESC:
+            encodebuffer[c]=S_ESC;
+            c++;
+            encodebuffer[c]=S_ESC_ESC;
+            c++;
+            break;
+        default:
+            encodebuffer[c]=buffer[i];
+            c++;
+            break;
+        }
+    }
+    encodebuffer[c]=S_END;
+    c++;
+    return c;
+}
+
 
 

@@ -57,17 +57,17 @@ unsigned char CSUM_CRC8(QByteArray b, int l)
 //-----------------------------------------------------------
 // Назначение: десереализация принятого пакета
 //-----------------------------------------------------------
-QDataStream &operator>>(QDataStream &in, FastPacket &packet)
+QDataStream &operator>>(QDataStream &in, inputData &packet)
 {
     //in >> packet.Header;
-    in >>packet.cnt    ;
-    in >>packet.da1    ;
-    in >>packet.da2    ;
-    in >>packet.da3    ;
-    in >>packet.dv1    ;
-    in >>packet.dv2    ;
-    in >>packet.dv3    ;
-    in >>packet.Tmsk   ;
+    in >>packet.cnt
+       >>packet.timeStepDPB
+       >>packet.statusWord.words
+       >>packet.da
+       >>packet.dvX
+       >>packet.dvY
+       >>packet.impulseOfEncoder
+       >>packet.numTurnOPU;
     //    in >>packet.CRC;
     return in;
 }
@@ -100,19 +100,20 @@ void GyroData::process()
 
     lstName=new QList<QString>{
             tr("Номер пакета"),
-            tr("dat1[град/час]"),
-            tr("dat2[град/час]"),
-            tr("dat3[град/час]"),
-            tr("dvt1[м/с2]"),
-            tr("dvt2[м/с2]"),
-            tr("Готовность"),
-            tr("Импульсы")};
+            tr("Длительность такта"),
+            tr("Слово состояния"),
+            tr("Приращение угла"),
+            tr("Лин.ускорение по оси Х"),
+            tr("Лин.ускорение по оси Y"),
+            tr("Импульсы энкодера"),
+            tr("Количество оборотов")};
 
     this->isAccumulateData=false;
     this->summDa=0.;
     this->countPacket=0;
     this->tick=0;
     this->errorPacket=0;
+    this->outCntPacket=0;
 
 
     tmr=new QTimer();
@@ -180,7 +181,9 @@ void GyroData::ReadByte(const char &byte)
         decodebuffer.clear();
     }
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 void GyroData::resetBuffer()
 {
     inputbuffer.clear();
@@ -188,20 +191,56 @@ void GyroData::resetBuffer()
     buffer2.clear();
 }
 
+float GyroData::getImpulseOfEncoder() const
+{
+    return impulseOfEncoder;
+}
+
+bool GyroData::getValidData() const
+{
+    return validData;
+}
+
+bool GyroData::getModeSearchZero() const
+{
+    return modeSearchZero;
+}
+
+bool GyroData::getValidZero() const
+{
+    return validZero;
+}
+
+void GyroData::resetStatus()
+{
+    validData=false;
+    validZero=false;
+    modeSearchZero=false;
+
+}
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 double GyroData::getMeanDvY() const
 {
     return meanDvY;
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 double GyroData::getMeanDvX() const
 {
     return meanDvX;
 }
-
+//-----------------------------------------------------------
+// Назначение:
+//-----------------------------------------------------------
 double GyroData::getSummDa() const
 {
     return summDa;
 }
+
+
 //-----------------------------------------------------------
 // Назначение: сортировка принятых данных(занесение в
 //             данных структуры)
@@ -219,24 +258,25 @@ bool GyroData::SortData(const QByteArray &data)
     diffcnt=abs(static_cast<int32_t>(packet.cnt)-static_cast<int32_t>(prevcnt));
     if(diffcnt>1) this->errorPacket++;
     prevcnt=packet.cnt;
-    summDv1+=static_cast<double>(packet.dv1);
-    summDv2+=static_cast<double>(packet.dv2);
+    summDv1+=static_cast<double>(packet.dvX);
+    summDv2+=static_cast<double>(packet.dvY);
     count++;
-    if(this->isAccumulateData){
+
+    packet.statusWord.bits.validValue?validData=true:validData=false;
+    packet.statusWord.bits.searchZeroIndicator?modeSearchZero=true:modeSearchZero=false;
+    packet.statusWord.bits.validValueZeroIndicator?validZero=true:validZero=false;
+
+
+    if(!modeSearchZero && validZero)impulseOfEncoder=packet.impulseOfEncoder;
+
+    if(this->isAccumulateData && validData){
         static int numMeaure=0;
         this->tick++;
-        this->summDa+=static_cast<double>(packet.da2);
-        this->summDvX+=static_cast<double>(packet.dv1);
-        this->summDvY+=static_cast<double>(packet.dv2);
+        this->summDa+=static_cast<double>(packet.da);
+        this->summDvX+=static_cast<double>(packet.dvX);
+        this->summDvY+=static_cast<double>(packet.dvY);
         this->meanDvX=summDvX/tick;
         this->meanDvY=summDvY/tick;
-
-        //        emit PutLog(
-        //                    QString::number(static_cast<double>(packet.da2),'g',8),
-        //                    "da_data_"+QString::number(numMeaure)
-        //                    );
-
-
         if(this->tick>=this->timeAccumulate){
             numMeaure++;
             qDebug()<<tr("tick=%1").arg(tick);
@@ -286,12 +326,35 @@ void GyroData::OutData()
 
 }
 
+void GyroData::SearchZeroIndicator()
+{
+    QByteArray datagramm;
+    QByteArray outputData;
+    QDataStream out(&datagramm, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_3);
+    out.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    out.setByteOrder(QDataStream::LittleEndian);
+
+    outCntPacket++;
+    outpacket.cnt=outCntPacket;
+    outpacket.commandWord.bits.setSearchZeroIndicator=1;
+    outpacket.commandWord.bits.setCoefficientEncoder=0;//todo
+    outpacket.commandWord.bits.turnOnSynchroEncoder=0;//todo
+    outpacket.reserve=0;
+
+    out<<outpacket.cnt<<outpacket.commandWord.words<<outpacket.reserve;
+    Slip->SlipEncode(datagramm,outputData,LenghtOutputPacket);
+    emit signalSendData(outputData);
+}
+
 void GyroData::GetCoordinate(double *Lat, double *Lon, double *H)
 {
     this->Lat=qDegreesToRadians(*Lat);
     this->Lon=qDegreesToRadians(*Lon);
     this->H=*H;
 }
+
+
 //-----------------------------------------------------------
 // Назначение: управление признаками накопления данных
 //-----------------------------------------------------------
@@ -299,16 +362,12 @@ void GyroData::AccumulateData(double time)
 {
     this->isAccumulateData=true;
     this->timeAccumulate=static_cast<int>(time*400);
-    this->summDa=0; //TODO
+    this->summDa=0.; //TODO
     this->summDvX=0.;
     this->summDvY=0.;
     this->meanDvX=0.;
     this->meanDvY=0.;
     this->tick=0;
-
-
-    //    inputbuffer.clear(); //TODO : проверка
-    //resetBuffer();
 }
 //-----------------------------------------------------------
 // Назначение: управление признаком накопления данных 
@@ -336,31 +395,32 @@ void GyroData::Stop()
 // Назначение: заполнение данных в список
 //             для табличного отображения в форме
 //-----------------------------------------------------------
-void GyroData::FillOutList(FastPacket packet)
+void GyroData::FillOutList(inputData packet)
 {
     if(!lstVal->isEmpty()){
         lstVal->replace(0,QString::number(packet.cnt));
-        lstVal->replace(1,QString::number(static_cast<double>(packet.da1)));
-        lstVal->replace(2,QString::number(static_cast<double>(packet.da2)));
-        lstVal->replace(3,QString::number(static_cast<double>(packet.da3)));
-        lstVal->replace(4,QString::number(static_cast<double>(packet.dv1)));
-        lstVal->replace(5,QString::number(static_cast<double>(packet.dv2)));
-        lstVal->replace(6,QString::number(static_cast<double>(packet.dv3)));
-        lstVal->replace(7,QString::number(static_cast<double>(packet.Tmsk)));
+        lstVal->replace(1,QString::number(static_cast<double>(packet.timeStepDPB)));
+        lstVal->replace(2,QString::number(static_cast<double>(packet.statusWord.words)));
+        lstVal->replace(3,QString::number(static_cast<double>(packet.da)));
+        lstVal->replace(4,QString::number(static_cast<double>(packet.dvX)));
+        lstVal->replace(5,QString::number(static_cast<double>(packet.dvY)));
+        lstVal->replace(6,QString::number(static_cast<double>(packet.impulseOfEncoder)));
+        lstVal->replace(7,QString::number(static_cast<double>(packet.numTurnOPU)));
     }
 }
 
-void GyroData::FillFirstList(FastPacket packet)
+void GyroData::FillFirstList(inputData packet)
 {
     lstVal->clear();
     lstVal->append(QString::number(packet.cnt));
-    lstVal->append(QString::number(static_cast<double>(packet.da1)));
-    lstVal->append(QString::number(static_cast<double>(packet.da2)));
-    lstVal->append(QString::number(static_cast<double>(packet.da3)));
-    lstVal->append(QString::number(static_cast<double>(packet.dv1)));
-    lstVal->append(QString::number(static_cast<double>(packet.dv2)));
-    lstVal->append(QString::number(static_cast<double>(packet.dv3)));
-    lstVal->append(QString::number(static_cast<double>(packet.Tmsk)));
+    lstVal->append(QString::number(static_cast<double>(packet.timeStepDPB)));
+    lstVal->append(QString::number(static_cast<double>(packet.statusWord.words)));
+    lstVal->append(QString::number(static_cast<double>(packet.da)));
+    lstVal->append(QString::number(static_cast<double>(packet.dvX)));
+    lstVal->append(QString::number(static_cast<double>(packet.dvY)));
+    lstVal->append(QString::number(static_cast<double>(packet.impulseOfEncoder)));
+    lstVal->append(QString::number(static_cast<double>(packet.numTurnOPU)));
+
 }
 
 

@@ -107,14 +107,11 @@ void Widget::Dispatcher()
         case 0: //начало
             if(SetTime()){
             emit signalTableMesInit();
-//           ConfigTableDevice->StartMeasure();
+            emit GotoPosition(0);
             progress->setMinimum(0);
             progress->setMaximum(0);
             progress->setFormat(typeAlignCBox->currentText());
-            emit GotoPosition(0);
-//            ConfigTableDevice->GoToPosition(0);
             step++;
-
             StartMeasureAction->setEnabled(false);
             StopMeasureAction->setEnabled(true);
             }else {
@@ -124,15 +121,41 @@ void Widget::Dispatcher()
             qDebug()<<"step: "<<debugcnt++;
             break;
         case 1:
-            //проделать круг для определения положения нуль метки
-            emit GotoPosition(-360.);
+            //отправить команду БИП на переход в режим поиска метки нуль-индикатора
+            this->ConfigGyroDevice->Measure->SearchZeroIndicator();//переделать через сигнал
+            //запускаем таймер 1сек(думаю можно уменьшить)
+            //для получения за это время пакета с переходом в режим
+            ptmr->setInterval(1000);
+            ptmr->setSingleShot(true);
+            ptmr->start();
             step++;
             break;
         case 2:
-            //после поворота стола на 360 град. обнулить текущее положение стола
-            emit ZeroPosition();
+            if(ConfigGyroDevice->Measure->getModeSearchZero()){
+            //проделать круг для определения положения нуль-индикатора
+            emit GotoPosition(-360.);
             step++;
+            }
+            else{
+                ptmr->setInterval(10);
+                ptmr->setSingleShot(true);
+                ptmr->start();
+                step--;
+                break;
+            }
+            break;
         case 3:
+            if(this->ConfigGyroDevice->Measure->getValidZero()){
+
+                zeroAzimuth=this->ConfigGyroDevice->Measure->getImpulseOfEncoder();
+                //после поворота стола на 360 град. обнулить текущее положение стола
+                emit ZeroPosition();
+                step++;
+            }else{
+                StopMeasureSlot();
+                step=0;
+            }
+        case 4:
             //накопление данных от гироскопа, запускается всякий раз при переходе в заданное положение
             emit StartAccumulateDataSignal(timeSec);
             qDebug()<<"step: "<<debugcnt++;
@@ -208,7 +231,7 @@ void Widget::CreateConnections()
             &GyroData::NoAccumulateData);
 
     //connect(ptmr,&QTimer::timeout,this,&Widget::Measure);
-
+    connect(ptmr, &QTimer::timeout,this, &Widget::Dispatcher);
 
     connect(this,&Widget::PutLog,Log,&loger::PutLog);
 

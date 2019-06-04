@@ -41,6 +41,7 @@ OBJECTS_DIR=obj
 
 
 SOURCES += \
+    ledlamp/rgbled.cpp \
         main.cpp \
         widget.cpp \
     TableDev/tabledevice.cpp \
@@ -65,6 +66,7 @@ SOURCES += \
 
 
 HEADERS += \
+    ledlamp/rgbled.h \
         widget.h \
     TableDev/tabledevice.h \
     GyroDev/gyrodevice.h \
