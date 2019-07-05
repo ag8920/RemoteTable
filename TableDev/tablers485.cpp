@@ -99,7 +99,7 @@ void MarkerEncoder::Encode(QByteArray &data)
 {
     int prevIndex=-1;
 
-    for(int i=0;i<data.size();++i) //todo реализовать через итератор
+    for(int i=0;i<data.size();++i)
     {
         char b=data.at(i);
         if(b==0x65 || b==0x5a){

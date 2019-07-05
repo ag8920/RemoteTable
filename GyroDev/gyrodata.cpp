@@ -288,7 +288,9 @@ bool GyroData::SortData(const QByteArray &data)
     return true;
     //    }else return false;
 }
-
+/**
+ * @brief расчет крена и тангажа
+ */
 void GyroData::MeasureRollAndPitch()
 {
     //go*earth_a pz90.11*
@@ -325,7 +327,9 @@ void GyroData::OutData()
     //emit outAngle(QString::number(Roll),QString::number(Pitch));
 
 }
-
+/**
+ * @brief формирование пакета для поиска нуль индикатора
+ */
 void GyroData::SearchZeroIndicator()
 {
     QByteArray datagramm;

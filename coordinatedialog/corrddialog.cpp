@@ -2,7 +2,9 @@
 #include "ui_corrddialog.h"
 #include <QSettings>
 #include <QDoubleValidator>
-
+//-----------------------------------------------------------
+// Назначение: конструктор класса
+//-----------------------------------------------------------
 corrdDialog::corrdDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::corrdDialog)
@@ -26,13 +28,18 @@ corrdDialog::corrdDialog(QWidget *parent) :
     ui->buttonBox->addButton(tr("Отмена"),QDialogButtonBox::RejectRole);
 
 }
-
+//-----------------------------------------------------------
+// Назначение: деструктор класса
+//-----------------------------------------------------------
 corrdDialog::~corrdDialog()
 {
-    this->writeSettings();
+    qDebug("corrdDialog::~corrdDialog()");
+    //this->writeSettings();
     delete ui;
 }
-
+//-----------------------------------------------------------
+// Назначение: действие по кнопке принять
+//-----------------------------------------------------------
 void corrdDialog::accept()
 {
     updateCoordinate();
@@ -40,7 +47,9 @@ void corrdDialog::accept()
     this->writeSettings();
     this->hide();
 }
-
+//-----------------------------------------------------------
+// Назначение: обновить координаты
+//-----------------------------------------------------------
 void corrdDialog::updateCoordinate()
 {
     this->Lat=ui->LatlineEdit->text().toDouble();
@@ -48,7 +57,9 @@ void corrdDialog::updateCoordinate()
     this->H=ui->HeightlineEdit->text().toDouble();
 }
 
-
+//-----------------------------------------------------------
+// Назначение: прочитать настройки
+//-----------------------------------------------------------
 void corrdDialog::readSettings()
 {
     QSettings settings("settings.ini",QSettings::IniFormat);
@@ -60,10 +71,12 @@ void corrdDialog::readSettings()
     ui->LonlineEdit->setText(settings.value("Lon","38.245833").toString());
     ui->HeightlineEdit->setText(settings.value("H","132.2").toString());
     updateCoordinate();
-    emit outCoordinate(&Lat,&Lon,&H);
+    //emit outCoordinate(&Lat,&Lon,&H);
 
 }
-
+//-----------------------------------------------------------
+// Назначение: записать(сохранить) введенные координаты в настройках
+//-----------------------------------------------------------
 void corrdDialog::writeSettings()
 {
     QSettings settings("settings.ini",QSettings::IniFormat);
@@ -71,5 +84,5 @@ void corrdDialog::writeSettings()
     settings.setValue("Lat",QString("%1").arg(this->Lat));
     settings.setValue("Lon",QString("%1").arg(this->Lon));
     settings.setValue("H",QString("%1").arg(this->H));
-
+    settings.endGroup();
 }

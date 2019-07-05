@@ -16,6 +16,7 @@ nmea::nmea(QObject *parent)
 
 nmea::~nmea()
 {
+    qDebug("nmea::~nmea()");
     emit finished();
 }
 

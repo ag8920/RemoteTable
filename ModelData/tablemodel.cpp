@@ -24,6 +24,7 @@ TableModel::TableModel(QObject *parent) : QAbstractTableModel(parent)
 //------------------------------------------------------------------------------
 TableModel::~TableModel()
 {
+    qDebug("TableModel::~TableModel()");
     varValue->clear();
     varName->clear();
     delete varValue;
@@ -138,6 +139,11 @@ void TableModel::loadData(QList<QString> *value, QList<QString> *name)
 MyDelegate::MyDelegate(QObject *parent):QItemDelegate(parent)
 {
 
+}
+
+MyDelegate::~MyDelegate()
+{
+    qDebug("MyDelegate::~MyDelegate()");
 }
 //------------------------------------------------------------------------------
 //Назначение: создает элемент редактирования ячейки таблицы

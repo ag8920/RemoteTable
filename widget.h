@@ -60,6 +60,8 @@ signals:
     void PutLog(QString data);
     void sendCoordinate(double *Lat,double *Lon,double *H);
     void buildgraph(int index,double data);
+
+    void setAccyracyTable(const int &value);
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -95,6 +97,8 @@ private slots:
     void selectAlgorithm();
 
     void dumpCalcData();
+
+    void setAccyracy();
 
 public:
     double timeSec;
@@ -136,6 +140,8 @@ private:
     QActionGroup *AlgGroupAction;
     QAction *CycleMeasureAction;
     QAction *DumpCalcDataAction;
+
+    QAction *SetAccyracyAction;
 
     QMenu *fileMenu;
     QMenu *configMenu;
@@ -216,6 +222,7 @@ private:
     ///сумма значений da получаемых из гироскопа в положении 270 град.
     double da2_pos270;
 
+    ///угол нуль метки от момента старта
     double zeroAzimuth;
 
     double dv1_pos0,dv1_pos90,dv1_pos180;
@@ -228,6 +235,7 @@ private:
     bool threeposition;
 
     int step;
+    int accyracyTable;
 //    tableRS485 *tablers;
 };
 

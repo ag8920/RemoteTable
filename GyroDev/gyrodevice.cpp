@@ -64,9 +64,11 @@ void GyroDevice::OpenSerialPort()
         //emit ConnectComPort(p);
         emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
         ComPortButton->setText(tr("Отключить"));
+        ComPortButton->setIcon(QIcon(":/icons/connect.png"));
     } else{
         emit DisconnectComPort();
         ComPortButton->setText(tr("Подключить"));
+        ComPortButton->setIcon(QIcon(":/icons/disconnect.png"));
     }
 }
 //-----------------------------------------------------------
@@ -133,7 +135,7 @@ void GyroDevice::StatusUpdate()
     }
     else searchZeroLamp->setColor(Qt::gray);
 
-    Measure->SearchZeroIndicator();
+    //Measure->SearchZeroIndicator();
 }
 //-----------------------------------------------------------
 // Назначение: установка состояния кнопок
@@ -210,10 +212,12 @@ void GyroDevice::CreateWidgets()
     ConsoleVisibleCheckBox->hide();
 
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
+    SettingsPortButton->setIcon(QIcon(":/icons/settings2.png"));
     SettingsPortButton->setEnabled(true);
     SettingsPortButton->setAutoDefault(true);
 
     ComPortButton=new QPushButton(tr("Подключить"));
+    ComPortButton->setIcon(QIcon(":/icons/disconnect.png"));
     ComPortButton->setEnabled(false);
     ComPortButton->setCheckable(true);
     ComPortButton->setAutoDefault(true);
@@ -264,7 +268,7 @@ void GyroDevice::CreateWidgets()
     QFormLayout *StatusLayout=new QFormLayout;
 
     StatusLayout->addRow(tr("Достоверность измеренных данных"),validDataLamp);
-    StatusLayout->addRow(tr("Положение нуль-индикатора достоверно"),validZeroLamp);
+    StatusLayout->addRow(tr("Достоверность положения нуль-индикатора"),validZeroLamp);
     StatusLayout->addRow(tr("Определяение положения нуль-индикатора"),searchZeroLamp);
     StatusLayout->setHorizontalSpacing(0);
     StatusBox->setLayout(StatusLayout);

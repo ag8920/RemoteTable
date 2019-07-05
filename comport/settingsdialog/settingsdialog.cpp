@@ -61,6 +61,7 @@ void SettingsDialog::closeEvent(QCloseEvent *event)
 //-----------------------------------------------------------
 SettingsDialog::~SettingsDialog()
 {
+    qDebug("SettingsDialog::~SettingsDialog()");
     delete ui;
 }
 //-----------------------------------------------------------

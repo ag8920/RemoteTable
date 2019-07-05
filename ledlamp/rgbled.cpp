@@ -34,7 +34,7 @@ RgbLed::RgbLed(QWidget *parent, QColor color)
 
 RgbLed::~RgbLed()
 {
-
+    qDebug("RgbLed::~RgbLed()");
 }
 
 void RgbLed::setColor(QColor color)

@@ -76,8 +76,11 @@ public slots:
     void StopMeasure();
 
     void ConsoleVisible();
+
+    void setAccyracyTable(const int &value);
 private:
 
+    void readSettings();
     void CreateWidgets();
     void CreateConnections();
     void AddThreads();
@@ -134,6 +137,9 @@ private:
     QMenu *PositionCommand;
 
     QTimer *tmr;
+
+    ///точность(граница) позиционирования стола в импульсах
+    int accyracyTable;
 
 public:
     unsigned char updateSettingsPort;

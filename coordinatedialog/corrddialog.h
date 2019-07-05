@@ -1,3 +1,10 @@
+/*!
+*   @file
+*   @brief Класс создает виджет ручного ввода координат
+*   @author Щербаков Александр
+*   @version 1.0
+*   @date 13.09.2018
+*/
 #ifndef CORRDDIALOG_H
 #define CORRDDIALOG_H
 
@@ -12,22 +19,28 @@ class corrdDialog : public QDialog
     Q_OBJECT
 
 public:
+    ///Конструктор класса
     explicit corrdDialog(QWidget *parent = nullptr);
     ~corrdDialog();
-    ///широта
+    ///Широта
     double Lat;
-    ///долгота
+    ///Долгота
     double Lon;
-    ///высота
+    ///Высота
     double H;
 private:
     Ui::corrdDialog *ui;
+    ///Прочитать сохраненные настройки
     void readSettings();
+    ///Сохранить настройки
     void writeSettings();
 signals:
+    ///сигнал отправки введенных координат
     void outCoordinate(double *Lat,double *Lon,double *H);
 public slots:
+    ///принять введенные координаты
     void accept();
+    ///Обновить координаты
     void updateCoordinate();
 
 };

@@ -98,6 +98,7 @@ NmeaDevice::NmeaDevice(QWidget *parent) :
 
 NmeaDevice::~NmeaDevice()
 {
+    qDebug("NmeaDevice::~NmeaDevice()");
     ComPortThread->quit();
     delete ui;
 }

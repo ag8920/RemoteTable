@@ -14,7 +14,7 @@ class SlipProtocol : public QObject
 public:
     ///<конструктор класса
     explicit SlipProtocol(QObject *parent = nullptr);
-
+    ~SlipProtocol();
 signals:
     /*!
      * \brief сигнал отправки декодированного пакета

@@ -19,6 +19,11 @@ SlipProtocol::SlipProtocol(QObject *parent) : QObject(parent)
 {
 
 }
+
+SlipProtocol::~SlipProtocol()
+{
+    qDebug("SlipProtocol::~SlipProtocol()");
+}
 //-----------------------------------------------------------
 // Назначение: декодирование пакета
 //-----------------------------------------------------------

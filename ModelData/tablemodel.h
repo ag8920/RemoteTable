@@ -50,6 +50,7 @@ class MyDelegate : public QItemDelegate
     Q_OBJECT
 public:
     MyDelegate(QObject *parent=0);
+    ~MyDelegate();
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const;

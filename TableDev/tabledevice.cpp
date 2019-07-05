@@ -17,7 +17,8 @@ enum {TABLE1,TABLE2};
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //-----------------------------------------------------------
-TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
+TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent),
+    accyracyTable(0)
 {
     SettingsComPort = new SettingsDialog(nullptr,1);
     DeviceComPort = new comPort;
@@ -40,12 +41,15 @@ TableDevice::TableDevice(QWidget *parent) : QMainWindow(parent)
     CreateWidgets();
     CreateConnections();
     SetTimer();
+
+    readSettings();
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
 //-------------------------------------------------------
 TableDevice::~TableDevice()
 {
+    qDebug("TableDevice::~TableDevice()");
     ComPortThread->quit();
     tmr->stop();
 }
@@ -65,9 +69,11 @@ void TableDevice::OpenSerialPort()
         //emit ConnectComPort(p);
         emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
         ComPortButton->setText(tr("Отключить"));
+        ComPortButton->setIcon(QIcon(":/icons/connect.png"));
     }else{
         emit DisconnectComPort();
         ComPortButton->setText(tr("Подключить"));
+        ComPortButton->setIcon(QIcon(":/icons/disconnect.png"));
     }
 }
 
@@ -172,8 +178,8 @@ void TableDevice::GetPosition(const QByteArray &data)
     if(isMeasuring)
     {
         static int count=0;
-        if((std::abs(currPosition-nextPosition)<=2))count++;
-        if((std::abs(currPosition-nextPosition)<=2) && isRotation && count>10){
+        if((std::abs(currPosition-nextPosition)<=accyracyTable))count++;
+        if((std::abs(currPosition-nextPosition)<=accyracyTable) && isRotation && count>10){
             emit StopRotation();
             isRotation=false;
             count=0;
@@ -393,6 +399,7 @@ void TableDevice::CreateWidgets()
     //-----------------------------------------------------------
     QVBoxLayout *SettingsButtonLayout=new QVBoxLayout;
     OnMotionButton=new QPushButton(tr("Включить привод"));
+//    OnMotionButton->setIcon(QIcon(":/icons/turnon.png"));
     OnMotionButton->setEnabled(true);
     OnMotionButton->setAutoDefault(true);
 
@@ -401,18 +408,23 @@ void TableDevice::CreateWidgets()
     OffMotionButton->setAutoDefault(true);
 
     startButton=new QPushButton(tr("Начать вращение"));
+//    startButton->setIcon(QIcon(":/icons/start.png"));
     startButton->setEnabled(true);
     startButton->setAutoDefault(true);
 
     stopButton=new QPushButton(tr("Остановить вращение"));
+
+//    stopButton->setIcon(QIcon(":/icons/stop.png"));
     stopButton->setEnabled(true);
     stopButton->setAutoDefault(true);
 
     SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
+    SettingsPortButton->setIcon(QIcon(":/icons/settings2.png"));
     SettingsPortButton->setEnabled(true);
     SettingsPortButton->setAutoDefault(true);
 
     ComPortButton=new QPushButton(tr("Подключить"));
+    ComPortButton->setIcon(QIcon(":/icons/disconnect.png"));
     ComPortButton->setEnabled(false);
     ComPortButton->setCheckable(true);
     ComPortButton->setAutoDefault(true);
@@ -691,6 +703,18 @@ void TableDevice::ConsoleVisible()
         this->window()->adjustSize();
         this->window()->resize(minimumSizeHint());
     }
+}
+
+void TableDevice::setAccyracyTable(const int &value)
+{
+    accyracyTable=value;
+}
+
+void TableDevice::readSettings()
+{
+    QSettings settings("settings.ini",QSettings::IniFormat);
+    settings.beginGroup("variable");
+    accyracyTable=settings.value("accyracyTable").toInt();
 }
 
 
