@@ -41,6 +41,8 @@ OBJECTS_DIR=obj
 
 
 SOURCES += \
+    a_math.cpp \
+    justdialog/justdialog.cpp \
     ledlamp/rgbled.cpp \
         main.cpp \
         widget.cpp \
@@ -66,6 +68,8 @@ SOURCES += \
 
 
 HEADERS += \
+    a_math.h \
+    justdialog/justdialog.h \
     ledlamp/rgbled.h \
         widget.h \
     TableDev/tabledevice.h \
@@ -101,7 +105,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 FORMS += \
     comport/settingsdialog/settingsdialog.ui \
     coordinatedialog/corrddialog.ui \
-    NmeaDev/nmeadevice.ui
+    NmeaDev/nmeadevice.ui \
+    justdialog/justdialog.ui
 
 RESOURCES += \
     resource.qrc

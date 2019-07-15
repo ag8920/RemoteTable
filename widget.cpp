@@ -32,8 +32,9 @@ Widget::Widget(QWidget *parent)
     Q_UNUSED(parent);
     ConfigTableDevice = new TableDevice;
     ConfigGyroDevice  = new GyroDevice;
-    CoordDialog       = new corrdDialog;
+    CoordDialog       = new corrdDialog(this);
     ConfigNmeaDevice  = new NmeaDevice;
+    JustDialog        = new justDialog(this);
     Log  = new loger;
     ptmr = new QTimer(this);
     ptmr->setTimerType(Qt::TimerType::PreciseTimer);
@@ -78,6 +79,7 @@ void Widget::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu menu(this);
     menu.addAction(SetCoordianteAction);
+    menu.addAction(InputJustAction);
     menu.addAction(ConfigTabelDevAction);
     menu.addAction(ConfigGyroDevAction);
     menu.addAction(ConfigNmeadeviceAction);
@@ -279,7 +281,8 @@ void Widget::CreateConnections()
     connect(timeLine, &QTimeLine::valueChanged,
             this, &Widget::setProgress);
 
-
+    connect(JustDialog, &justDialog::sendValue,
+            this, &Widget::setJustAmends);
 }
 
 
@@ -329,6 +332,9 @@ void Widget::CreateActions()
     DumpCalcDataAction->setIcon(QIcon(":/icons/clear.png"));
 
     SetAccyracyAction=new QAction(tr("Установить точность позиционирования"),this);
+
+    InputJustAction=new QAction(tr("Ввод поправок"),this);
+    InputJustAction->setIcon(QIcon(":/icons/input2.png"));
 }
 
 void Widget::initActionConnections()
@@ -359,6 +365,9 @@ void Widget::initActionConnections()
 
     connect(SetAccyracyAction, &QAction::triggered,
             this, &Widget::setAccyracy);
+
+    connect(InputJustAction, &QAction::triggered,
+            JustDialog, &justDialog::show);
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
@@ -377,6 +386,7 @@ void Widget::CreateMenus()
 
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(SetCoordianteAction);
+    configMenu->addAction(InputJustAction);
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
     configMenu->addAction(ConfigNmeadeviceAction);
@@ -668,8 +678,26 @@ void Widget::Measure()
         } //switch (numPosition)
         if(numMeasure>prevMeasure){
             prevMeasure=numMeasure;
+            //переворачиваем оси
+            dv1_pos0=-dv1_pos0;
+            dv1_pos180=-dv1_pos180;
+            dv2_pos90=-dv2_pos90;
+            da2_pos90=-da2_pos90;
+
+            double dVtx[3],dVty[3];
+            dVtx[0]=ustEa[0][0]*dv1_pos0+ustEa[0][1]*dv2_pos0;
+            dVty[0]=ustEa[0][1]*dv1_pos0+ustEa[1][1]*dv2_pos0;
+
+
+            dVtx[1]=ustEa[0][0]*dv1_pos90+ustEa[0][1]*dv2_pos90;
+            dVty[1]=ustEa[0][1]*dv1_pos90+ustEa[1][1]*dv2_pos90;
+
+
+            dVtx[2]=ustEa[0][0]*dv1_pos180+ustEa[0][1]*dv2_pos180;
+            dVty[2]=ustEa[0][1]*dv1_pos180+ustEa[1][1]*dv2_pos180;
+
             //пересчет G
-            static double
+            static const double
              go=9.78049,
              earth_a=6378136.,
              betta=0.005317,
@@ -677,12 +705,15 @@ void Widget::Measure()
              G=(go*earth_a*earth_a)/(earth_a+H)/(earth_a+H)*
                 (1.+betta*sin(Lat)*sin(Lat)+alpha*sin(2*Lat)*sin(2*Lat));
             //пересчет крена и тангажа
-            Pitch=asin(0.25/G*(-2*dv1_pos90+dv1_pos180+dv1_pos0-dv2_pos180+dv2_pos0));
-            Roll=asin(0.25/G/cos(Pitch)*(dv1_pos180-dv1_pos0-2*dv2_pos90+dv2_pos180+dv2_pos0));
+//            Pitch=asin(0.25/G*(-2*dv1_pos90+dv1_pos180+dv1_pos0-dv2_pos180+dv2_pos0));
+//            Roll=asin(0.25/G/cos(Pitch)*(dv1_pos180-dv1_pos0-2*dv2_pos90+dv2_pos180+dv2_pos0));
+             Pitch=asin(0.25/G*(-2*dVtx[1]+dVtx[2]-dVtx[0]-dVty[2]+dVty[0]));
+             Roll=asin(0.25/G/cos(Pitch)*(dVtx[2]-dVtx[0]-2*dVty[1]+dVty[2]+dVty[0]));
             //азимута
             double n=0.,c1=0.,s1=0., d1=0.,c2=0.,s2=0.,d2=0.;
             double a=0.,b=0.,e=0.;
             double delta=0.;
+
             n=(da2_pos90-da2_pos0)/(da2_pos90-da2_pos180);
 
             c1=(sin(Roll)*sin(Pitch)-cos(Pitch))*cos(Lat);
@@ -783,6 +814,12 @@ void Widget::saveSettings()
     settings.setValue("Lon",QString("%1").arg(this->Lon));
     settings.setValue("H",QString("%1").arg(this->H));
     settings.endGroup();
+    settings.beginGroup("Justified_amendments");
+    settings.setValue("u00",QString::number(this->ustEa[0][0],'g',8));
+    settings.setValue("u01",QString::number(this->ustEa[0][1],'g',8));
+    settings.setValue("u10",QString::number(this->ustEa[1][0],'g',8));
+    settings.setValue("u11",QString::number(this->ustEa[1][1],'g',8));
+    settings.endGroup();
 }
 //чтение настроек приложения
 void Widget::readSettings()
@@ -802,6 +839,12 @@ void Widget::readSettings()
     H=settings.value("H").toDouble();
     settings.endGroup();
     recieveCoordinate(&Lat,&Lon,&H);
+    settings.beginGroup("Justified_amendments");
+    ustEa[0][0]=settings.value("u00").toDouble();
+    ustEa[0][1]=settings.value("u01").toDouble();
+    ustEa[1][0]=settings.value("u10").toDouble();
+    ustEa[1][1]=settings.value("u11").toDouble();
+    settings.endGroup();
 
     qDebug()<<Lat;
 }
@@ -925,6 +968,14 @@ void Widget::setAccyracy()
                                       accyracyTable,0,400000,1,&ok);
     if(ok)
         emit setAccyracyTable(accyracyTable);
+}
+
+void Widget::setJustAmends(QByteArray data)
+{
+    QDataStream in(&data,QIODevice::ReadOnly);
+    in.setVersion(QDataStream::Qt_4_3);
+    in>>ustEa[0][0]>>ustEa[0][1]>>ustEa[1][0]>>ustEa[1][1];
+    qDebug()<<ustEa[0][0]<<'\t'<<ustEa[0][1]<<'\t'<<ustEa[1][0]<<'\t'<<ustEa[1][1];
 }
 
 //настройка прогресс-бара

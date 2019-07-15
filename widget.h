@@ -23,6 +23,7 @@
 #include "loger/loger.h"
 #include "coordinatedialog/corrddialog.h"
 #include "qcustomplot/plotwidget.h"
+#include "justdialog/justdialog.h"
 
 #include "TableDev/tablers485.h"
 #include "NmeaDev/nmeadevice.h"
@@ -100,6 +101,8 @@ private slots:
 
     void setAccyracy();
 
+    void setJustAmends(QByteArray data);
+
 public:
     double timeSec;
 private:
@@ -142,6 +145,7 @@ private:
     QAction *DumpCalcDataAction;
 
     QAction *SetAccyracyAction;
+    QAction *InputJustAction;
 
     QMenu *fileMenu;
     QMenu *configMenu;
@@ -189,6 +193,8 @@ private:
 
     QMdiArea *mdiArea;
 
+    justDialog *JustDialog;
+
     ///признак однократного измерения
     bool isOneMeasure;
     ///номер предыдущего измерения(вспом. переменная)
@@ -233,6 +239,9 @@ private:
     QString Statussns;
     bool fourposition;
     bool threeposition;
+
+    ///матрица юстировочных поправок
+    double ustEa[2][2];
 
     int step;
     int accyracyTable;

@@ -10,7 +10,11 @@ corrdDialog::corrdDialog(QWidget *parent) :
     ui(new Ui::corrdDialog)
 {
     ui->setupUi(this);
-    this->setWindowFlags(Qt::Tool);
+//    this->setWindowFlags(Qt::Tool);
+    this->setWindowFlags(Qt::Dialog
+                         | Qt::MSWindowsFixedSizeDialogHint
+                         | Qt::CustomizeWindowHint
+                         | Qt::WindowCloseButtonHint);
     QDoubleValidator *validator=new QDoubleValidator;
 //    this->Lat=55.566111;
 //    this->Lon=38.245833;

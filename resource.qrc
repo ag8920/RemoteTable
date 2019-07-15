@@ -77,5 +77,6 @@
         <file>icons/clear.png</file>
         <file>icons/settings2.png</file>
         <file>icons/turnon.png</file>
+        <file>icons/input2.png</file>
     </qresource>
 </RCC>

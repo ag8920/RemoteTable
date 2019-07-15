@@ -1,4 +1,11 @@
-
+/*!
+    @class SettingsDialog
+    @brief класс создает виджет окна
+    с параметрами и информацией COM-порта.
+    Класс позваляет задавать настройки порта.
+    @author Щербаков Александр
+    @date 13.09.2018
+*/
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
@@ -10,15 +17,6 @@
 namespace Ui {
 class SettingsDialog;
 }
-
-/*!
-    @class SettingsDialog
-    @brief класс создает виджет окна
-    с параметрами и информацией COM-порта.
-    Класс позваляет задавать настройки порта.
-    @author Щербаков Александр
-    @date 13.09.2018
-*/
 class SettingsDialog : public QWidget
 {
     Q_OBJECT
