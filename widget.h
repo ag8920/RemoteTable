@@ -24,9 +24,12 @@
 #include "coordinatedialog/corrddialog.h"
 #include "qcustomplot/plotwidget.h"
 #include "justdialog/justdialog.h"
+#include "tdialog/teodalitdialog.h"
 
 #include "TableDev/tablers485.h"
 #include "NmeaDev/nmeadevice.h"
+
+
 
 extern QStringList alignmode;
 
@@ -102,10 +105,12 @@ private slots:
     void setAccyracy();
 
     void setJustAmends(QByteArray data);
+    void setJustTeodolit(QByteArray data);
 
 public:
     double timeSec;
 private:
+    QTabWidget *tabwgt;
     QDockWidget *pdock;
     QLabel *LatLabel;
     QLabel *LonLabel;
@@ -146,6 +151,7 @@ private:
 
     QAction *SetAccyracyAction;
     QAction *InputJustAction;
+    QAction *InputTeoJustAction;
 
     QMenu *fileMenu;
     QMenu *configMenu;
@@ -174,6 +180,17 @@ private:
     QLineEdit *azimuthXALineEdit;
     QLineEdit *azimuthDiffLineEdit;
 
+
+
+    QLineEdit *AzBipLineEdit;
+    QLineEdit *MeanAzBipLineEdit;
+    QLineEdit *MaxAzBipLineEdit;
+    QLineEdit *MinAzBipLineEdit;
+    QLineEdit *SKOAzBipLineEdit;
+    QLineEdit *RollBipLineEdit;
+    QLineEdit *PitchBipLineEdit;
+
+
     QProgressBar *progress;
     QTimeLine *timeLine;
     ///виджет главного окна
@@ -194,6 +211,7 @@ private:
     QMdiArea *mdiArea;
 
     justDialog *JustDialog;
+    teodalitDialog *TeoJustDialog;
 
     ///признак однократного измерения
     bool isOneMeasure;
@@ -242,6 +260,21 @@ private:
 
     ///матрица юстировочных поправок
     double ustEa[2][2];
+    double PaKl,PaKR,PvKl,PvKR;
+    ///азимут теодолита
+    double At;
+    ///азимут нуль-метки
+    double Anm;
+    ///тангаж нуль-метки в юстировочном положении
+    double PitchNm;
+    ///крен нуль-метки в юстировочном положении
+    double RollNm;
+    ///отсчет по горизонтальной оси теодолита в юстировочном положении
+    double P_At;
+    ///
+    double PitchV;
+    double RollV;
+    double AzV;
 
     int step;
     int accyracyTable;

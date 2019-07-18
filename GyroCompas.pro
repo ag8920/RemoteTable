@@ -45,6 +45,7 @@ SOURCES += \
     justdialog/justdialog.cpp \
     ledlamp/rgbled.cpp \
         main.cpp \
+    tdialog/teodalitdialog.cpp \
         widget.cpp \
     TableDev/tabledevice.cpp \
     GyroDev/gyrodevice.cpp \
@@ -71,6 +72,7 @@ HEADERS += \
     a_math.h \
     justdialog/justdialog.h \
     ledlamp/rgbled.h \
+    tdialog/teodalitdialog.h \
         widget.h \
     TableDev/tabledevice.h \
     GyroDev/gyrodevice.h \
@@ -106,7 +108,8 @@ FORMS += \
     comport/settingsdialog/settingsdialog.ui \
     coordinatedialog/corrddialog.ui \
     NmeaDev/nmeadevice.ui \
-    justdialog/justdialog.ui
+    justdialog/justdialog.ui \
+    tdialog/teodalitdialog.ui
 
 RESOURCES += \
     resource.qrc

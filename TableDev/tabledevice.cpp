@@ -178,16 +178,17 @@ void TableDevice::GetPosition(const QByteArray &data)
     if(isMeasuring)
     {
         static int count=0;
-        if((std::abs(currPosition-nextPosition)<=accyracyTable))count++;
+        if((std::abs(currPosition-nextPosition)<=accyracyTable))count++;//косвенный признак того, что стол остановился
         if((std::abs(currPosition-nextPosition)<=accyracyTable) && isRotation && count>10){
-            emit StopRotation();
             isRotation=false;
             count=0;
+            qDebug()<<"StopRotation";
+            emit StopRotation();
         }
-        else if((std::abs(currPosition-nextPosition)>=100) && !isRotation){
-            emit StartRotation();
-            isRotation=true;
-        }
+//        else if((std::abs(currPosition-nextPosition)>=1) && !isRotation){
+//            emit StartRotation();
+//            isRotation=true;
+//        }
     }
     prevPosition=currPosition;
 

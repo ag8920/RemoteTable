@@ -40,7 +40,6 @@ void justDialog::accept()
                                         ui->lineEdit_10,
                                         ui->lineEdit_11
                                        };
-    std::vector<double> values;
     for(const QLineEdit *lineEdit:lineEdits)
     {
         bool ok=false;

@@ -45,7 +45,8 @@ signals:
     void dataOutput(const QByteArray &data);///<
 
 public slots:
-    bool DisconnectPort(); ///<отключения COM-порта
+    ///отключения COM-порта
+    bool DisconnectPort();
     /*!
      * \brief подключение COM-порта
      * \param name имя порта
@@ -67,9 +68,10 @@ public slots:
      */
     bool WriteToPort(const QByteArray &data);
 
-    void ReadInPort();///<чтение данных из COM-порта
-
-    void Stop();///<завершение работы с COM-портом,остановка потока
+    ///чтение данных из COM-порта
+    void ReadInPort();
+    ///завершение работы с COM-портом,остановка потока
+    void Stop();
 
     void writeAndRead(const QByteArray &data);
 private slots:
