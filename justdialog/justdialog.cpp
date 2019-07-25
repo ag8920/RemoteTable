@@ -59,6 +59,15 @@ void justDialog::accept()
     hide();
 }
 
+void justDialog::reject()
+{
+    ui->lineEdit_00->setText(QString::number(dvalue[0],'g',8));
+    ui->lineEdit_01->setText(QString::number(dvalue[1],'g',8));
+    ui->lineEdit_10->setText(QString::number(dvalue[2],'g',8));
+    ui->lineEdit_11->setText(QString::number(dvalue[3],'g',8));
+    hide();
+}
+
 void justDialog::input(const QString &text)
 {
     if(text.isEmpty())value=0;

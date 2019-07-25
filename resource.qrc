@@ -78,5 +78,6 @@
         <file>icons/settings2.png</file>
         <file>icons/turnon.png</file>
         <file>icons/input2.png</file>
+        <file>icons/theodolite.png</file>
     </qresource>
 </RCC>

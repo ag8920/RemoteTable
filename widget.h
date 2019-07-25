@@ -91,7 +91,7 @@ public slots:
     void recieveCoordinate(double *Lat, double *Lon,double *H);
 private slots:
     ///устанавливает признак однократного измерения
-    void setOneMeasureSlot();
+    void setCycleMeasureSlot(bool value);
     ///
     void viewAngle(QString Roll,QString Pitch);
 
@@ -109,6 +109,10 @@ private slots:
 
 public:
     double timeSec;
+    bool getRandomize() const;
+
+    void setRandomize(bool value);
+
 private:
     QTabWidget *tabwgt;
     QDockWidget *pdock;
@@ -155,8 +159,10 @@ private:
 
     QMenu *fileMenu;
     QMenu *configMenu;
+    QMenu *helpMenu;
     QToolBar *toolbar;
     QToolBar *Coordtoolbar;
+    QStatusBar *sb;
 
     QComboBox *typeAlignCBox;
     ///поле с значением времени накопления данных
@@ -214,7 +220,7 @@ private:
     teodalitDialog *TeoJustDialog;
 
     ///признак однократного измерения
-    bool isOneMeasure;
+    bool cycleMeasure;
     ///номер предыдущего измерения(вспом. переменная)
     int prevMeasure;
     ///номер измерения
@@ -278,7 +284,15 @@ private:
 
     int step;
     int accyracyTable;
-//    tableRS485 *tablers;
+
+
+
+    QAction *randomAction;
+    bool randomize;
+    std::random_device rnd{};
+    std::mt19937 gen{rnd()};
+    std::normal_distribution <double> distAccyracy{0.,16.};
+    std::normal_distribution <double> distInaccyracy{0.,48.};
 };
 
 class CustomLineEdit : public QLineEdit

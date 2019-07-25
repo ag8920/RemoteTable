@@ -78,6 +78,8 @@ public slots:
     void ConsoleVisible();
 
     void setAccyracyTable(const int &value);
+
+    void initMotion();
 private:
 
     void readSettings();

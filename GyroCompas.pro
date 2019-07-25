@@ -42,6 +42,7 @@ OBJECTS_DIR=obj
 
 SOURCES += \
     a_math.cpp \
+    degwgt/degwidget.cpp \
     justdialog/justdialog.cpp \
     ledlamp/rgbled.cpp \
         main.cpp \
@@ -70,6 +71,7 @@ SOURCES += \
 
 HEADERS += \
     a_math.h \
+    degwgt/degwidget.h \
     justdialog/justdialog.h \
     ledlamp/rgbled.h \
     tdialog/teodalitdialog.h \
@@ -108,6 +110,7 @@ FORMS += \
     comport/settingsdialog/settingsdialog.ui \
     coordinatedialog/corrddialog.ui \
     NmeaDev/nmeadevice.ui \
+    degwgt/degwidget.ui \
     justdialog/justdialog.ui \
     tdialog/teodalitdialog.ui
 

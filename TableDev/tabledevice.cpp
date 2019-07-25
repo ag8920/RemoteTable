@@ -203,7 +203,7 @@ void TableDevice::GoToPosition(double position)
 
     int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
     nextPosition=Deg2Label(position);
-    str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA="
+    str=/*"mo=0;um=5;mo=1;*/"SP="+QString::number(speed)+";PA=" //todo: было PA=
             +QString::number(nextPosition)+";bg;";
     data=str.toLocal8Bit();
     emit OutputToComPort(data);
@@ -709,6 +709,16 @@ void TableDevice::ConsoleVisible()
 void TableDevice::setAccyracyTable(const int &value)
 {
     accyracyTable=value;
+}
+
+void TableDevice::initMotion()
+{
+    QByteArray data;
+    QString str;
+    str="mo=0;um=5;mo=1;";
+    data=str.toLocal8Bit();
+    emit OutputToComPort(data);
+
 }
 
 void TableDevice::readSettings()

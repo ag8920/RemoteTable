@@ -17,6 +17,7 @@ signals:
     void sendValue(QByteArray data);
 private slots:
     void accept();
+    void reject();
     void input(const QString &text);
 private:
     void readSettings();
