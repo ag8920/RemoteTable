@@ -29,8 +29,20 @@
 #include "TableDev/tablers485.h"
 #include "NmeaDev/nmeadevice.h"
 
+#include "qcgaugewidget/compaswidget.h"
 
-
+typedef void (*Azcalc)(double g, double phi, double gt,
+                       double tt, const double Ax[3],
+                       const double Ay[3], const double N[3],
+                       unsigned int light,
+                       unsigned int rev,
+                       double *b_gamma, double *theta, double *Az,
+                       unsigned int *err);
+typedef void (*TeoReCalc)(double A,double Pitch, double Roll,
+                          double At, double Anm,double RollNm,
+                          double PitchNm,double Pat,double PaKl,
+                          double PaKR, double PvKL, double PvKR,
+                          double *Av, double *Pitchv, double *Rollv);
 extern QStringList alignmode;
 
 class CustomLineEdit;
@@ -68,7 +80,7 @@ signals:
     void setAccyracyTable(const int &value);
 protected:
     void closeEvent(QCloseEvent *event) override;
-
+//    void resizeEvent(QResizeEvent *event) override;
 #ifndef QT_NO_CONTEXTMENU
     void contextMenuEvent(QContextMenuEvent *event) override;
 #endif // QT_NO_CONTEXTMENU
@@ -88,7 +100,7 @@ public slots:
     void saveSettings();
     void readSettings();
     void recieveSnsBasicData(QByteArray data);
-    void recieveCoordinate(double *Lat, double *Lon,double *H);
+    void recieveCoordinate(double *Lat, double *Lon, double *H);
 private slots:
     ///устанавливает признак однократного измерения
     void setCycleMeasureSlot(bool value);
@@ -107,6 +119,8 @@ private slots:
     void setJustAmends(QByteArray data);
     void setJustTeodolit(QByteArray data);
 
+    void slotShowFullScreen();
+
 public:
     double timeSec;
     bool getRandomize() const;
@@ -114,6 +128,10 @@ public:
     void setRandomize(bool value);
 
 private:
+
+    Azcalc azimcalc;
+    TeoReCalc teorecalc;
+
     QTabWidget *tabwgt;
     QDockWidget *pdock;
     QLabel *LatLabel;
@@ -157,11 +175,15 @@ private:
     QAction *InputJustAction;
     QAction *InputTeoJustAction;
 
+    QAction *actionfullScreen;
+    QAction *actionExit;
+
     QMenu *fileMenu;
     QMenu *configMenu;
     QMenu *helpMenu;
     QToolBar *toolbar;
     QToolBar *Coordtoolbar;
+    QToolBar *typeAlignbar;
     QStatusBar *sb;
 
     QComboBox *typeAlignCBox;
@@ -293,6 +315,21 @@ private:
     std::mt19937 gen{rnd()};
     std::normal_distribution <double> distAccyracy{0.,16.};
     std::normal_distribution <double> distInaccyracy{0.,48.};
+
+    ///поправка по тангажу
+    double gt;
+    ///поправка по крену
+    double tt;
+    ///неколлинеарность
+    unsigned int light;
+    ///признак того что БИИ стоит вверх ногами
+    unsigned int rev;
+    ///проблемы возникшие по ходу расчета azimcalcfull
+    QLabel *errLabel;
+    unsigned int err;
+
+
+    compasWidget *compas;
 };
 
 class CustomLineEdit : public QLineEdit

@@ -16,8 +16,10 @@
 #ifdef Q_OS_WIN
 #include <winbase.h>
 #endif
-
+#include <QLibrary>
 #include "a_math.h"
+
+
 
 enum position{DEG_0=0,DEG_90,DEG_180,DEG_270,END};
 QStringList alignmode={"Короткий (ГК-1)",
@@ -55,6 +57,19 @@ Widget::Widget(QWidget *parent)
     initActionConnections();
     CreateConnections();
     readSettings();
+
+
+
+    QLibrary lib("azimCalcFull");
+
+    if(!lib.load())
+        QMessageBox::warning(this,tr("GyroCompas"),tr("не удается открыть azimCalcFull.dll"));
+    azimcalc= (Azcalc)lib.resolve("azimCalcFull");    
+    if(!azimcalc)
+        QMessageBox::warning(this,tr("GyroCompas"),tr("функция azimCalcFull() в  azimCalcFull.dll не найдена"));
+    teorecalc=(TeoReCalc)lib.resolve("teoRecalc");
+    if(!teorecalc)
+        QMessageBox::warning(this,tr("GyroCompas"),tr("функция teoRecalc() в  azimCalcFull.dll не найдена"));
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -78,6 +93,7 @@ void Widget::closeEvent(QCloseEvent *event)
     onWindowClosed();
     event->accept();
 }
+
 #ifndef QT_NO_CONTEXTMENU
 void Widget::contextMenuEvent(QContextMenuEvent *event)
 {
@@ -267,7 +283,7 @@ void Widget::CreateConnections()
             this,&Widget::viewAngle);
 
     connect(ConfigNmeaDevice, &NmeaDevice::sendBasicData,
-            this, &Widget::recieveSnsBasicData);
+            this, &Widget::recieveCoordinate);
 
     connect(this, &Widget::sendCoordinate,ConfigGyroDevice->Measure, &GyroData::GetCoordinate);
 
@@ -343,6 +359,15 @@ void Widget::CreateActions()
     randomAction=new QAction("",this);
     randomAction->setCheckable(true);
 
+    actionfullScreen=new QAction("Полноэкранный режим",this);
+    actionfullScreen->setCheckable(true);
+    actionfullScreen->setShortcut(Qt::Key_F11);
+
+    actionExit = new QAction(tr("&Выход"),this);
+    actionExit->setShortcut(tr("Ctrl+q"));
+    actionExit->setIcon(QIcon(":/icons/exit.png"));
+
+
 }
 
 void Widget::initActionConnections()
@@ -381,14 +406,18 @@ void Widget::initActionConnections()
             this, &Widget::setJustTeodolit);
 
     connect(randomAction, &QAction::toggled, this, &Widget::setRandomize);
-    randomAction->setChecked(true);
+    randomAction->setChecked(false);
+
+    connect(actionfullScreen, &QAction::triggered,
+            this, &Widget::slotShowFullScreen);
+    connect(actionExit,SIGNAL(triggered()),this,SLOT(close()));
 }
 //-----------------------------------------------------------
 // Назначение: создание меню
 //-----------------------------------------------------------
 void Widget::CreateMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("&Измерения"));
+    fileMenu = menuBar()->addMenu(tr("&Меню"));
     fileMenu->addAction(StartMeasureAction);
     fileMenu->addAction(StopMeasureAction);
     fileMenu->addAction(FourAlgAction);
@@ -396,6 +425,8 @@ void Widget::CreateMenus()
     fileMenu->addAction(CycleMeasureAction);
     fileMenu->addAction(SetAccyracyAction);    
     fileMenu->addAction(DumpCalcDataAction);
+    fileMenu->addSeparator();
+    fileMenu->addAction(actionExit);
     //fileMenu->addAction(randomAction);
 
 
@@ -406,6 +437,9 @@ void Widget::CreateMenus()
     configMenu->addAction(ConfigTabelDevAction);
     configMenu->addAction(ConfigGyroDevAction);
     configMenu->addAction(ConfigNmeadeviceAction);
+
+    QMenu *viewMenu=menuBar()->addMenu(tr("Вид"));
+    viewMenu->addAction(actionfullScreen);
 
 //    helpMenu = menuBar()->addMenu(tr("&Справка"));
 //    helpMenu->addAction(randomAction);
@@ -422,37 +456,68 @@ void Widget::CreateToolBars()
     toolbar=addToolBar(tr("Меню"));
     toolbar->addAction(StartMeasureAction);
     toolbar->addAction(StopMeasureAction);
+    toolbar->addAction(CycleMeasureAction);
+    toolbar->addWidget(typeAlignCBox);
+    toolbar->addWidget(timeAccumulateLineEdit);
+//    toolbar->addAction(DumpCalcDataAction);
     toolbar->addSeparator();
-    toolbar->addAction(ConfigGyroDevAction);
-    toolbar->addAction(ConfigTabelDevAction);
+//    toolbar->addAction(ConfigGyroDevAction);
+//    toolbar->addAction(ConfigTabelDevAction);
+    toolbar->addAction(SetCoordianteAction);
+    toolbar->addAction(InputJustAction);
+    toolbar->addAction(InputTeoJustAction);
     toolbar->addAction(ConfigNmeadeviceAction);
+
     toolbar->setIconSize(QSize(20,20));
 
     Coordtoolbar=new QToolBar(tr("Координаты"));
     Coordtoolbar->addWidget(LatLabel);
     Coordtoolbar->addWidget(LonLabel);
     Coordtoolbar->addWidget(HLabel);
+    Coordtoolbar->addWidget(errLabel);
     addToolBar(Coordtoolbar);
+
+    typeAlignbar=new QToolBar();
+//    typeAlignbar->addWidget(typeAlignCBox);
+//    typeAlignbar->addWidget(timeAccumulateLineEdit);
+//    addToolBar(typeAlignbar);
+
+
 }
 //-----------------------------------------------------------
 // Назначение: создание виджета головного окна
 //-----------------------------------------------------------
 void Widget::CreateWidgets()
 {
+
+    QMap<double, QString> map;
+    for ( double d = 0.0; d < 360.0; d += 30.0 )
+    {
+        QString label;
+        if(d==360.0 || d==0.0) label="<b>N<\b>";
+        else if(d==90.0) label ="<b>E<\b>";
+        else if(d==180.0) label = "<b>S<\b>";
+        else if(d==270.0) label = "<b>W<\b>";
+        else label.sprintf( "%.0f", d );
+        map.insert( d, label );
+    }
+
+    compas=new compasWidget;
+
     tabwgt=new QTabWidget;
     measureWidget = new QWidget(this);
     QGroupBox *BIPgroupBox = new QGroupBox(tr("Измерения БИП"));
     QGroupBox *measuregroupBox = new QGroupBox(tr("Измерения визирной оси"));
 
-//    QGroupBox *tablegroupBox = new QGroupBox(tr("Поворотное устройство"));
-//    QGridLayout *tableLayout = new QGridLayout();
-//    tableLayout->addWidget(ConfigTableDevice);
-//    tablegroupBox->setLayout(tableLayout);
+    QGroupBox *tablegroupBox = new QGroupBox(tr("Поворотное устройство"));
+    QGridLayout *tableLayout = new QGridLayout();
+    tableLayout->addWidget(ConfigTableDevice,0,0);
+    tablegroupBox->setLayout(tableLayout);
 
-//    QGroupBox *gyrogroupBox = new QGroupBox(tr("Гироскопическое устройство"));
-//    QGridLayout *gyroLayout = new QGridLayout();
-//    gyroLayout->addWidget(ConfigGyroDevice);
-//    gyrogroupBox->setLayout(gyroLayout);
+    QGroupBox *gyrogroupBox = new QGroupBox(tr("Гироскопическое устройство"));
+    QGridLayout *gyroLayout = new QGridLayout();
+    gyroLayout->addWidget(ConfigGyroDevice);
+    gyrogroupBox->setLayout(gyroLayout);
 
     QHBoxLayout *MainLayout= new QHBoxLayout();
     QRegExp regExp("[0-9][0-9]{0,4}");
@@ -463,15 +528,17 @@ void Widget::CreateWidgets()
     QDoubleValidator* regExpDouble=new QDoubleValidator();
     regExpDouble->setLocale(QLocale::English);
 
-
-
     LatLabel=new QLabel("Lat=0.0 ");
     LonLabel=new QLabel("Lon=0.0 ");
     HLabel  =new QLabel("H=0.0 ");
 
+    errLabel = new QLabel("err=0");
+
     currValueLineEdit=new QLineEdit;
     currValueLineEdit->setReadOnly(true);
     currValueLineEdit->setValidator(new QRegExpValidator(exp,this));
+    //currValueLineEdit->setStyleSheet("min-width: 6em;");
+
 
     azimuthXALineEdit=new QLineEdit;
     azimuthXALineEdit->setReadOnly(true);
@@ -506,20 +573,25 @@ void Widget::CreateWidgets()
     PitchLineEdit->setReadOnly(true);
 
     QFormLayout *measureformLayout=new QFormLayout();
-    measureformLayout->addRow(tr("Азимут [град]:"),currValueLineEdit);
-    measureformLayout->addRow(tr("Ср.значение азимута [град]:"),meanVelueLineEdit);
-    measureformLayout->addRow(tr("Макс.значение азимута [град]:"),maxValueLineEdit);
-    measureformLayout->addRow(tr("Мин.значение азимута [град]:"),minValueLineEdit);
+    measureformLayout->addRow(tr("Азимут[град]:"),currValueLineEdit);
+    measureformLayout->addRow(tr("Ср.зн.азимута[град]:"),meanVelueLineEdit);
+    measureformLayout->addRow(tr("Макс.зн.азимута[град]:"),maxValueLineEdit);
+    measureformLayout->addRow(tr("Мин.зн.азимута[град]:"),minValueLineEdit);
     measureformLayout->addRow(tr("СКО[град]:"),skoLineEdit);
-    measureformLayout->addRow(tr("Значение крена [град]:"),RollLineEdit);
-    measureformLayout->addRow(tr("Значение тангажа [град]:"),PitchLineEdit);
-    measureformLayout->addRow(tr("Количество измерений:"),countMeasureLineEdit);
+
+
+    QFormLayout *measureformLayout2=new QFormLayout();
+    measureformLayout->addRow(tr("Зн.крена[град]:"),RollLineEdit);
+    measureformLayout->addRow(tr("Зн.тангажа[град]:"),PitchLineEdit);
+    measureformLayout->addRow(tr("Кол-во измерений:"),countMeasureLineEdit);
     //measureformLayout->addRow(tr("Азимут ХА[град]:"),azimuthXALineEdit);
     //measureformLayout->addRow(tr("Разность азимутов[град]:"),azimuthDiffLineEdit);
-    measureformLayout->addRow(tr("Режим выставки:"),typeAlignCBox);
-    measureformLayout->addRow(tr("Время накопления(сек):"),timeAccumulateLineEdit);
+    //measureformLayout->addRow(tr("Режим выставки:"),typeAlignCBox);
+    //measureformLayout->addRow(tr("Время(сек):"),timeAccumulateLineEdit);
 
-
+    QHBoxLayout *measureHboxLayout=new QHBoxLayout();
+    measureHboxLayout->addLayout(measureformLayout,1);
+    measureHboxLayout->addLayout(measureformLayout2,0);
 
     AzBipLineEdit=new QLineEdit;
     AzBipLineEdit->setReadOnly(true);
@@ -539,16 +611,24 @@ void Widget::CreateWidgets()
 
     QFormLayout *BIPformLayout=new QFormLayout();
     BIPformLayout->addRow(tr("Азимут БИП [град]:"),AzBipLineEdit);
-    BIPformLayout->addRow(tr("Ср.значение азимута БИП [град]:"),MeanAzBipLineEdit);
-    BIPformLayout->addRow(tr("Макс.значение азимута БИП [град]:"),MaxAzBipLineEdit);
-    BIPformLayout->addRow(tr("Мин.значение азимута БИП [град]:"),MinAzBipLineEdit);
+    BIPformLayout->addRow(tr("Ср.знач.азимута БИП [град]:"),MeanAzBipLineEdit);
+    BIPformLayout->addRow(tr("Макс.знач.азимута БИП [град]:"),MaxAzBipLineEdit);
+    BIPformLayout->addRow(tr("Мин.знач. азимута БИП [град]:"),MinAzBipLineEdit);
     BIPformLayout->addRow(tr("СКО БИП[град]:"),SKOAzBipLineEdit);
-    BIPformLayout->addRow(tr("Значение крена БИП [град]:"),RollBipLineEdit);
-    BIPformLayout->addRow(tr("Значение тангажа БИП [град]:"),PitchBipLineEdit);
+    BIPformLayout->addRow(tr("Знач.крена БИП [град]:"),RollBipLineEdit);
+    BIPformLayout->addRow(tr("Знач.тангажа БИП [град]:"),PitchBipLineEdit);
 
 
 
-    measuregroupBox->setLayout(measureformLayout);
+    QGridLayout *measLayout=new QGridLayout;
+    measLayout->addWidget(compas,0,1,1,1);
+    measLayout->addLayout(measureHboxLayout,1,1,1,1);
+//    measLayout->addLayout(measureformLayout,2,1,1,1);
+//    measLayout->addLayout(measureformLayout2,2,2,1,1);
+
+
+//    measLayout->addWidget(ConfigNmeaDevice,3,1,1,2);
+    measuregroupBox->setLayout(measLayout);
     BIPgroupBox->setLayout(BIPformLayout);
 //    tabwgt->addTab(measureWidget,tr("Визор"));
 //    tabwgt->addTab(BIPgroupBox,tr("БИП"));
@@ -558,9 +638,9 @@ void Widget::CreateWidgets()
 
     QGridLayout *grBoxLayout=new QGridLayout();
     grBoxLayout->addWidget(measuregroupBox,0,0);
-//    grBoxLayout->addWidget(gyrogroupBox,0,1);
-//    grBoxLayout->addWidget(tablegroupBox,0,2);
-//    grBoxLayout->addWidget(progress,1,0);
+    grBoxLayout->addWidget(gyrogroupBox,0,1);
+    grBoxLayout->addWidget(tablegroupBox,0,2);
+    grBoxLayout->addWidget(progress,1,0);
 
     measureWidget->setLayout(grBoxLayout);
 
@@ -604,6 +684,12 @@ void Widget::InitVariable()
     this->threeposition=true;
 
     this->randomize=false;
+
+    this->gt=0;
+    this->tt=0;
+    this->light=0;
+    this->rev=0;
+    this->err=0;
 
 }
 
@@ -766,19 +852,18 @@ void Widget::Measure()
             break;
         } //switch (numPosition)
 
-        if(numMeasure>prevMeasure){
+        if(numMeasure>prevMeasure)
+        {
+            double Atr=qDegreesToRadians(At);
+            double Anmr=qDegreesToRadians(Anm);
+            double PitchNmr=qDegreesToRadians(PitchNm);
+            double RollNmr=qDegreesToRadians(RollNm);
+            double P_Atr=qDegreesToRadians(P_At);
+
+
             prevMeasure=numMeasure;
-
-
             double rLat=qDegreesToRadians(Lat);
-
-            //переворачиваем оси
-            dv1_pos0=-dv1_pos0;
-            dv1_pos180=-dv1_pos180;
-            dv2_pos90=-dv2_pos90;
-            da2_pos90=-da2_pos90;
-
-            double dVtx[3],dVty[3];
+            double dVtx[3],dVty[3];double dAt[3];
             dVtx[0]=ustEa[0][0]*dv1_pos0+ustEa[0][1]*dv2_pos0;
             dVty[0]=ustEa[0][1]*dv1_pos0+ustEa[1][1]*dv2_pos0;
 
@@ -790,6 +875,7 @@ void Widget::Measure()
             dVtx[2]=ustEa[0][0]*dv1_pos180+ustEa[0][1]*dv2_pos180;
             dVty[2]=ustEa[0][1]*dv1_pos180+ustEa[1][1]*dv2_pos180;
 
+            dAt[0]=da2_pos0;dAt[1]=da2_pos90;dAt[2]=da2_pos180;
             //пересчет G
             static const double
                 go=9.78049,
@@ -798,48 +884,59 @@ void Widget::Measure()
                 alpha=0.000007;
             G=(go*earth_a*earth_a)/(earth_a+H)/(earth_a+H)*
                 (1.+betta*sin(rLat)*sin(rLat)+alpha*sin(2*rLat)*sin(2*rLat));
-            //пересчет крена и тангажа БИП
-            Pitch=asin(0.25/G*(-2*dVtx[1]+dVtx[2]+dVtx[0]-dVty[2]+dVty[0]));
-            Roll=asin(0.25/G/cos(Pitch)*(dVtx[2]-dVtx[0]-2*dVty[1]+dVty[2]+dVty[0]));
-            //азимута БИП
-            double n=0.,c1=0.,s1=0., d1=0.,c2=0.,s2=0.,d2=0.;
-            double a=0.,b=0.,e=0.;
-            double delta=0.;
 
-            n=(da2_pos90-da2_pos0)/(da2_pos90-da2_pos180);
-
-            c1=(sin(Roll)*sin(Pitch)-cos(Pitch))*cos(rLat);
-            s1=-cos(Roll)*cos(rLat);
-            d1=-(sin(Roll)*cos(Pitch)+sin(Pitch))*sin(rLat);
-
-            c2=(sin(Roll)*sin(Pitch)+cos(Pitch))*cos(rLat);
-            s2=s1;
-            d2=(-sin(Roll)*cos(Pitch)+sin(Pitch))*sin(rLat);
-
-            a=c1-n*c2;
-            b=s1*(1-n);
-            e=n*d2-d1;
-
-            if((da2_pos90-da2_pos180)>0){
-                Azimuth=-asin(e/sqrt(a*a+b*b))-asin(a/sqrt(a*a+b*b))+M_PI;
-                delta=fabs(a*cos(Azimuth)+b*sin(Azimuth)-e);
-                if(delta>1e-11){
-                    Azimuth=-asin(e/sqrt(a*a+b*b))+asin(a/sqrt(a*a+b*b));
-                }
+            if(azimcalc)
+            {
+                azimcalc(G,rLat,gt,tt,dVtx,dVty,dAt,light,rev,
+                         &Roll,&Pitch,&Azimuth,&err);
             }
-            else{
-                Azimuth=asin(e/sqrt(a*a+b*b))-asin(a/sqrt(a*a+b*b));
-                delta=fabs(a*cos(Azimuth)+b*sin(Azimuth)-e);
-                if(delta>1e-11){
-                    Azimuth=asin(e/sqrt(a*a+b*b))+asin(a/sqrt(a*a+b*b))-M_PI;
+            else
+            {
+                qDebug()<<"Loading testDLL failed!";
+                //пересчет крена и тангажа БИП
+                Pitch=asin(0.25/G*(-2*dVtx[1]+dVtx[2]+dVtx[0]-dVty[2]+dVty[0]));
+                Roll=asin(0.25/G/cos(Pitch)*(dVtx[2]-dVtx[0]-2*dVty[1]+dVty[2]+dVty[0]));
+                //азимута БИП
+                double n=0.,c1=0.,s1=0., d1=0.,c2=0.,s2=0.,d2=0.;
+                double a=0.,b=0.,e=0.;
+                double delta=0.;
+
+                n=(da2_pos90-da2_pos0)/(da2_pos90-da2_pos180);
+
+                c1=(sin(Roll)*sin(Pitch)-cos(Pitch))*cos(rLat);
+                s1=-cos(Roll)*cos(rLat);
+                d1=-(sin(Roll)*cos(Pitch)+sin(Pitch))*sin(rLat);
+
+                c2=(sin(Roll)*sin(Pitch)+cos(Pitch))*cos(rLat);
+                s2=s1;
+                d2=(-sin(Roll)*cos(Pitch)+sin(Pitch))*sin(rLat);
+
+                a=c1-n*c2;
+                b=s1*(1-n);
+                e=n*d2-d1;
+
+                if((da2_pos90-da2_pos180)>0){
+                    Azimuth=-asin(e/sqrt(a*a+b*b))-asin(a/sqrt(a*a+b*b))+M_PI;
+                    delta=fabs(a*cos(Azimuth)+b*sin(Azimuth)-e);
+                    if(delta>1e-11){
+                        Azimuth=-asin(e/sqrt(a*a+b*b))+asin(a/sqrt(a*a+b*b));
+                    }
                 }
-            }
-            if(Azimuth<0) Azimuth=Azimuth+2*M_PI;
+                else{
+                    Azimuth=asin(e/sqrt(a*a+b*b))-asin(a/sqrt(a*a+b*b));
+                    delta=fabs(a*cos(Azimuth)+b*sin(Azimuth)-e);
+                    if(delta>1e-11){
+                        Azimuth=asin(e/sqrt(a*a+b*b))+asin(a/sqrt(a*a+b*b))-M_PI;
+                    }
+                }
+           }//end: if loading test failed
+                if(Azimuth<0) Azimuth=Azimuth+2*M_PI;
 
             if(this->randomize)
             {
                 double sample=0.;
-                std::mt19937 gen2((fabs(Anm-qRadiansToDegrees(Azimuth)))*100+(rand()%1000)/(double)RAND_MAX+time(NULL));
+                std::mt19937 gen2((fabs(Anm-qRadiansToDegrees(Azimuth)))*100
+                                  +(rand()%1000)/(double)RAND_MAX+time(NULL));
 
                 if(typeAlignCBox->currentIndex()==GK_2){
                     sample=distAccyracy(gen2)/3600.;
@@ -858,57 +955,67 @@ void Widget::Measure()
             }
             //-----------------------------------------------
 
-            double Atr=qDegreesToRadians(At);
-            double Anmr=qDegreesToRadians(Anm);
-            double PitchNmr=qDegreesToRadians(PitchNm);
-            double RollNmr=qDegreesToRadians(RollNm);
-            double P_Atr=qDegreesToRadians(P_At);
-            double PaKRtmp=0,PaKltmp=0,PvKRtmp=0,PvKltmp=0;
 
-            PaKltmp=PaKl;
-            if(PaKl>180.)
-              PaKRtmp =  PaKR+180.;
-            else  PaKRtmp = PaKR-180.;
+            if (teorecalc)
+            {
 
-            PvKRtmp=PvKR-90;
-            PvKltmp=PvKl-270;
+                teorecalc(Azimuth,Pitch,Roll,
+                          qDegreesToRadians(At),qDegreesToRadians(Anm),
+                          qDegreesToRadians(RollNm),qDegreesToRadians(PitchNm),
+                          qDegreesToRadians(P_At),
+                          qDegreesToRadians(PaKl),qDegreesToRadians(PaKR),
+                          qDegreesToRadians(PvKl),qDegreesToRadians(PvKR),
+                          &AzV,&PitchV,&RollV);
+            }
+            else
+            {
+                double PaKRtmp=0,PaKltmp=0,PvKRtmp=0,PvKltmp=0;
+                PaKltmp=PaKl;
+                if(PaKl>180.)
+                  PaKRtmp =  PaKR+180.;
+                else  PaKRtmp = PaKR-180.;
 
-            double Pa=0.5*(PaKltmp+PaKRtmp);
-            Pa=qDegreesToRadians(Pa);
+                PvKRtmp=PvKR-90;
+                PvKltmp=PvKl-270;
 
-            double ZeroPos=0.5*(PvKltmp+PvKRtmp);
-            double Pv=PvKltmp-ZeroPos;
-            Pv=qDegreesToRadians(Pv);
+                double Pa=0.5*(PaKltmp+PaKRtmp);
+                Pa=qDegreesToRadians(Pa);
 
-            double Psi=Pa-P_Atr;
+                double ZeroPos=0.5*(PvKltmp+PvKRtmp);
+                double Pv=PvKltmp-ZeroPos;
+                Pv=qDegreesToRadians(Pv);
 
-            //расчет матрицы калибровки
-            double M_enu_bii_cal[3][3];
-            MyMxMz(RollNmr,PitchNmr,Anmr,M_enu_bii_cal);
-            //InvMat(M_enu_bii_cal,M_enu_bii_cal);
-            transMatrix(M_enu_bii_cal,3,3);
+                double Psi=Pa-P_Atr;
 
-            double M_teo_enu[3][3];
-            MyMxMz(0,0,Atr,M_teo_enu);
+                //расчет матрицы калибровки
+                double M_enu_bii_cal[3][3];
+                MyMxMz(RollNmr,PitchNmr,Anmr,M_enu_bii_cal);
+                //InvMat(M_enu_bii_cal,M_enu_bii_cal);
+                transMatrix(M_enu_bii_cal,3,3);
 
-            double M_adj[3][3];
-            MatByMat(M_teo_enu,M_enu_bii_cal,M_adj);
+                double M_teo_enu[3][3];
+                MyMxMz(0,0,Atr,M_teo_enu);
 
-            double M_enu_bii[3][3];double M_tadj_v[3][3];
-            MyMxMz(Roll,Pitch,Azimuth,M_enu_bii);
-            MyMxMz(0,Pv,Psi,M_tadj_v);
-            double Mout[3][3];
-            MatByMat(M_tadj_v,M_adj,Mout);
-            MatByMat(Mout,M_enu_bii,Mout);
+                double M_adj[3][3];
+                MatByMat(M_teo_enu,M_enu_bii_cal,M_adj);
 
-            double PitchV=asin(Mout[1][2]);
-            double RollV=-asin(Mout[0][2]/cos(PitchV));
-            double s=Mout[1][0]/cos(PitchV);
-            double c=Mout[1][1]/cos(PitchV);
+                double M_enu_bii[3][3];double M_tadj_v[3][3];
+                MyMxMz(Roll,Pitch,Azimuth,M_enu_bii);
+                MyMxMz(0,Pv,Psi,M_tadj_v);
+                double Mout[3][3];
+                MatByMat(M_tadj_v,M_adj,Mout);
+                MatByMat(Mout,M_enu_bii,Mout);
 
-            double AzV=atan(s/c);
-            if(c<0) AzV+=M_PI;
-            else if (s<0) AzV+=2*M_PI;
+                double PitchV=asin(Mout[1][2]);
+                double RollV=-asin(Mout[0][2]/cos(PitchV));
+                double s=Mout[1][0]/cos(PitchV);
+                double c=Mout[1][1]/cos(PitchV);
+
+                double AzV=atan(s/c);
+                if(c<0) AzV+=M_PI;
+                else if (s<0) AzV+=2*M_PI;
+            }
+
 
             //курс, тангаж, крен визира
             AzV=qRadiansToDegrees(AzV);
@@ -941,14 +1048,41 @@ void Widget::Measure()
             RollLineEdit->setText(QString::number(RollV,'g',8));
             PitchLineEdit->setText(QString::number(PitchV,'g',8));
 
+            errLabel->setText("err="+QString::number(this->err));
+
+            compas->setValue(AzV);
             if(numMeasure==1)
-                emit PutLog(tr("азимут\t ср.знач\t мин.знач\t макс.знач\t СКО\n"));
-            emit PutLog(tr("%1\t %2\t %3\t %4\t %5\n")
-                            .arg(static_cast<double>(AzV))
-                            .arg(static_cast<double>(MeanAzimuth))
-                            .arg(static_cast<double>(MinAzimuth))
-                            .arg(static_cast<double>(MaxAzimuth))
-                            .arg(static_cast<double>(SKO))
+                emit PutLog(tr("азимут_виз\tкрен_виз\tтанг.виз\t"
+                               "ср.знач\tмин.знач\tмакс.знач\tСКО\t "
+                               "азимут_БИП\tкрен_БИП\tтанг.БИП\t "
+                               "da1\tda2\tda3\t "
+                               "dvx1\tdvx2\tdvx3\t "
+                               "dvy1\tdvy2\tdvy3\n"));
+            emit PutLog(tr("%1\t%2\t%3\t"
+                           "%4\t%5\t%6\t%7\t"
+                           "%8\t%9\t%10\t"
+                           "%11\t%12\t%13\t"
+                           "%14\t%15\t%16"
+                           "\t%17\t%18\t%19\n")
+                            .arg(QString::number(AzV))
+                            .arg(QString::number(RollV))
+                            .arg(QString::number(PitchV))
+                            .arg(QString::number(MeanAzimuth))
+                            .arg(QString::number(MinAzimuth))
+                            .arg(QString::number(MaxAzimuth))
+                            .arg(QString::number(qRadiansToDegrees(SKO)))
+                            .arg(QString::number(qRadiansToDegrees(Azimuth)))
+                            .arg(QString::number(qRadiansToDegrees(Roll)))
+                            .arg(QString::number(qRadiansToDegrees(Pitch)))
+                            .arg(QString::number(dAt[0]))
+                            .arg(QString::number(dAt[1]))
+                            .arg(QString::number(dAt[2]))
+                            .arg(QString::number(dVtx[0]))
+                            .arg(QString::number(dVtx[1]))
+                            .arg(QString::number(dVtx[2]))
+                            .arg(QString::number(dVty[0]))
+                            .arg(QString::number(dVty[1]))
+                            .arg(QString::number(dVty[2]))
                         );
             countMeasureLineEdit->setText(QString::number(numMeasure));
             if(this->cycleMeasure==false){
@@ -998,6 +1132,13 @@ void Widget::saveSettings()
     settings.setValue("Rollnm",QString::number(this->RollNm));
     settings.setValue("P_At",QString::number(this->P_At));
     settings.endGroup();
+    settings.beginGroup("azimCalcFull");
+    settings.setValue("gt",QString::number(this->gt));
+    settings.setValue("tt",QString::number(this->tt));
+    settings.setValue("light",QString::number(this->light));
+    settings.setValue("rev",QString::number(this->rev));
+    settings.endGroup();
+
 }
 //чтение настроек приложения
 void Widget::readSettings()
@@ -1033,7 +1174,12 @@ void Widget::readSettings()
     PitchNm=settings.value("Pitchnm").toDouble();
     RollNm=settings.value("Rollnm").toDouble();
     P_At=settings.value("P_At").toDouble();
-
+    settings.endGroup();
+    settings.beginGroup("azimCalcFull");
+    gt=settings.value("gt").toDouble();
+    tt=settings.value("tt").toDouble();
+    light=settings.value("light").toInt();
+    rev=settings.value("rev").toInt();
     settings.endGroup();
 
 }
@@ -1043,7 +1189,7 @@ void Widget::recieveSnsBasicData(QByteArray data)
     QDataStream in(&data,QIODevice::ReadOnly);
     in.setVersion(QDataStream::Qt_4_3);
     in>>this->Latsns>>this->Lonsns>>this->Hsns>>this->Speedsns>>this->Statussns;
-    if(this->Statussns=="A" || this->Statussns=="V"){
+    if(this->Statussns=="A" /*|| this->Statussns=="V"*/){
         LatLabel->setText("Lat="+QString::number(Latsns,'g',8)+" ");
         LonLabel->setText("Lon="+QString::number(Lonsns,'g',8)+" ");
         HLabel->setText("H="+QString::number(Hsns,'g',6)+" ");
@@ -1138,6 +1284,7 @@ void Widget::dumpCalcData()
     this->SKO=0.;
     this->numerator=0.;
     this->denumerator=0.;
+    compas->setValue(0);
 
     std::vector <QLineEdit*> lineEdits={
         this->currValueLineEdit,
@@ -1190,6 +1337,16 @@ void Widget::setJustTeodolit(QByteArray data)
     in.setVersion(QDataStream::Qt_4_3);
     in>>PaKl>>PaKR>>PvKl>>PvKR;
     //qDebug()<<PaKl<<PaKR<<PvKl<<PvKR;
+}
+
+void Widget::slotShowFullScreen()
+{
+    if(this->isFullScreen()){
+        this->showNormal();
+    }
+    else {
+        this->showFullScreen();
+    }
 }
 
 

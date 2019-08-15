@@ -272,11 +272,12 @@ QSlider:focus {
 
 QLineEdit {
     background-color: #232629;
-    padding: 5px;
+    padding: 2px;
     border-style: solid;
     border: 1px solid #76797C;
     border-radius: 2px;
     color: #eff0f1;
+    font:11px
 }
 
 QAbstractItemView QLineEdit {
@@ -521,9 +522,10 @@ QPushButton {
     border-width: 1px;
     border-color: #76797C;
     border-style: solid;
-    padding: 5px;
+    padding: 1px;
     border-radius: 2px;
     outline: none;
+    font:11px
 }
 
 QPushButton:disabled {
@@ -658,6 +660,7 @@ QAbstractSpinBox::down-arrow:hover {
 
 QLabel {
     border: 0px solid black;
+    font:11px
 
 }
 
@@ -1074,11 +1077,13 @@ QTableView {
     border: 1px solid #76797C;
     gridline-color: #31363b;
     background-color: #232629;
+    font:12px
 }
 
 QTableView,
 QHeaderView {
     border-radius: 0px;
+    font:12px
 }
 QTableView::item,
 QListView::item,

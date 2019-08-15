@@ -372,6 +372,7 @@ void TableDevice::CreateWidgets()
     PositioningButton=new QPushButton(tr("Позиционирование..."));
     PositioningButton->setCheckable(true);
     PositioningButton->setAutoDefault(true);
+    PositioningButton->hide();
 
     //-----------------------------------------------------------
     //скрыта
@@ -399,27 +400,27 @@ void TableDevice::CreateWidgets()
     TableSettingsBox->setLayout(SettingsTableLayout);
     //-----------------------------------------------------------
     QVBoxLayout *SettingsButtonLayout=new QVBoxLayout;
-    OnMotionButton=new QPushButton(tr("Включить привод"));
+    OnMotionButton=new QPushButton(tr("Вкл.привод"));
 //    OnMotionButton->setIcon(QIcon(":/icons/turnon.png"));
     OnMotionButton->setEnabled(true);
     OnMotionButton->setAutoDefault(true);
 
-    OffMotionButton=new QPushButton(tr("Отключить привод"));
+    OffMotionButton=new QPushButton(tr("Откл.привод"));
     OffMotionButton->setEnabled(true);
     OffMotionButton->setAutoDefault(true);
 
-    startButton=new QPushButton(tr("Начать вращение"));
+    startButton=new QPushButton(tr("Нач.вращение"));
 //    startButton->setIcon(QIcon(":/icons/start.png"));
     startButton->setEnabled(true);
     startButton->setAutoDefault(true);
 
-    stopButton=new QPushButton(tr("Остановить вращение"));
+    stopButton=new QPushButton(tr("Остан.вращ."));
 
 //    stopButton->setIcon(QIcon(":/icons/stop.png"));
     stopButton->setEnabled(true);
     stopButton->setAutoDefault(true);
 
-    SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
+    SettingsPortButton=new QPushButton(tr("Настр.Com-порта"));
     SettingsPortButton->setIcon(QIcon(":/icons/settings2.png"));
     SettingsPortButton->setEnabled(true);
     SettingsPortButton->setAutoDefault(true);
@@ -485,7 +486,7 @@ void TableDevice::CreateWidgets()
     PositioningLayout->addWidget(ZeroPositionButton,2,1);
     PositioningLayout->addWidget(ExecutePositioningButton,2,0);
     PositioningBox->setLayout(PositioningLayout);
-    PositioningBox->hide();
+//    PositioningBox->hide();
 
 
     //отправка команд

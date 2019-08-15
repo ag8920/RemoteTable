@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport printsupport axcontainer
+QT       += core gui widgets serialport printsupport axcontainer opengl
 
 TARGET = GyroCompas
 TEMPLATE = app
@@ -22,16 +22,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 QMAKE_LFLAGS_RELEASE+= -static -static-libgcc
-#CONFIG(debug, debug|release) {
-#    DESTDIR = $$OUT_PWD/debug
-#} else {
-#    DESTDIR = $$OUT_PWD/release
-#}
-#CONFIG(debug, debug|release) {
-#QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/debug
-#} else{
-#QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/release
-#}
+
+CONFIG(debug, debug|release) {
+    DESTDIR = $$OUT_PWD/debug
+} else {
+    DESTDIR = $$OUT_PWD/release
+}
+CONFIG(debug, debug|release) {
+QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/debug
+} else{
+QMAKE_POST_LINK = $$(QTDIR)/bin/windeployqt $$OUT_PWD/release
+}
 
 #CONFIG(debug, debug|release)
 MOC_DIR=moc
@@ -46,6 +47,8 @@ SOURCES += \
     justdialog/justdialog.cpp \
     ledlamp/rgbled.cpp \
         main.cpp \
+    qcgaugewidget/compaswidget.cpp \
+    qcgaugewidget/qcgaugewidget.cpp \
     tdialog/teodalitdialog.cpp \
         widget.cpp \
     TableDev/tabledevice.cpp \
@@ -71,9 +74,13 @@ SOURCES += \
 
 HEADERS += \
     a_math.h \
+    azimCalcFull/azimCalcFull_types.h \
+    azimCalcFull/rtwtypes.h \
     degwgt/degwidget.h \
     justdialog/justdialog.h \
     ledlamp/rgbled.h \
+    qcgaugewidget/compaswidget.h \
+    qcgaugewidget/qcgaugewidget.h \
     tdialog/teodalitdialog.h \
         widget.h \
     TableDev/tabledevice.h \

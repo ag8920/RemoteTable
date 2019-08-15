@@ -79,5 +79,6 @@
         <file>icons/turnon.png</file>
         <file>icons/input2.png</file>
         <file>icons/theodolite.png</file>
+        <file>icons/exit.png</file>
     </qresource>
 </RCC>

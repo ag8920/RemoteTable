@@ -1,6 +1,7 @@
 #include <QSettings>
 #include <QDoubleValidator>
 #include <QDebug>
+#include <QIcon>
 #include "teodalitdialog.h"
 #include "ui_teodalitdialog.h"
 

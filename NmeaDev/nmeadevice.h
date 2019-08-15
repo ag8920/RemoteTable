@@ -81,7 +81,8 @@ signals:
                         int StopBits,int FlowControl);
     void showPortSettings();
     void signalOutputCommand(int typeElips);
-    void sendBasicData(QByteArray data);
+//    void sendBasicData(QByteArray data);
+    void sendBasicData(double *Lat, double *Lon, double *H);
 public slots:
     void slotConnectPort();
     void PortIsOpen();

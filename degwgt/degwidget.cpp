@@ -2,6 +2,7 @@
 #include "ui_degwidget.h"
 #include <QDoubleValidator>
 #include <QDebug>
+#include <math.h>
 
 degWidget::degWidget(QWidget *parent) :
     QWidget(parent),

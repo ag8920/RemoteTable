@@ -216,7 +216,9 @@ void NmeaDevice::updateNavInf(QByteArray data)
     QDataStream out(&outData, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_3);
     out<<RmcPacket.Lat<<RmcPacket.Lon<<RmcPacket.H<<RmcPacket.Speed<<RmcPacket.Status;
-    emit sendBasicData(outData);
+//    emit sendBasicData(outData);
+    if((RmcPacket.Status=="A") || (RmcPacket.Status=="D"))
+        emit sendBasicData(&RmcPacket.Lat,&RmcPacket.Lon,&RmcPacket.H);
 
 }
 

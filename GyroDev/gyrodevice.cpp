@@ -26,6 +26,9 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     m_tableView=new QTableView(tableWidget);
     m_model=new TableModel(this);
     m_delegate=new MyDelegate(this);
+    //m_tableView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+
 
     log=new loger;
     logThread=new QThread;
@@ -114,10 +117,10 @@ void GyroDevice::SaveData()
 {
     if(SaveButton->isChecked()){
         emit BeginRecord();
-        SaveButton->setText(tr("Остановить запись"));
+        SaveButton->setText(tr("Остановить"));
     }else{
         emit StopRecord();
-        SaveButton->setText(tr("Начать запись"));
+        SaveButton->setText(tr("Запись"));
     }
 
 }
@@ -171,7 +174,7 @@ void GyroDevice::CreateTable()
     m_tableView->setSelectionModel(m_tableView->selectionModel());
     m_tableView->setItemDelegate(m_delegate);
     m_tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_tableView->hide();
+//    m_tableView->hide();
     //m_tableView->setEditTriggers(QAbstractItemView::DoubleClicked);
 }
 //-----------------------------------------------------------
@@ -197,7 +200,7 @@ void GyroDevice::CreateWidgets()
 
     CountPacketLineEdit=new QLineEdit;
     CountPacketLineEdit->setReadOnly(true);
-    CountPacketLabel=new QLabel(tr("Число принятых пакетов:"));
+    CountPacketLabel=new QLabel(tr("Число пакетов:"));
     CountPacketLabel->setBuddy(CountPacketLineEdit);
 
 
@@ -211,7 +214,7 @@ void GyroDevice::CreateWidgets()
     ConsoleVisibleCheckBox->setChecked(false);
     ConsoleVisibleCheckBox->hide();
 
-    SettingsPortButton=new QPushButton(tr("Настройка Com-порта"));
+    SettingsPortButton=new QPushButton(tr("Настр.Com-порта"));
     SettingsPortButton->setIcon(QIcon(":/icons/settings2.png"));
     SettingsPortButton->setEnabled(true);
     SettingsPortButton->setAutoDefault(true);
@@ -231,8 +234,9 @@ void GyroDevice::CreateWidgets()
     AdditionalParamButton=new QPushButton(tr("Дополнительно ..."));
     AdditionalParamButton->setCheckable(true);
     AdditionalParamButton->setAutoDefault(true);
+    AdditionalParamButton->hide();
 
-    SaveButton=new QPushButton(tr("Начать запись"));
+    SaveButton=new QPushButton(tr("Запись"));
     SaveButton->setCheckable(true);
     SaveButton->setAutoDefault(true);
 
@@ -267,16 +271,17 @@ void GyroDevice::CreateWidgets()
     QGroupBox *StatusBox=new QGroupBox(tr("Состояние гироскопичекого устройства"));
     QFormLayout *StatusLayout=new QFormLayout;
 
-    StatusLayout->addRow(tr("Достоверность измеренных данных"),validDataLamp);
-    StatusLayout->addRow(tr("Достоверность положения нуль-индикатора"),validZeroLamp);
-    StatusLayout->addRow(tr("Определяение положения нуль-индикатора"),searchZeroLamp);
+    StatusLayout->addRow(tr("Дост.измер.данных"),validDataLamp);
+    StatusLayout->addRow(tr("Дост.полож.нуль-инд."),validZeroLamp);
+    StatusLayout->addRow(tr("Опред.полож.нуль-инд."),searchZeroLamp);
     StatusLayout->setHorizontalSpacing(0);
     StatusBox->setLayout(StatusLayout);
 
     QGridLayout *MainLayout=new QGridLayout;
-    MainLayout->addWidget(StatusBox,1,0);
-    MainLayout->addWidget(GyroSettingsBox,2,0);
+    MainLayout->addWidget(StatusBox,1,0,1,1);
+    MainLayout->addWidget(GyroSettingsBox,2,0,2,1);
     MainLayout->addLayout(RightLayout,1,1);
+    MainLayout->setRowStretch(2,1);
 
     QVBoxLayout *GeneralLayout=new QVBoxLayout;
     GeneralLayout->addLayout(MainLayout);

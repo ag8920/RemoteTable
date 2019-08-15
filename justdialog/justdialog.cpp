@@ -2,7 +2,7 @@
 #include <QSettings>
 #include "justdialog.h"
 #include "ui_justdialog.h"
-
+#include <QIcon>
 justDialog::justDialog(QWidget *parent) :
     QDialog(parent),
     value(0),
