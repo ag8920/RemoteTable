@@ -134,17 +134,17 @@ void TableDevice::ZeroPostion()
 //-----------------------------------------------------------
 // Назначение:
 //-----------------------------------------------------------
-void TableDevice::GetMsg(const QByteArray &data)
-{
-    if (TypeTableComboBox->currentIndex()==TABLE1)
-    {
-        currPosition=Table1->GetPosition(data);
-    }
-    else if(TypeTableComboBox->currentIndex()==TABLE2)
-    {
-        Table2->ReadMsg(data);
-    }
-}
+//void TableDevice::GetMsg(const QByteArray &data)
+//{
+//    if (TypeTableComboBox->currentIndex()==TABLE1)
+//    {
+//        currPosition=Table1->GetPosition(data);
+//    }
+//    else if(TypeTableComboBox->currentIndex()==TABLE2)
+//    {
+//        //Table2->ReadMsg(data);
+//    }
+//}
 //-----------------------------------------------------------
 // Назначение: получение текущей позиции и
 //             определение движения поворотного стола

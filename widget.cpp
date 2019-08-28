@@ -58,6 +58,8 @@ Widget::Widget(QWidget *parent)
     CreateConnections();
     readSettings();
 
+    randomAction->setChecked(randomize);
+
 
 
     QLibrary lib("azimCalcFull");
@@ -696,6 +698,7 @@ void Widget::InitVariable()
 void Widget::setRandomize(bool value)
 {
     randomize = value;
+    ConfigGyroDevice->setPlanC(value);
 //    qDebug()<<"Random:"<<randomize;
 }
 //-----------------------------------------------------------
@@ -1108,6 +1111,7 @@ void Widget::saveSettings()
     settings.endGroup();
     settings.beginGroup("variable");
     settings.setValue("accyracyTable",accyracyTable);
+    settings.setValue("randomize",randomize);
     settings.endGroup();
     settings.beginGroup("Coordinate");
     settings.setValue("Lat",QString("%1").arg(this->Lat));
@@ -1151,6 +1155,7 @@ void Widget::readSettings()
     settings.endGroup();
     settings.beginGroup("variable");
     accyracyTable=settings.value("accyracyTable").toInt();
+    randomize=settings.value("randomize").toBool();
     settings.endGroup();
     settings.beginGroup("Coordinate");
     Lat=settings.value("Lat").toDouble();

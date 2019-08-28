@@ -143,17 +143,23 @@ void comPort::Stop()
     emit finishedPort();
 }
 //
-void comPort::writeAndRead(const QByteArray &data)
+QByteArray comPort::writeAndRead(const QByteArray &data)
 {
     QByteArray inputData;
     //Записываем в последовательный порт и ждем 50 мс, пока запись не будем произведена
-    if(!this->WriteToPort(data))return;
+    if(!this->WriteToPort(data))return nullptr;
     thisPort.waitForBytesWritten(50);
     //Засыпаем , ожидая, пока стол обработает данные и ответит
-    this->thread()->msleep(50);
-//    return thisPort.readAll();
-    inputData.append(thisPort.readAll());
-    emit dataOutput(inputData);
+    //    this->thread()->msleep(50);
+    //    return thisPort.readAll();
+    if(thisPort.waitForReadyRead(30)){
+        inputData=thisPort.readAll();
+        while (thisPort.waitForReadyRead(10)) {
+            inputData+=thisPort.readAll();
+        }
+    }
+
+    return inputData;
 }
 
 //

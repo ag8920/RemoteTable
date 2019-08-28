@@ -70,7 +70,7 @@ public slots:
     void SetTimer();
 
     void GetPosition(const QByteArray &data);
-    void GetMsg(const QByteArray &data);
+    //void GetMsg(const QByteArray &data);
 
     void StartMeasure();
     void StopMeasure();

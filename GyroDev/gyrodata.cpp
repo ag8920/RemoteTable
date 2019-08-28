@@ -77,6 +77,7 @@ QDataStream &operator>>(QDataStream &in, inputData &packet)
 GyroData::GyroData(QObject *parent) : QObject(parent)
 {
     //this->process();
+    resetStatus();
 
 }
 //-----------------------------------------------------------

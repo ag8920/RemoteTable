@@ -96,11 +96,15 @@ private:
     QThread *logThread;
     QPushButton *SaveButton;
 
+    bool planC; //напористая сдача
+
 public:
     double getSummDa();
     double getMeanDvX();
     double getMeanDvY();
     GyroData *Measure;
     QThread *MeasureThread;
+    bool getPlanC() const;
+    void setPlanC(bool value);
 };
 #endif // GYRODEVICE_H

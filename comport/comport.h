@@ -73,7 +73,7 @@ public slots:
     ///завершение работы с COM-портом,остановка потока
     void Stop();
 
-    void writeAndRead(const QByteArray &data);
+    QByteArray writeAndRead(const QByteArray &data);
 private slots:
     void handleError(QSerialPort::SerialPortError error);///<обработка ошибок
 };

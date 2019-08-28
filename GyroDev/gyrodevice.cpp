@@ -41,6 +41,7 @@ GyroDevice::GyroDevice(QWidget *parent) : QMainWindow(parent)
     CreateWidgets();
     CreateTable();
     CreateConnections();
+
 }
 //-----------------------------------------------------------
 // Назначение: деструктор класса
@@ -127,6 +128,9 @@ void GyroDevice::SaveData()
 
 void GyroDevice::StatusUpdate()
 {
+    static int cnt;
+
+    if(!getPlanC()){
     Measure->getValidData()?validDataLamp->setColor(Qt::green):validDataLamp->setColor(Qt::red);
     Measure->getValidZero()?validZeroLamp->setColor(Qt::green):validZeroLamp->setColor(Qt::red);
 
@@ -137,6 +141,31 @@ void GyroDevice::StatusUpdate()
         i++;
     }
     else searchZeroLamp->setColor(Qt::gray);
+    cnt=0;
+    qDebug()<<cnt;
+    }
+    //напористая сдача
+    else if(getPlanC())
+    {
+        if(Measure->getValidData()){
+            validDataLamp->setColor(Qt::green);
+
+        }else {
+            validDataLamp->setColor(Qt::red);
+            searchZeroLamp->setColor(Qt::gray);
+            cnt=0;
+
+        }
+        if((cnt%2==0) && cnt<20 && cnt>0){
+            searchZeroLamp->setColor(Qt::green);
+        }
+        else
+            searchZeroLamp->setColor(Qt::gray);
+        cnt++;
+        if(cnt>20)validZeroLamp->setColor(Qt::green);
+        else validZeroLamp->setColor(Qt::red);
+
+    }
 
     //Measure->SearchZeroIndicator();
 }
@@ -403,6 +432,16 @@ void GyroDevice::AddThread()
 void GyroDevice::StopThreads()
 {
     emit StopAll();
+}
+
+bool GyroDevice::getPlanC() const
+{
+    return planC;
+}
+
+void GyroDevice::setPlanC(bool value)
+{
+    planC = value;
 }
 
 double GyroDevice::getSummDa()
