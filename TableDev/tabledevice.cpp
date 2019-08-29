@@ -12,7 +12,7 @@
 
 
 enum { HEX=1,DEC,OCT,BIN,ASCII,};
-enum {TABLE1,TABLE2};
+enum TypeTable {TABLE1,TABLE2};
 
 //-----------------------------------------------------------
 // Назначение: конструктор класса
@@ -58,6 +58,7 @@ TableDevice::~TableDevice()
 //-----------------------------------------------------------
 void TableDevice::OpenSerialPort()
 {
+
     if(ComPortButton->isChecked()){
         SettingsDialog::Settings p=SettingsComPort->settings();
         QString name=static_cast<QString>(p.name);
@@ -67,11 +68,33 @@ void TableDevice::OpenSerialPort()
         int stopBits=static_cast<int>(p.stopBits);
         int flowControl=static_cast<int>(p.flowControl);
         //emit ConnectComPort(p);
-        emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
+        if (TypeTableComboBox->currentIndex()==TABLE1)
+            emit ConnectComPort(name,baudRate,dataBits,parity,stopBits,flowControl);
+        else if (TypeTableComboBox->currentIndex()==TABLE2) {
+            Table2->ComPort->ConnectPort(name,baudRate,dataBits,parity,stopBits,flowControl);
+            ResetAbsolutCoordButton->hide();
+            OnMotionButton->hide();
+            OffMotionButton->hide();
+            PositveRotationCheckBox->hide();
+            AbsolutPositioningCheckBox->hide();
+        }
+        TypeTableComboBox->setEnabled(false);
         ComPortButton->setText(tr("Отключить"));
         ComPortButton->setIcon(QIcon(":/icons/connect.png"));
+
     }else{
-        emit DisconnectComPort();
+        if (TypeTableComboBox->currentIndex()==TABLE1)
+            emit DisconnectComPort();
+        else if (TypeTableComboBox->currentIndex()==TABLE2) {
+            Table2->ComPort->DisconnectPort();
+
+        }
+        OnMotionButton->show();
+        OffMotionButton->show();
+        ResetAbsolutCoordButton->show();
+        PositveRotationCheckBox->show();
+        AbsolutPositioningCheckBox->show();
+        TypeTableComboBox->setEnabled(true);
         ComPortButton->setText(tr("Подключить"));
         ComPortButton->setIcon(QIcon(":/icons/disconnect.png"));
     }
@@ -104,31 +127,61 @@ void TableDevice::ExecutePosition()
     QString str;
     isPosition=true;
 
-    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
-    int pos=Deg2Label(PositioningLineEdit->text().toDouble());
-    if(AbsolutPositioningCheckBox->isChecked())
+//    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+//    int pos=Deg2Label(PositioningLineEdit->text().toDouble());
+//    if(AbsolutPositioningCheckBox->isChecked())
+//    {
+//        str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA="
+//                +QString::number(pos)+";bg;";
+//    }
+//    else
+//    {
+//        str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PR="
+//                +QString::number(pos)+";bg;";
+//    }
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+
+    if (TypeTableComboBox->currentIndex()==TABLE1)
     {
-        str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA="
-                +QString::number(pos)+";bg;";
+        int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+        int pos=Deg2Label(PositioningLineEdit->text().toDouble());
+        Table1->setSpeed(QString::number(speed));
+        Table1->setAngle(QString::number(pos));
+        if(AbsolutPositioningCheckBox->isChecked())Table1->setTypePositioning(";PA=");
+        else Table1->setTypePositioning(";PR=");
+
+        Table1->ExecutePos();
     }
-    else
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
     {
-        str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PR="
-                +QString::number(pos)+";bg;";
+        Table2->TurnMode();
+        Table2->setAngle(PositioningLineEdit->text().toFloat());
+
     }
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
 }
 //-----------------------------------------------------------
 // Назначение: возрат в нулевое положение
 //-----------------------------------------------------------
 void TableDevice::ZeroPostion()
 {
-    QByteArray data;
-    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
-    QString str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA=0;bg;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+//    QString str="mo=0;um=5;mo=1;SP="+QString::number(speed)+";PA=0;bg;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+        Table1->ZeroPosition();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->TurnMode();
+        Table2->setAngle(0.);
+    }
 }
 
 //-----------------------------------------------------------
@@ -156,41 +209,79 @@ void TableDevice::GetPosition(const QByteArray &data)
     static bool end=false;
     double currpos=0.;
 
-    if(data.startsWith("px;")){start=true;end=false;}
-    if(start && !end)
-    {
-        for(int pos=0;pos<data.length();pos++)
-        {
-            QChar symbol=data.at(pos);
-            if((symbol>='0'&& symbol<='9') || symbol=='-')
-            {
-                str+=symbol;
-            }
-        }
-    }
-    if(data.endsWith(";")) {end=true;start=false;}
-    if(!str.isEmpty() && end) {
-        currPosition=str.toInt();
-        currpos=Label2Deg(currPosition);
-        CurrPositionLineEdit->setText(QString::number(currpos,'g',8));
-        str=nullptr;
-    }
-    if(isMeasuring)
-    {
-        static int count=0;
-        if((std::abs(currPosition-nextPosition)<=accyracyTable))count++;//косвенный признак того, что стол остановился
-        if((std::abs(currPosition-nextPosition)<=accyracyTable) && isRotation && count>10){
-            isRotation=false;
-            count=0;
-            qDebug()<<"StopRotation";
-            emit StopRotation();
-        }
+//    if(data.startsWith("px;")){start=true;end=false;}
+//    if(start && !end)
+//    {
+//        for(int pos=0;pos<data.length();pos++)
+//        {
+//            QChar symbol=data.at(pos);
+//            if((symbol>='0'&& symbol<='9') || symbol=='-')
+//            {
+//                str+=symbol;
+//            }
+//        }
+//    }
+//    if(data.endsWith(";")) {end=true;start=false;}
+//    if(!str.isEmpty() && end) {
+//        currPosition=str.toInt();
+//        currpos=Label2Deg(currPosition);
+//        CurrPositionLineEdit->setText(QString::number(currpos,'g',8));
+//        str=nullptr;
+//    }
+//    if(isMeasuring)
+//    {
+//        static int count=0;
+//        if((std::abs(currPosition-nextPosition)<=accyracyTable))count++;//косвенный признак того, что стол остановился
+//        if((std::abs(currPosition-nextPosition)<=accyracyTable) && isRotation && count>10){
+//            isRotation=false;
+//            count=0;
+//            qDebug()<<"StopRotation";
+//            emit StopRotation();
+//        }
+        //*******
 //        else if((std::abs(currPosition-nextPosition)>=1) && !isRotation){
 //            emit StartRotation();
 //            isRotation=true;
 //        }
+    //}
+   // prevPosition=currPosition;
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        str=Table1->GetPosition(data);
+        if(!str.isEmpty()) {
+            currPosition=str.toInt();
+            currpos=Label2Deg(currPosition);
+            CurrPositionLineEdit->setText(QString::number(currpos,'g',8));
+            str=nullptr;
+        }
+        if(isMeasuring)
+        {
+            static int count=0;
+            if((std::abs(currPosition-nextPosition)<=accyracyTable))count++;//косвенный признак того, что стол остановился
+            if((std::abs(currPosition-nextPosition)<=accyracyTable) && isRotation && count>10)
+            {
+                isRotation=false;
+                count=0;
+                qDebug()<<"StopRotation";
+                emit StopRotation();
+            }
+
+            prevPosition=currPosition;
+        }
+
     }
-    prevPosition=currPosition;
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+//        CurrPositionLineEdit->setText(QString::number(Table2->getCurrentPos()));
+//        if(isMeasuring){
+//            if(std::fabs(Table2->getCurrentPos()-nextPosition<=0.0001)){
+//                isRotation=false;
+//                emit StopRotation();
+//            }
+//        }
+//        prevPosition=Table2->getCurrentPos();
+    }
 
 }
 //-----------------------------------------------------------
@@ -198,67 +289,145 @@ void TableDevice::GetPosition(const QByteArray &data)
 //-----------------------------------------------------------
 void TableDevice::GoToPosition(double position)
 {
-    QByteArray data;
-    QString str;
+//    QByteArray data;
+//    QString str;
 
-    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
-    nextPosition=Deg2Label(position);
-    str=/*"mo=0;um=5;mo=1;*/"SP="+QString::number(speed)+";PA=" //todo: было PA=
-            +QString::number(nextPosition)+";bg;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
-    isRotation=true;
+//    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+//    nextPosition=Deg2Label(position);
+//    str=/*"mo=0;um=5;mo=1;*/"SP="+QString::number(speed)+";PA="
+//            +QString::number(nextPosition)+";bg;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+//    isRotation=true;
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+        nextPosition=Deg2Label(position);
+        Table1->setSpeed(QString::number(speed));
+        Table1->GoToPosition(QString::number(nextPosition));
+        isRotation=true;
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->TurnMode();
+        Table2->setAngle(static_cast<float>(position));
+        nextPosition=position-floor(position/360.)*360;
+        isRotation=true;
+    }
 }
 //-----------------------------------------------------------
 // Назначение: Запрос текущего полжения
 //-----------------------------------------------------------
 void TableDevice::RequestPosition()
 {
-    QByteArray data;
-    QString str="px;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="px;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->RequestPosition();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->RequestPos();
+        double currentPos=0;
+
+        currentPos=Table2->getCurrentPos();
+        currentPos=currentPos-floor(currentPos/360.)*360.;
+        CurrPositionLineEdit->setText(QString::number(currentPos));
+        if(isMeasuring){
+            if(std::fabs(Table2->getCurrentPos()-nextPosition<=0.0001) && isRotation){
+                isRotation=false;
+                emit StopRotation();
+            }
+        }
+//        qDebug()<<CurrPositionLineEdit->text();
+//        qDebug()<<Table2->getCurrentPos();
+        prevPosition=Table2->getCurrentPos();
+    }
+
 }
 //-----------------------------------------------------------
 // Назначение: Включить привод
 //-----------------------------------------------------------
 void TableDevice::OnMotion()
 {
-    QByteArray data;
-    QString str="mo=1;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="mo=1;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->OnMotion();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+
+    }
 }
 //-----------------------------------------------------------
 // Назначение: начать вращение(команда старт)
 //-----------------------------------------------------------
 void TableDevice::BeginMotion()
 {
-    QByteArray data;
-    QString str="bg;";
-    this->SettingsRotation();
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="bg;";
+//    this->SettingsRotation();
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        SettingsRotation();
+        Table1->BeginMotion();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->SpinMode();
+        Table2->setSpeed(RateOfTurnLineEdit->text().toFloat());
+    }
 }
 //-----------------------------------------------------------
 // Назначение: остановить вращение(команда стоп)
 //-----------------------------------------------------------
 void TableDevice::StopMotion()
 {
-    QByteArray data;
-    QString str="st;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="st;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->StopMotion();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->TurnMode();
+    }
 }
 //-----------------------------------------------------------
 // Назначение: отключить привод
 //-----------------------------------------------------------
 void TableDevice::OffMotion()
 {
-    QByteArray data;
-    QString str="mo=0;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="mo=0;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->OffMotion();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->TurnMode();
+    }
 }
 //-----------------------------------------------------------
 // Назначение: остановить вращение(команда стоп)
@@ -266,20 +435,38 @@ void TableDevice::OffMotion()
 //-----------------------------------------------------------
 void TableDevice::FinishedMotion()
 {
-    QByteArray data;
-    QString str="st;mo=0;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="st;mo=0;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->FinishedMotion();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        Table2->TurnMode();
+    }
 }
 //-----------------------------------------------------------
 // Назначение: сброс абсолютной координаты
 //-----------------------------------------------------------
 void TableDevice::ResetAbsCoord()
 {
-    QByteArray data;
-    QString str="mo=0;px=0;mo=1;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str="mo=0;px=0;mo=1;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->ResetAbsCoord();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+
+    }
 }
 //-----------------------------------------------------------
 // Назначение: отправка команд(ручной режим работы)
@@ -288,22 +475,41 @@ void TableDevice::ManualMode()
 {
     QByteArray data;
     data=SendCommandLineEdit->text().toLocal8Bit();
-    emit OutputToComPort(data);
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+        emit OutputToComPort(data);
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+        Table2->ComPort->WriteToPort(data);
+
 }
 //-----------------------------------------------------------
 // Назначение: настройка скорости и направления вращения
 //-----------------------------------------------------------
 void TableDevice::SettingsRotation()
 {
-    QByteArray data;
-    QString str;
-    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
-    if(PositveRotationCheckBox->isChecked())
-        str="jv=-"+QString::number(speed)+";";
-    else
-        str="jv="+QString::number(speed)+";";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str;
+//    int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+//    if(PositveRotationCheckBox->isChecked())
+//        str="jv=-"+QString::number(speed)+";";
+//    else
+//        str="jv="+QString::number(speed)+";";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
+
+    if(TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        int speed=Deg2Label(RateOfTurnLineEdit->text().toDouble());
+        Table1->setSpeed(QString::number(speed));
+        if(PositveRotationCheckBox->isChecked())
+            Table1->setDirrection("jv=-");
+        else
+            Table1->setDirrection("jv=");
+        Table1->DirectionTurn();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        //nop
+    }
 }
 //-----------------------------------------------------------
 // Назначение: установка формата отображения
@@ -597,6 +803,11 @@ void TableDevice::CreateConnections()
 //     connect(DeviceComPort,&comPort::dataOutput,
 //             this,&TableDevice::GetMsg);
 
+//    connect(TypeTableComboBox, &QComboBox::currentIndexChanged,
+//            this, &TableDevice::slotSetTypeTable);
+    connect(TypeTableComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [=](int index){ setTypeTable(index);});
+
 }
 //-----------------------------------------------------------
 // Назначение: выделение нового потока
@@ -637,6 +848,17 @@ int TableDevice::Deg2Label(double deg)
 double TableDevice::Label2Deg(int label)
 {
     return (label*360./400000.);
+}
+
+void TableDevice::setTypeTable(int value)
+{
+    typeTable = value;
+//    qDebug()<<typeTable;
+}
+
+int TableDevice::getTypeTable() const
+{
+    return typeTable;
 }
 //-----------------------------------------------------------
 // Назначение: установка таймера для опроса текущих координат
@@ -714,12 +936,26 @@ void TableDevice::setAccyracyTable(const int &value)
 
 void TableDevice::initMotion()
 {
-    QByteArray data;
-    QString str;
-    str="mo=0;um=5;mo=1;";
-    data=str.toLocal8Bit();
-    emit OutputToComPort(data);
+//    QByteArray data;
+//    QString str;
+//    str="mo=0;um=5;mo=1;";
+//    data=str.toLocal8Bit();
+//    emit OutputToComPort(data);
 
+    if (TypeTableComboBox->currentIndex()==TABLE1)
+    {
+        Table1->initMotion();
+    }
+    else if(TypeTableComboBox->currentIndex()==TABLE2)
+    {
+        //nop
+    }
+
+}
+
+void TableDevice::slotSetTypeTable(int idx)
+{
+   typeTable=idx;
 }
 
 void TableDevice::readSettings()

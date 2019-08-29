@@ -26,7 +26,7 @@ void tableRS232::ZeroPosition()
 // Назначение: получение текущей позиции и
 //             определение движения поворотного стола
 //-----------------------------------------------------------
-int tableRS232::GetPosition(const QByteArray &data)
+QString tableRS232::GetPosition(const QByteArray &data)
 {
     static QString str=nullptr;
     static bool start=false;
@@ -44,8 +44,10 @@ int tableRS232::GetPosition(const QByteArray &data)
             }
         }
     }
-    if(data.endsWith(";")) {end=true;start=false;}
-    return str.toInt();
+    if(data.endsWith(";")) {end=true;start=false;
+    return str;
+    }
+    return nullptr;
 }
 //-----------------------------------------------------------
 // Назначение: абсолютное позиционирование
@@ -53,7 +55,7 @@ int tableRS232::GetPosition(const QByteArray &data)
 void tableRS232::GoToPosition(QVariant position)
 {
     QString str;
-    str="mo=0;um=5;mo=1;SP="+speed+";PA="
+    str=/*"mo=0;um=5;mo=1;*/ "SP="+speed+";PA="
             +position.toString()+";bg;";
     SendCMD(str);
 }
@@ -112,6 +114,29 @@ void tableRS232::FinishedMotion()
 void tableRS232::ResetAbsCoord()
 {
     QString str="mo=0;px=0;mo=1;";
+    SendCMD(str);
+}
+
+void tableRS232::DirectionTurn()
+{
+    QString str=dirrection+speed+";";
+    SendCMD(str);
+}
+
+QString tableRS232::getDirrection() const
+{
+    return dirrection;
+}
+
+void tableRS232::setDirrection(const QString &value)
+{
+    dirrection = value;
+}
+
+void tableRS232::initMotion()
+{
+    QString str="mo=0;um=5;mo=1;";
+    SendCMD(str);
 }
 //-----------------------------------------------------------
 // Назначение: отправка сообщения
@@ -120,30 +145,47 @@ inline void tableRS232::SendCMD(const QString &cmd)
 {
     emit OutputToComPort(cmd.toLocal8Bit());
 }
-//-----------------------------------------------------------
-// Назначение: установить скорость вращения стола
-//-----------------------------------------------------------
-void tableRS232::SetSpeed(const QString &str)
+
+////-----------------------------------------------------------
+//// Назначение: установить направление движения
+//// по часовой/ против часовой
+////-----------------------------------------------------------
+//void tableRS232::SetTypePositioning(bool pos)
+//{
+//    if (pos==true)
+//        typePositioning=";PA";
+//    else
+//        typePositioning=";PR";
+//}
+
+QString tableRS232::getTypePositioning() const
 {
-    speed=str;
+    return typePositioning;
 }
-//-----------------------------------------------------------
-// Назначение: установить угол поворота
-//-----------------------------------------------------------
-void tableRS232::SetAngle(const QString &str)
+
+void tableRS232::setTypePositioning(const QString &value)
 {
-    angle=str;
+    typePositioning = value;
 }
-//-----------------------------------------------------------
-// Назначение: установить направление движения
-// по часовой/ против часовой
-//-----------------------------------------------------------
-void tableRS232::SetTypePositioning(bool pos)
+
+QString tableRS232::getAngle() const
 {
-    if (pos==true)
-        typePositioning=";PA";
-    else
-        typePositioning=";PR";
+    return angle;
+}
+
+void tableRS232::setAngle(const QString &value)
+{
+    angle = value;
+}
+
+QString tableRS232::getSpeed() const
+{
+    return speed;
+}
+
+void tableRS232::setSpeed(const QString &value)
+{
+    speed = value;
 }
 
 //void tableRS232::AddThreads()

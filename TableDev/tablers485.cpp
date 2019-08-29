@@ -10,6 +10,7 @@ tableRS485::tableRS485(QObject *parent) : QObject(parent)
 {
     encoder=new MarkerEncoder;
     ComPort=new comPort;
+
     currentPos=0.;
     currentSpeed=0.;
     qDebug()<<"tableRS485";

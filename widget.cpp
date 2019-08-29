@@ -28,6 +28,7 @@ QStringList alignmode={"Короткий (ГК-1)",
                          "Произвольное время"
 };
 enum alignmode{GK_1,GK_2,CONTINUOUS,REPEAT};
+enum Table{TABLE1,TABLE2};
 //-----------------------------------------------------------
 // Назначение: конструктор класса
 //-----------------------------------------------------------
@@ -145,7 +146,8 @@ void Widget::Dispatcher()
         //qDebug()<<"case 0";
         break;
     case 1://отправка команды на переход в режим поиска нуль метки
-        this->ConfigGyroDevice->Measure->SearchZeroIndicator();//переделать через сигнал
+        if(ConfigTableDevice->getTypeTable()==TABLE1)
+            this->ConfigGyroDevice->Measure->SearchZeroIndicator();//переделать через сигнал
         ptmr->setInterval(1000);
         ptmr->setSingleShot(true);
         ptmr->start();
@@ -153,45 +155,56 @@ void Widget::Dispatcher()
         //qDebug()<<"case 1 nextstep: "<<step;
         break;
     case 2://вращение стола на 360град, поиск нуль метки
-        if(ConfigGyroDevice->Measure->getModeSearchZero())
-        {
-            emit GotoPosition(-360.);
-            step++;
-            qDebug()<<"case 2: nextstep: "<<step;
+        if(ConfigTableDevice->getTypeTable()==TABLE1){
+            if(ConfigGyroDevice->Measure->getModeSearchZero())
+            {
+                emit GotoPosition(-360.);
+                step++;
+                qDebug()<<"case 2: nextstep: "<<step;
+            }
+            else
+            {
+                ptmr->setInterval(10);
+                ptmr->setSingleShot(true);
+                ptmr->start();
+                step--;
+                qDebug()<<"case 2: nextstep: "<<step;
+            }
         }
-        else
+        else if(ConfigTableDevice->getTypeTable()==TABLE2)
         {
-            ptmr->setInterval(10);
-            ptmr->setSingleShot(true);
-            ptmr->start();
-            step--;
-            qDebug()<<"case 2: nextstep: "<<step;
+            emit GotoPosition(0.);
+            step=5;
         }
         break;
     case 3://пересчет в угловое значение нуль метки, поворот стола в положение нуль индикатора
-        if(this->ConfigGyroDevice->Measure->getValidZero())
-        {
-            emit ResetAbsCoord();
-            zeroAzimuth=(this->ConfigGyroDevice->Measure->getImpulseOfEncoder()*360./400000.);
-            emit GotoPosition(-zeroAzimuth);
-            step++;
-            qDebug()<<"case 3: nextstep:"<<step;
+        if(ConfigTableDevice->getTypeTable()==TABLE1){
+            if(this->ConfigGyroDevice->Measure->getValidZero())
+            {
+                emit ResetAbsCoord();
+                zeroAzimuth=(this->ConfigGyroDevice->Measure->getImpulseOfEncoder()*360./400000.);
+                emit GotoPosition(-zeroAzimuth);
+                step++;
+                qDebug()<<"case 3: nextstep:"<<step;
 
-        }
-        else
-        {
-            StopMeasureSlot();
-            step=0;
-            qDebug()<<"case 3: nextstep: "<<step;
+            }
+            else
+            {
+                StopMeasureSlot();
+                step=0;
+                qDebug()<<"case 3: nextstep: "<<step;
+            }
         }
         break;
     case 4://обнуление абсолютных координат, в положении нуль индикатора стола
-        emit ResetAbsCoord();
-        ptmr->setInterval(10);
-        ptmr->setSingleShot(true);
-        ptmr->start();
-        step++;
-        qDebug()<<"case 4: nextstep: "<<step;
+        if(ConfigTableDevice->getTypeTable()==TABLE1){
+            emit ResetAbsCoord();
+            ptmr->setInterval(10);
+            ptmr->setSingleShot(true);
+            ptmr->start();
+            step++;
+            qDebug()<<"case 4: nextstep: "<<step;
+        }
         break;
     case 5:
         //запуск алгоритма пересчета азимута
@@ -827,6 +840,7 @@ void Widget::Measure()
         }
     }
     else if(threeposition){
+        static double pos=0.;
         switch (numPosition) {
         case DEG_0:
             emit ResetAbsCoord();
@@ -834,14 +848,26 @@ void Widget::Measure()
             dv1_pos0=this->ConfigGyroDevice->getMeanDvX();
             dv2_pos0=this->ConfigGyroDevice->getMeanDvY();
             numPosition=DEG_90;
-            emit GotoPosition(-90);
+            if(ConfigTableDevice->getTypeTable()==TABLE1)
+                emit GotoPosition(-90);
+            else if(ConfigTableDevice->getTypeTable()==TABLE2)
+            {
+                pos+=90.;
+                emit GotoPosition(pos);
+            }
             break;
         case DEG_90:
             da2_pos90=this->ConfigGyroDevice->getSummDa();
             dv1_pos90=this->ConfigGyroDevice->getMeanDvX();
             dv2_pos90=this->ConfigGyroDevice->getMeanDvY();
             numPosition=DEG_180;
-            emit GotoPosition(-180);
+            if(ConfigTableDevice->getTypeTable()==TABLE1)
+                emit GotoPosition(-180);
+            else if(ConfigTableDevice->getTypeTable()==TABLE2)
+            {
+                pos+=90.;
+                emit GotoPosition(pos);
+            }
 //            emit GotoPosition(-90);
             break;
         case DEG_180:
@@ -849,7 +875,13 @@ void Widget::Measure()
             dv1_pos180=this->ConfigGyroDevice->getMeanDvX();
             dv2_pos180=this->ConfigGyroDevice->getMeanDvY();
             numPosition=DEG_0;
-            emit GotoPosition(-360);
+            if(ConfigTableDevice->getTypeTable()==TABLE1)
+                emit GotoPosition(-360);
+            else if(ConfigTableDevice->getTypeTable()==TABLE2)
+            {
+                pos+=180.;
+                emit GotoPosition(pos);
+            }
 //            emit GotoPosition(-180);
             numMeasure++;
             break;

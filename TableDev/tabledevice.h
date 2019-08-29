@@ -80,6 +80,8 @@ public slots:
     void setAccyracyTable(const int &value);
 
     void initMotion();
+
+    void slotSetTypeTable(int idx);
 private:
 
     void readSettings();
@@ -90,6 +92,7 @@ private:
 
     int Deg2Label(double deg);
     double Label2Deg(int label);
+    int typeTable;
 
     QWidget *MainWidget;
     QComboBox *TypeTableComboBox;
@@ -158,6 +161,9 @@ public:
     tableRS232 *Table1;
     tableRS485 *Table2;
 
+
+    int getTypeTable() const;
+    void setTypeTable(int value);
 };
 
 #endif // TABLEDEVICE_H

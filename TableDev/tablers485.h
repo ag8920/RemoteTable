@@ -160,6 +160,7 @@ private:
 };
 
 
+
 namespace a_math {
 unsigned short calcCRC16(unsigned char *pcBlock,unsigned short len);
 double valfixd(const long data, const double scale);

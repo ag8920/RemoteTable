@@ -152,7 +152,7 @@ QByteArray comPort::writeAndRead(const QByteArray &data)
     //Засыпаем , ожидая, пока стол обработает данные и ответит
     //    this->thread()->msleep(50);
     //    return thisPort.readAll();
-    if(thisPort.waitForReadyRead(30)){
+    if(thisPort.waitForReadyRead(50)){
         inputData=thisPort.readAll();
         while (thisPort.waitForReadyRead(10)) {
             inputData+=thisPort.readAll();
