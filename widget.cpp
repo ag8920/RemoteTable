@@ -21,11 +21,13 @@
 
 
 
+
+
 enum position{DEG_0=0,DEG_90,DEG_180,DEG_270,END};
 QStringList alignmode={"Короткий (ГК-1)",
                          "Точный (ГК-2)",
                          //"Повторное ГК",
-                         "Произвольное время"
+                         //"Произвольное время"
 };
 enum alignmode{GK_1,GK_2,CONTINUOUS,REPEAT};
 enum Table{TABLE1,TABLE2};
@@ -104,17 +106,20 @@ void Widget::contextMenuEvent(QContextMenuEvent *event)
     menu.addAction(SetCoordianteAction);
     menu.addAction(InputJustAction);
     menu.addAction(InputTeoJustAction);
-    menu.addAction(ConfigTabelDevAction);
-    menu.addAction(ConfigGyroDevAction);
+    //menu.addAction(ConfigTabelDevAction);
+    //menu.addAction(ConfigGyroDevAction);
+
     menu.addAction(ConfigNmeadeviceAction);
     menu.addSeparator();
     menu.addAction(StartMeasureAction);
     menu.addAction(StopMeasureAction);
-    menu.addAction(FourAlgAction);
+    //menu.addAction(FourAlgAction);
     menu.addAction(ThreeAlgAction);
     menu.addAction(CycleMeasureAction);
-    menu.addAction(SetAccyracyAction);
+
     menu.addAction(DumpCalcDataAction);
+    menu.addSeparator();
+    menu.addAction(SetAccyracyAction);
     menu.addAction(randomAction);
     menu.exec(event->globalPos());
 
@@ -363,7 +368,7 @@ void Widget::CreateActions()
     DumpCalcDataAction=new QAction(tr("Очистить данные"),this);
     DumpCalcDataAction->setIcon(QIcon(":/icons/clear.png"));
 
-    SetAccyracyAction=new QAction(tr("Установить точность позиционирования"),this);
+    SetAccyracyAction=new QAction(tr("Точность позиц. пов.устр."),this);
 
     InputJustAction=new QAction(tr("Ввод поправок"),this);
     InputJustAction->setIcon(QIcon(":/icons/input2.png"));
@@ -435,10 +440,10 @@ void Widget::CreateMenus()
     fileMenu = menuBar()->addMenu(tr("&Меню"));
     fileMenu->addAction(StartMeasureAction);
     fileMenu->addAction(StopMeasureAction);
-    fileMenu->addAction(FourAlgAction);
+//    fileMenu->addAction(FourAlgAction);
     fileMenu->addAction(ThreeAlgAction);
     fileMenu->addAction(CycleMeasureAction);
-    fileMenu->addAction(SetAccyracyAction);    
+//    fileMenu->addAction(SetAccyracyAction);
     fileMenu->addAction(DumpCalcDataAction);
     fileMenu->addSeparator();
     fileMenu->addAction(actionExit);
@@ -448,10 +453,12 @@ void Widget::CreateMenus()
     configMenu = menuBar()->addMenu(tr("&Окно"));
     configMenu->addAction(SetCoordianteAction);
     configMenu->addAction(InputJustAction);
-    configMenu->addAction(InputTeoJustAction);
-    configMenu->addAction(ConfigTabelDevAction);
-    configMenu->addAction(ConfigGyroDevAction);
+    configMenu->addAction(InputTeoJustAction);    
+    //configMenu->addAction(ConfigTabelDevAction);
+    //configMenu->addAction(ConfigGyroDevAction);
     configMenu->addAction(ConfigNmeadeviceAction);
+    configMenu->addSeparator();
+    configMenu->addAction(SetAccyracyAction);
 
     QMenu *viewMenu=menuBar()->addMenu(tr("Вид"));
     viewMenu->addAction(actionfullScreen);
@@ -1263,15 +1270,15 @@ void Widget::selectModeAlign(int idx)
     if(idx==GK_1)
     {
         qDebug()<<"GK1";
-        this->timeAccumulateLineEdit->setText("480");
-        this->timeAccumulateLineEdit->setReadOnly(false);
+        this->timeAccumulateLineEdit->setText("360");
+        this->timeAccumulateLineEdit->setReadOnly(true);
 
     }
     else if(idx==GK_2)
     {
         qDebug()<<"GK2";
-        this->timeAccumulateLineEdit->setText("1200");
-        this->timeAccumulateLineEdit->setReadOnly(false);
+        this->timeAccumulateLineEdit->setText("1080");
+        this->timeAccumulateLineEdit->setReadOnly(true);
 
     }
     else if (idx==REPEAT)
