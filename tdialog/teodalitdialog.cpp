@@ -90,7 +90,6 @@ void teodalitDialog::reject()
 
 void teodalitDialog::readSettings()
 {
-    int i=0;
     QSettings settings("settings.ini", QSettings::IniFormat);
     settings.beginGroup("Justified_teodolit");
     PaPv[0]=settings.value("PaKl").toDouble();

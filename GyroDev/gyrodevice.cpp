@@ -142,7 +142,7 @@ void GyroDevice::StatusUpdate()
     }
     else searchZeroLamp->setColor(Qt::gray);
     cnt=0;
-    qDebug()<<cnt;
+
     }
     //напористая сдача
     else if(getPlanC())

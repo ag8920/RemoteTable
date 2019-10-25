@@ -29,6 +29,7 @@ void tableRS232::ZeroPosition()
 QString tableRS232::GetPosition(const QByteArray &data)
 {
     static QString str=nullptr;
+    QString outstr=nullptr;
     static bool start=false;
     static bool end=false;
 
@@ -45,7 +46,9 @@ QString tableRS232::GetPosition(const QByteArray &data)
         }
     }
     if(data.endsWith(";")) {end=true;start=false;
-    return str;
+        outstr=str;
+        str=nullptr;
+        return outstr;
     }
     return nullptr;
 }

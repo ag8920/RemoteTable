@@ -147,8 +147,8 @@ bool tableRS485::setSpeed(float speed)
 {
     AnswerAngleDrive ansMsg;
     unsigned char bytespacket[9];
-    double fixdata=0;
-    fixdata=a_math::valfixd(0x55d50f00,54613.33);
+//    double fixdata=0;
+//    fixdata=a_math::valfixd(0x55d50f00,54613.33);
     QByteArray data;
     Int32Type val;
     val.iVal=static_cast<int32_t>((speed*54613.33));//град/сек  54613.33==1deg/sec
@@ -253,7 +253,7 @@ void tableRS485::RequestCurrentSpeed()
             QDataStream stream(&answerData, QIODevice::ReadOnly);
             stream.setByteOrder(QDataStream::LittleEndian);
             stream>>SpeedMsg.Point>>SpeedMsg.Data>>SpeedMsg.CRC>>SpeedMsg.STOP;
-            if(SpeedMsg.CRC=a_math::calcCRC16((unsigned char*)answerData.data(),3))
+            if(SpeedMsg.CRC==a_math::calcCRC16((unsigned char*)answerData.data(),3))
             {
                 currentSpeed=static_cast<double>(SpeedMsg.Data)/50;
             }

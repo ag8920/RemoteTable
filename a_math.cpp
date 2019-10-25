@@ -53,7 +53,7 @@ void InvMat (double mat1[][3], double res[][3]) // A^-1=Aij^T/delta
 
 void transMatrix(double matrx[][3], int numrows, int numcols)
 {
-    for(size_t row = 0; row < numrows - 1; row++){
+    for(size_t row = 0; row < (numrows - 1); row++){
         for(size_t col = row + 1; col < numcols; col++)
             std::swap(matrx[col][row], matrx[row][col]);
     }
